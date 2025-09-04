@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.Windows.CppWinRT.2.0.220531.1\build\native\Microsoft.Windows.CppWinRT.props" Condition="Exists('..\packages\Microsoft.Windows.CppWinRT.2.0.220531.1\build\native\Microsoft.Windows.CppWinRT.props')" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\Application\Application.cpp" />
+    <ClCompile Include="source\Core\Timeline\Provider\Timeline.ProviderData.cpp" />
+    <ClCompile Include="source\Core\Timeline\Viewer\Timeline.Panel.cpp" />
+    <ClCompile Include="source\FontManager\FontManager.cpp" />
+    <ClCompile Include="source\FontManager\Fonts\IconsFont.cpp" />
+    <ClCompile Include="source\FontManager\Fonts\MainFont.cpp" />
+    <ClCompile Include="source\Main.cpp" />
+    <ClCompile Include="source\MainMenuBar\MainMenuBar.cpp" />
+    <ClCompile Include="source\ThirdParty\ImGui\imgui.cpp" />
+    <ClCompile Include="source\ThirdParty\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="source\ThirdParty\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="source\ThirdParty\ImGui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="source\ThirdParty\ImGui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="source\ThirdParty\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="source\ThirdParty\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="source\Utils\File\File.cpp" />
+    <ClCompile Include="source\Utils\ImGui\Utils.ImGui.cpp" />
+    <ClCompile Include="source\Utils\Keyboard\Keyboard.cpp" />
+    <ClCompile Include="source\Utils\Math\Math.Lerp.cpp" />
+    <ClCompile Include="source\Utils\OpenGL\Framebuffer\Framebuffer.cpp" />
+    <ClCompile Include="source\Utils\OpenGL\Renderbuffer\Renderbuffer.cpp" />
+    <ClCompile Include="source\Utils\OpenGL\Texture\Texture.cpp" />
+    <ClCompile Include="source\Utils\OpenGL\Window\Manager\WindowManager.cpp" />
+    <ClCompile Include="source\Utils\OpenGL\Window\Window.cpp" />
+    <ClCompile Include="source\Utils\ProcessRunner\ProcessRunner.cpp" />
+    <ClCompile Include="source\Utils\Synchronization\CriticalSection\CriticalSection.cpp" />
+    <ClCompile Include="source\Utils\Synchronization\Event\Event.cpp" />
+    <ClCompile Include="source\Utils\Synchronization\FileMapping\FileMapping.cpp" />
+    <ClCompile Include="source\Utils\Synchronization\Mutex\Mutex.cpp" />
+    <ClCompile Include="source\Utils\Text\Encoding\Unicode\Unicode.cpp" />
+    <ClCompile Include="source\Utils\Text\Encoding\UTF8\UTF8.cpp" />
+    <ClCompile Include="source\Utils\Text\Encoding\Wstring\Wstring.cpp" />
+    <ClCompile Include="source\Utils\Text\Text.cpp" />
+    <ClCompile Include="source\Utils\Timer\Timer.cpp" />
+    <ClCompile Include="source\Utils\Timer\Timer.Framerate.cpp" />
+    <ClCompile Include="source\Utils\Time\Time.cpp" />
+    <ClCompile Include="source\Utils\Values\Values.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="resources\LOGO_small.png">
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\resources</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\resources</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\resources</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)\resources</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="resources\LOGO_transparent.png">
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\resources</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\resources</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\resources</DestinationFolders>
+      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)\resources</DestinationFolders>
+    </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="source\Application\Application.h" />
+    <ClInclude Include="source\Core\Component\Component.h" />
+    <ClInclude Include="source\Core\Timeline\Data\Timeline.Data.h" />
+    <ClInclude Include="source\Core\Timeline\Provider\Timeline.ProviderData.h" />
+    <ClInclude Include="source\Core\Timeline\Viewer\Timeline.Panel.h" />
+    <ClInclude Include="source\FontManager\FontManager.h" />
+    <ClInclude Include="source\FontManager\Fonts\IconsFont.h" />
+    <ClInclude Include="source\FontManager\Fonts\MainFont.h" />
+    <ClInclude Include="source\MainMenuBar\MainMenuBar.h" />
+    <ClInclude Include="source\ThirdParty\IconFontCppHeaders\IconsFontAwesome6.h" />
+    <ClInclude Include="source\ThirdParty\ImGui\imconfig.h" />
+    <ClInclude Include="source\ThirdParty\ImGui\imgui.h" />
+    <ClInclude Include="source\ThirdParty\ImGui\imgui_impl_glfw.h" />
+    <ClInclude Include="source\ThirdParty\ImGui\imgui_impl_opengl3.h" />
+    <ClInclude Include="source\ThirdParty\ImGui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="source\ThirdParty\ImGui\imgui_internal.h" />
+    <ClInclude Include="source\ThirdParty\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="source\ThirdParty\ImGui\imstb_textedit.h" />
+    <ClInclude Include="source\ThirdParty\ImGui\imstb_truetype.h" />
+    <ClInclude Include="source\ThirdParty\ImGui\linmath.h" />
+    <ClInclude Include="source\Utils\File\File.h" />
+    <ClInclude Include="source\Utils\ImGui\Utils.ImGui.h" />
+    <ClInclude Include="source\Utils\Keyboard\Keyboard.h" />
+    <ClInclude Include="source\Utils\Math\Math.Lerp.h" />
+    <ClInclude Include="source\Utils\OpenGL\Enums\OpenGL.Enums.h" />
+    <ClInclude Include="source\Utils\OpenGL\Framebuffer\Framebuffer.h" />
+    <ClInclude Include="source\Utils\OpenGL\Renderbuffer\Renderbuffer.h" />
+    <ClInclude Include="source\Utils\OpenGL\Shaders\Shader.h" />
+    <ClInclude Include="source\Utils\OpenGL\Texture\Texture.h" />
+    <ClInclude Include="source\Utils\OpenGL\UBO\UBO.h" />
+    <ClInclude Include="source\Utils\OpenGL\Window\Manager\WindowManager.h" />
+    <ClInclude Include="source\Utils\OpenGL\Window\Window.h" />
+    <ClInclude Include="source\Utils\ProcessRunner\ProcessRunner.h" />
+    <ClInclude Include="source\Utils\Synchronization\CriticalSection\CriticalSection.h" />
+    <ClInclude Include="source\Utils\Synchronization\Event\Event.h" />
+    <ClInclude Include="source\Utils\Synchronization\FileMapping\FileMapping.h" />
+    <ClInclude Include="source\Utils\Synchronization\Mutex\Mutex.h" />
+    <ClInclude Include="source\Utils\Text\Encoding\Unicode\Unicode.h" />
+    <ClInclude Include="source\Utils\Text\Encoding\UTF8\UTF8.h" />
+    <ClInclude Include="source\Utils\Text\Encoding\Wstring\Wstring.h" />
+    <ClInclude Include="source\Utils\Text\Text.h" />
+    <ClInclude Include="source\Utils\Timer\Timer.Framerate.h" />
+    <ClInclude Include="source\Utils\Timer\Timer.h" />
+    <ClInclude Include="source\Utils\Time\Time.h" />
+    <ClInclude Include="source\Utils\Values\Values.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{c926d00e-4800-42f9-9628-af893d31be06}</ProjectGuid>
+    <RootNamespace>MyAnimationEngine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <SourcePath>C:\Users\sosn2\source\repos\Template_OpenGL_ImGui_BorderlessWindow\Template_OpenGL_ImGui_BorderlessWindow\source;$(SourcePath)</SourcePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <SourcePath>C:\Users\sosn2\source\repos\Template_OpenGL_ImGui_BorderlessWindow\Template_OpenGL_ImGui_BorderlessWindow\source;$(SourcePath)</SourcePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <SourcePath>$(ProjectDir)\source;$(SourcePath)</SourcePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <SourcePath>$(ProjectDir)\source;$(SourcePath)</SourcePath>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\sosn2\source\repos\Template_OpenGL_ImGui_BorderlessWindow\Template_OpenGL_ImGui_BorderlessWindow\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\sosn2\source\repos\Template_OpenGL_ImGui_BorderlessWindow\Template_OpenGL_ImGui_BorderlessWindow\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\Microsoft.Windows.CppWinRT.2.0.220531.1\build\native\Microsoft.Windows.CppWinRT.targets" Condition="Exists('..\packages\Microsoft.Windows.CppWinRT.2.0.220531.1\build\native\Microsoft.Windows.CppWinRT.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.CppWinRT.2.0.220531.1\build\native\Microsoft.Windows.CppWinRT.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.CppWinRT.2.0.220531.1\build\native\Microsoft.Windows.CppWinRT.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Windows.CppWinRT.2.0.220531.1\build\native\Microsoft.Windows.CppWinRT.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.CppWinRT.2.0.220531.1\build\native\Microsoft.Windows.CppWinRT.targets'))" />
+  </Target>
+</Project>
