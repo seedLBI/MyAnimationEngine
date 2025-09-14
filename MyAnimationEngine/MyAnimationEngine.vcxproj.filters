@@ -103,41 +103,68 @@
     <Filter Include="Исходные файлы\Utils\OpenGL\UBO">
       <UniqueIdentifier>{bc38909b-82a6-43b5-b1b2-67274a980c9f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Core\Timeline">
-      <UniqueIdentifier>{c515ce34-ec6b-4568-8f44-588ed2038c86}</UniqueIdentifier>
+    <Filter Include="Исходные файлы\RenderObjects">
+      <UniqueIdentifier>{f5ce5a63-c709-4bfd-8915-e118cd2ba444}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Core\Timeline\Data">
-      <UniqueIdentifier>{6e8760f3-f4f7-46be-a1cf-acb0d59e1ea8}</UniqueIdentifier>
+    <Filter Include="Исходные файлы\Core\Animation">
+      <UniqueIdentifier>{9fb63b6f-57db-4fe0-a0eb-b5021dd02f0b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Core\Timeline\Provider">
-      <UniqueIdentifier>{05c1fb6e-7870-43b7-bbea-ee73c43c19ce}</UniqueIdentifier>
+    <Filter Include="Исходные файлы\Core\Animation\Component">
+      <UniqueIdentifier>{9c735476-366b-4fac-8089-ecda759e4f27}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Core\Timeline\Panel">
-      <UniqueIdentifier>{9eddbc93-93fc-4b66-954e-5f9422cac625}</UniqueIdentifier>
+    <Filter Include="Исходные файлы\Core\Animation\Keyframe">
+      <UniqueIdentifier>{aa11caf2-5cdb-4c5b-8a9d-fc0e4a87d81d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Core\Timeline\Panel\Ruler">
-      <UniqueIdentifier>{4e89ad25-65e5-4bff-94b2-9c344847da9a}</UniqueIdentifier>
+    <Filter Include="Исходные файлы\Core\Animation\Timeline">
+      <UniqueIdentifier>{bea39b65-5231-4179-a494-e878a2857d8e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Core\Timeline\Panel\BottomControls">
-      <UniqueIdentifier>{eeced6aa-7a85-4fff-b471-e30798b4c616}</UniqueIdentifier>
+    <Filter Include="Исходные файлы\Core\Animation\Timeline\Controller">
+      <UniqueIdentifier>{419c2f73-5c7e-47a7-ab76-da5b40f28321}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Core\Timeline\Panel\LayersList">
-      <UniqueIdentifier>{929976e3-9cb1-47f6-8f10-af68078b79cb}</UniqueIdentifier>
+    <Filter Include="Исходные файлы\Core\Animation\Timeline\ProviderData">
+      <UniqueIdentifier>{ecb920f4-d2c2-46eb-9eca-999a7ee01b6f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Core\Timeline\Panel\ListViewer">
-      <UniqueIdentifier>{12339a25-fc43-421d-a07b-e0dc0aa48c26}</UniqueIdentifier>
+    <Filter Include="Исходные файлы\Core\Animation\Timeline\ProviderData\Data">
+      <UniqueIdentifier>{d39404e7-6e12-4de9-9b75-dcf6cf23e44f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Core\Timeline\Panel\CurveEditor">
-      <UniqueIdentifier>{18f79e6c-ee56-4da3-97c1-ac6ffcb67ede}</UniqueIdentifier>
+    <Filter Include="Исходные файлы\Core\Animation\Timeline\Widgets">
+      <UniqueIdentifier>{47a692fc-9035-48de-93a4-9dce18be3a4d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Core\Timeline\Panel\UpperControls">
-      <UniqueIdentifier>{e51a0278-6e48-4343-a5ed-2ea5ffd2ed3e}</UniqueIdentifier>
+    <Filter Include="Исходные файлы\Core\Animation\Timeline\Widgets\Player">
+      <UniqueIdentifier>{23281d86-10f7-49c9-853b-ffdeaa797ccb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Core\Component">
-      <UniqueIdentifier>{ff95a83c-a8d6-4a7f-aa59-7c27a8100197}</UniqueIdentifier>
+    <Filter Include="Исходные файлы\Core\Animation\Timeline\Widgets\Panel">
+      <UniqueIdentifier>{4b6ff360-d682-4949-ab13-9063a61b98a8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\Core\Systems">
-      <UniqueIdentifier>{b71a53ad-06d5-4072-aaff-0fa167c31f4f}</UniqueIdentifier>
+    <Filter Include="Исходные файлы\Core\Animation\Timeline\Widgets\Panel\LayerList">
+      <UniqueIdentifier>{ef9478bd-5b65-4964-bdd0-4f5efc48e05c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Core\Animation\Timeline\Widgets\Panel\ListScrollController">
+      <UniqueIdentifier>{63b53562-adf0-4c87-9346-d08dc08b2637}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Core\Animation\Timeline\Widgets\Panel\TimelineEditor">
+      <UniqueIdentifier>{8f5b639d-1369-491e-8666-11c6e3963dcf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Core\Animation\Timeline\Widgets\Panel\UpperControls">
+      <UniqueIdentifier>{d09df5a0-f463-4ca1-acdc-e23a8ce0dfcb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Core\Animation\Layer">
+      <UniqueIdentifier>{66804338-20c3-4ea8-90e8-08954d1ad245}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Core\Animation\Layer\Data">
+      <UniqueIdentifier>{820ec2f2-07b1-4d6f-8203-756bd350eb49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Core\Animation\Layer\Factory">
+      <UniqueIdentifier>{dcd9a300-6a87-4d8a-b62a-929547629440}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Core\Animation\Layer\Object">
+      <UniqueIdentifier>{4e3342f9-98d6-4ebc-be59-3ac020c2c304}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Core\Animation\Layer\Object\Objects">
+      <UniqueIdentifier>{a83cf704-31ef-4f16-ad67-d12e35c1c3ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Core\Animation\Layer\ProviderData">
+      <UniqueIdentifier>{99afca66-ff56-4b34-b69c-5e71e78b5a99}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -246,11 +273,47 @@
     <ClCompile Include="source\Utils\Values\Values.cpp">
       <Filter>Исходные файлы\Utils\Values</Filter>
     </ClCompile>
-    <ClCompile Include="source\Core\Timeline\Viewer\Timeline.Panel.cpp">
-      <Filter>Исходные файлы\Core\Timeline\Panel</Filter>
+    <ClCompile Include="source\RenderObjects\RenderableObject.cpp">
+      <Filter>Исходные файлы\RenderObjects</Filter>
     </ClCompile>
-    <ClCompile Include="source\Core\Timeline\Provider\Timeline.ProviderData.cpp">
-      <Filter>Исходные файлы\Core\Timeline\Provider</Filter>
+    <ClCompile Include="source\RenderObjects\Quad\Quad.cpp">
+      <Filter>Исходные файлы\RenderObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Keyframe\Keyframe.cpp">
+      <Filter>Исходные файлы\Core\Animation\Keyframe</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Controller\Timeline.Controller.cpp">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.cpp">
+      <Filter>Исходные файлы\Core\Animation\Timeline\ProviderData</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.cpp">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.cpp">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\LayersList\Timeline.LayersList.cpp">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\LayerList</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\ListScrollController\Timeline.ListScrollController.cpp">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\ListScrollController</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TimelineEditor\Timeline.Editor.cpp">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\TimelineEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.cpp">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\UpperControls</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Layer\Factory\Layer.Factory.cpp">
+      <Filter>Исходные файлы\Core\Animation\Layer\Factory</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Layer\Object\Layer.Object.cpp">
+      <Filter>Исходные файлы\Core\Animation\Layer\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Layer\Object\Objects\Layer.Object.Solid.cpp">
+      <Filter>Исходные файлы\Core\Animation\Layer\Object\Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -385,17 +448,59 @@
     <ClInclude Include="source\Utils\OpenGL\UBO\UBO.h">
       <Filter>Исходные файлы\Utils\OpenGL\UBO</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Timeline\Data\Timeline.Data.h">
-      <Filter>Исходные файлы\Core\Timeline\Data</Filter>
+    <ClInclude Include="source\RenderObjects\RenderableObject.h">
+      <Filter>Исходные файлы\RenderObjects</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Timeline\Viewer\Timeline.Panel.h">
-      <Filter>Исходные файлы\Core\Timeline\Panel</Filter>
+    <ClInclude Include="source\RenderObjects\Quad\Quad.h">
+      <Filter>Исходные файлы\RenderObjects</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Timeline\Provider\Timeline.ProviderData.h">
-      <Filter>Исходные файлы\Core\Timeline\Provider</Filter>
+    <ClInclude Include="source\Core\Animation\Component\Component.h">
+      <Filter>Исходные файлы\Core\Animation\Component</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Component\Component.h">
-      <Filter>Исходные файлы\Core\Component</Filter>
+    <ClInclude Include="source\Core\Animation\Keyframe\Keyframe.h">
+      <Filter>Исходные файлы\Core\Animation\Keyframe</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Controller\Timeline.Controller.h">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.h">
+      <Filter>Исходные файлы\Core\Animation\Timeline\ProviderData</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Data\Timeline.Data.h">
+      <Filter>Исходные файлы\Core\Animation\Timeline\ProviderData\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.h">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.h">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\LayersList\Timeline.LayersList.h">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\LayerList</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\ListScrollController\Timeline.ListScrollController.h">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\ListScrollController</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TimelineEditor\Timeline.Editor.h">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\TimelineEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.h">
+      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\UpperControls</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Layer\Data\Layers.Data.h">
+      <Filter>Исходные файлы\Core\Animation\Layer\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Layer\Factory\Layer.Factory.h">
+      <Filter>Исходные файлы\Core\Animation\Layer\Factory</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Layer\Object\Layer.Object.h">
+      <Filter>Исходные файлы\Core\Animation\Layer\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Layer\Object\Objects\Layer.Object.Solid.h">
+      <Filter>Исходные файлы\Core\Animation\Layer\Object\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Layer\ProviderData\Layers.Data.Provider.h">
+      <Filter>Исходные файлы\Core\Animation\Layer\ProviderData</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

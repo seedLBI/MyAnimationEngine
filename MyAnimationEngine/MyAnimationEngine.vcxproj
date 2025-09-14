@@ -21,13 +21,25 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Application\Application.cpp" />
-    <ClCompile Include="source\Core\Timeline\Provider\Timeline.ProviderData.cpp" />
-    <ClCompile Include="source\Core\Timeline\Viewer\Timeline.Panel.cpp" />
+    <ClCompile Include="source\Core\Animation\Keyframe\Keyframe.cpp" />
+    <ClCompile Include="source\Core\Animation\Layer\Factory\Layer.Factory.cpp" />
+    <ClCompile Include="source\Core\Animation\Layer\Object\Layer.Object.cpp" />
+    <ClCompile Include="source\Core\Animation\Layer\Object\Objects\Layer.Object.Solid.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Controller\Timeline.Controller.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\LayersList\Timeline.LayersList.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\ListScrollController\Timeline.ListScrollController.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TimelineEditor\Timeline.Editor.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.cpp" />
     <ClCompile Include="source\FontManager\FontManager.cpp" />
     <ClCompile Include="source\FontManager\Fonts\IconsFont.cpp" />
     <ClCompile Include="source\FontManager\Fonts\MainFont.cpp" />
     <ClCompile Include="source\Main.cpp" />
     <ClCompile Include="source\MainMenuBar\MainMenuBar.cpp" />
+    <ClCompile Include="source\RenderObjects\Quad\Quad.cpp" />
+    <ClCompile Include="source\RenderObjects\RenderableObject.cpp" />
     <ClCompile Include="source\ThirdParty\ImGui\imgui.cpp" />
     <ClCompile Include="source\ThirdParty\ImGui\imgui_demo.cpp" />
     <ClCompile Include="source\ThirdParty\ImGui\imgui_draw.cpp" />
@@ -74,14 +86,28 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Application\Application.h" />
-    <ClInclude Include="source\Core\Component\Component.h" />
-    <ClInclude Include="source\Core\Timeline\Data\Timeline.Data.h" />
-    <ClInclude Include="source\Core\Timeline\Provider\Timeline.ProviderData.h" />
-    <ClInclude Include="source\Core\Timeline\Viewer\Timeline.Panel.h" />
+    <ClInclude Include="source\Core\Animation\Component\Component.h" />
+    <ClInclude Include="source\Core\Animation\Keyframe\Keyframe.h" />
+    <ClInclude Include="source\Core\Animation\Layer\Data\Layers.Data.h" />
+    <ClInclude Include="source\Core\Animation\Layer\Factory\Layer.Factory.h" />
+    <ClInclude Include="source\Core\Animation\Layer\Object\Layer.Object.h" />
+    <ClInclude Include="source\Core\Animation\Layer\Object\Objects\Layer.Object.Solid.h" />
+    <ClInclude Include="source\Core\Animation\Layer\ProviderData\Layers.Data.Provider.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Controller\Timeline.Controller.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Data\Timeline.Data.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\LayersList\Timeline.LayersList.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\ListScrollController\Timeline.ListScrollController.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TimelineEditor\Timeline.Editor.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.h" />
     <ClInclude Include="source\FontManager\FontManager.h" />
     <ClInclude Include="source\FontManager\Fonts\IconsFont.h" />
     <ClInclude Include="source\FontManager\Fonts\MainFont.h" />
     <ClInclude Include="source\MainMenuBar\MainMenuBar.h" />
+    <ClInclude Include="source\RenderObjects\Quad\Quad.h" />
+    <ClInclude Include="source\RenderObjects\RenderableObject.h" />
     <ClInclude Include="source\ThirdParty\IconFontCppHeaders\IconsFontAwesome6.h" />
     <ClInclude Include="source\ThirdParty\ImGui\imconfig.h" />
     <ClInclude Include="source\ThirdParty\ImGui\imgui.h" />

@@ -31,6 +31,16 @@
 #include "FontManager/FontManager.h"
 
 
+#include "Core/Animation/Timeline/Widgets/Panel/Timeline.Panel.h"
+#include "Core/Animation/Timeline/Widgets/Player/Timeline.Player.h"
+#include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
+
+#include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
+#include "Core/Animation/Layer/Factory/Layer.Factory.h"
+
+
+
+
 static WNDPROC orig_wndproc = nullptr;
 static std::unordered_map<HWND, GLFWwindow*> g_hwnd_to_window;
 
@@ -59,6 +69,14 @@ private:
 	MainMenuBar* mainMenuBar = nullptr;
 	FontManager* fontManager = nullptr;
 
+
+	LayersDataProvider* layersData = nullptr;
+	LayerFactory* layersFactory = nullptr;
+	TimelineProviderData* timelineData = nullptr;
+	TimelineController* timelineController = nullptr;
+	TimelinePanel* timelinePanel = nullptr;
+
+	Timeline_Player* playerComposition = nullptr;
 
 	void Draw();
 

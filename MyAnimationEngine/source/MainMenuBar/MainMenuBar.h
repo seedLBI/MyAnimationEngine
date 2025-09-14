@@ -24,10 +24,14 @@ public:
 	MainMenuBar(WindowManager* windowManager);
 	~MainMenuBar();
 
+	int GetHeightMenu();
+
 	void Draw();
 	bool IsPointOverTitleButton(const POINT& pt) const;
 private:
 	WindowManager* windowManager = nullptr;
+
+	int heightMenu = 0;
 
 	void DrawLogo();
 	void DrawWindowButtons();

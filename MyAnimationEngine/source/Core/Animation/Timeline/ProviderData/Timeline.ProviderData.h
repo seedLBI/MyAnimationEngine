@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Timeline/Data/Timeline.Data.h"
+#include "Core/Animation/Timeline/ProviderData/Data/Timeline.Data.h"
 
 class TimelineProviderData {
 public:

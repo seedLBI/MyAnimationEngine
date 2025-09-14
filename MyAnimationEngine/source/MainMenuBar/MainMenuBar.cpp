@@ -10,9 +10,14 @@ MainMenuBar::~MainMenuBar() {
 
 }
 
+int MainMenuBar::GetHeightMenu()
+{
+	return heightMenu;
+}
+
 void MainMenuBar::Draw() {
 
-
+	heightMenu = 0;
 	titleButtonRects.clear();
 
 	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 0.f, 0.f, 0.f));
@@ -27,6 +32,9 @@ void MainMenuBar::Draw() {
 }
 
 void MainMenuBar::Draw_MainMenu() {
+
+	heightMenu += ImGui::GetFrameHeight();
+
 	if (ImGui::BeginMainMenuBar()) {
 
 		menuBarPos = ImGui::GetWindowPos();
@@ -50,7 +58,7 @@ void MainMenuBar::Draw_MainMenu() {
 void MainMenuBar::Draw_SecondaryMenu() {
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
 	float height = ImGui::GetFrameHeight();
-
+	heightMenu += height;
 
 
 	if (ImGui::BeginViewportSideBar("##SecondaryMenuBar", NULL, ImGuiDir_Up, height, window_flags)) {
