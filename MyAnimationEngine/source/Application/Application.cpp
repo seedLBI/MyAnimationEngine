@@ -25,7 +25,7 @@ Application::Application() {
 
 	layersFactory		= new LayerFactory(timelineData, layersData);
 	timelineController  = new TimelineController(timelineData);
-	timelinePanel		= new TimelinePanel(timelineData, layersData, layersFactory);
+	timelinePanel		= new TimelinePanel(fps_limiter, timelineData, layersData, layersFactory);
 
 	playerComposition	= new Timeline_Player(timelineController);
 
@@ -120,12 +120,13 @@ Application::~Application() {
 
 void Application::Run() {
 	while (windowManager->GetMainWindow()->IsShouldClose() == false) {
+		Update();
 
 		BeginDraw();
 			Draw();
 		EndDraw();
 
-		Update();
+
 
 	}
 }
@@ -137,6 +138,9 @@ void Application::Draw() {
 	playerComposition->Draw();
 
 	ImGui::ShowDemoWindow();
+
+	DebugOverlay::DrawDebug();
+
 
 }
 void Application::Update() {

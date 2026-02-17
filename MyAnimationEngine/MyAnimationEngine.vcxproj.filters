@@ -315,6 +315,18 @@
     <ClCompile Include="source\Core\Animation\Layer\Object\Objects\Layer.Object.Solid.cpp">
       <Filter>Исходные файлы\Core\Animation\Layer\Object\Objects</Filter>
     </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Transform\Timeline.Transform.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\DebugOverlay\DebugOverlay.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Utils\LerpedValue\LerpedValue.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TailTraceEffect\TailTraceEffect.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="resources\LOGO_small.png">
@@ -501,6 +513,18 @@
     </ClInclude>
     <ClInclude Include="source\Core\Animation\Layer\ProviderData\Layers.Data.Provider.h">
       <Filter>Исходные файлы\Core\Animation\Layer\ProviderData</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Transform\Timeline.Transform.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\DebugOverlay\DebugOverlay.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Utils\LerpedValue\LerpedValue.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TailTraceEffect\TailTraceEffect.h">
+      <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

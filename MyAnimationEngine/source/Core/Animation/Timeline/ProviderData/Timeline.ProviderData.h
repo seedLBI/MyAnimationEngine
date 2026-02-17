@@ -8,6 +8,8 @@ public:
 	~TimelineProviderData() = default;
 
 	Timeline& GetData();
+	void SetTimeline(Timeline newTimeline);
+
 
 private:
 	Timeline data;

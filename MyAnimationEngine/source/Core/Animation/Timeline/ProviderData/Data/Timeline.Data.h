@@ -26,7 +26,10 @@ struct Timeline{
 	}
 
 	void SetTime(const long double& time) {
-		currentTime = time > totalTime ? totalTime : time;
+		if (time <= 0)
+			currentTime = 0;
+		else
+			currentTime = time > totalTime ? totalTime : time;
 		UpdateCurrentFrame();
 	}
 

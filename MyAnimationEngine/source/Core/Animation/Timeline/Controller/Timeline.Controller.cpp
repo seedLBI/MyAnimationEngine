@@ -10,8 +10,21 @@ void TimelineController::Pause() {
 }
 
 void TimelineController::Play() {
-	state = TimelineRunState::RUNNING;
-	timer.start();
+
+
+	if (data->GetData().currentTime == data->GetData().totalTime) {
+		data->GetData().SetTime(0.0l);
+		state = TimelineRunState::RUNNING;
+		timer.start();
+	}
+	else if (state == TimelineRunState::RUNNING) {
+		state = TimelineRunState::PAUSE;
+		data->GetData().SetTime((uint64_t)data->GetData().currentFrame);
+	}
+	else {
+		state = TimelineRunState::RUNNING;
+		timer.start();
+	}
 }
 
 void TimelineController::PlayCycle()

@@ -45,9 +45,9 @@ void Timeline_ListScrollController::Draw()
 
 	ImGui::SetCursorScreenPos(p_min);
 
-	if (ImGui::InvisibleButton("SliderScrollTimeline", SizeSlider, ImGuiButtonFlags_PressedOnDragDropHold)) {
-		std::cout << "holding\n";
-	}
+	ImGui::InvisibleButton("SliderScrollTimeline", SizeSlider, ImGuiButtonFlags_PressedOnDragDropHold);
+		
+	
 }
 
 void Timeline_ListScrollController::Update()

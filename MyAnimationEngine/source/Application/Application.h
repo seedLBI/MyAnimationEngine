@@ -38,7 +38,7 @@
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Layer/Factory/Layer.Factory.h"
 
-
+#include "Core/DebugOverlay/DebugOverlay.h"
 
 
 static WNDPROC orig_wndproc = nullptr;
