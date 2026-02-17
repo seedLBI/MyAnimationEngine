@@ -1,15 +1,15 @@
-#ifndef TIMELINE_TRANSFORM_H
-#define TIMELINE_TRANSFORM_H
+#ifndef TIMELINE_TRANSFORM_HORIZONTAL_H
+#define TIMELINE_TRANSFORM_HORIZONTAL_H
 
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 
 #include "Utils/LerpedValue/LerpedValue.h"
 
 
-class TimelineTransform {
+class TimelineTransformHorizontal {
 public:
-	TimelineTransform(TimelineProviderData* providerData);
-	~TimelineTransform();
+	TimelineTransformHorizontal(TimelineProviderData* providerData);
+	~TimelineTransformHorizontal();
 
 	void updateAvailableWidth(const double& availableWidth);
 	void update(const float& dt);

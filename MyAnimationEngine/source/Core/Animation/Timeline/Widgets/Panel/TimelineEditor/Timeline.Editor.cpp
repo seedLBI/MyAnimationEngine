@@ -32,6 +32,14 @@ void Timeline_Editor::Draw() {
 
 	ImGui::BeginChild(u8"TimelineEditorBody", SizeBody,0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 		
+	for (size_t i = 0; i < layersData->GetData().layers.size(); i++) {
+
+
+
+
+	}
+
+
 	ImGui::EndChild();
 
 	ImGui::SameLine();
@@ -47,9 +55,13 @@ void Timeline_Editor::Update() {
 }
 
 Timeline_Editor::Timeline_Editor(
+	FPS_Timer* deltaTime,
+	TimelineTransformHorizontal* timelineTransformHorizontal,
 	TimelineProviderData* timelineData,
 	LayersDataProvider* layersData,
 	Timeline_ListScrollController* listScrollController) : 
+	deltaTime(deltaTime),
+	timelineTransformHorizontal(timelineTransformHorizontal),
 	timelineData(timelineData), 
 	layersData(layersData), 
 	listScrollController(listScrollController)

@@ -55,7 +55,10 @@ void Timeline_ListScrollController::Update()
 
 }
 
-float Timeline_ListScrollController::GetWidth()
-{
+float Timeline_ListScrollController::GetHeightListObject() {
+	return ImGui::GetTextLineHeight();
+}
+
+float Timeline_ListScrollController::GetWidth() {
 	return widthScroll;
 }

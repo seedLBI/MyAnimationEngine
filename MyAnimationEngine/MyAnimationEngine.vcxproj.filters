@@ -315,7 +315,7 @@
     <ClCompile Include="source\Core\Animation\Layer\Object\Objects\Layer.Object.Solid.cpp">
       <Filter>Исходные файлы\Core\Animation\Layer\Object\Objects</Filter>
     </ClCompile>
-    <ClCompile Include="source\Core\Animation\Timeline\Transform\Timeline.Transform.cpp">
+    <ClCompile Include="source\Core\Animation\Timeline\Transform\Horizontal\Timeline.Transform.Horizontal.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="source\Core\DebugOverlay\DebugOverlay.cpp">
@@ -325,6 +325,12 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TailTraceEffect\TailTraceEffect.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Transform\Vertical\Timeline.Transform.Vertical.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Ruler\Timeline.Ruler.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -514,7 +520,7 @@
     <ClInclude Include="source\Core\Animation\Layer\ProviderData\Layers.Data.Provider.h">
       <Filter>Исходные файлы\Core\Animation\Layer\ProviderData</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Animation\Timeline\Transform\Timeline.Transform.h">
+    <ClInclude Include="source\Core\Animation\Timeline\Transform\Horizontal\Timeline.Transform.Horizontal.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Core\DebugOverlay\DebugOverlay.h">
@@ -524,6 +530,12 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TailTraceEffect\TailTraceEffect.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Transform\Vertical\Timeline.Transform.Vertical.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Ruler\Timeline.Ruler.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

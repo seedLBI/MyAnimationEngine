@@ -10,10 +10,10 @@ public:
 	void Draw();
 	void Update();
 
+	float GetHeightListObject();
 	float GetWidth();
 
 private:
 	LayersDataProvider* layersData;
-
 	const float widthScroll = 15.f;
 };

@@ -1,39 +1,40 @@
-#include "Timeline.Transform.h"
+#include "Timeline.Transform.Horizontal.h"
 
-TimelineTransform::TimelineTransform(TimelineProviderData* providerData) 
+TimelineTransformHorizontal::TimelineTransformHorizontal(TimelineProviderData* providerData) 
 	: providerData(providerData) 
 {
 	scale.SetAll(1.f);
 	offset.SetAll(0.f);
 }
-TimelineTransform::~TimelineTransform() {
+
+TimelineTransformHorizontal::~TimelineTransformHorizontal() {
 
 }
 
-void TimelineTransform::updateAvailableWidth(const double& availableWidth) {
+void TimelineTransformHorizontal::updateAvailableWidth(const double& availableWidth) {
 	this->width_available = availableWidth;
 }
 
-void TimelineTransform::update(const float& dt) {
-	scale.Update(dt);
-	offset.Update(dt);
+void TimelineTransformHorizontal::update(const float& dt) {
+	scale.Update(dt * 20.f);
+	offset.Update(dt * 20.f);
 }
 
-float TimelineTransform::getPostionScreen_real(const float& globalPos) {
+float TimelineTransformHorizontal::getPostionScreen_real(const float& globalPos) {
 	return getOffset().GetReal() +  getLengthTick_real() * globalPos;
 }
-float TimelineTransform::getPostionGlobal_real(const float& screenPos) {
+float TimelineTransformHorizontal::getPostionGlobal_real(const float& screenPos) {
 	return (screenPos - getOffset().GetReal()) / (getLengthTick_real());
 }
 
-float TimelineTransform::getPostionScreen_lerped(const float& globalPos) {
+float TimelineTransformHorizontal::getPostionScreen_lerped(const float& globalPos) {
 	return getOffset().GetLerped() + getLengthTick_lerped() * globalPos;
 }
-float TimelineTransform::getPostionGlobal_lerped(const float& screenPos) {
+float TimelineTransformHorizontal::getPostionGlobal_lerped(const float& screenPos) {
 	return (screenPos - getOffset().GetLerped()) / (getLengthTick_lerped());
 }
 
-void TimelineTransform::zoomToPointByValue(const double& relative_point, const double& value, const bool& isScreen) {
+void TimelineTransformHorizontal::zoomToPointByValue(const double& relative_point, const double& value, const bool& isScreen) {
 	float prev, next;
 
 
@@ -58,20 +59,20 @@ void TimelineTransform::zoomToPointByValue(const double& relative_point, const d
 	getOffset().Set(real_offset + real_offsetDelta);
 
 }
-void TimelineTransform::zoomRestore() {
+void TimelineTransformHorizontal::zoomRestore() {
 	getScale().Set(1.f);
 	getOffset().Set(0.f);
 }
 
-double TimelineTransform::getLengthTick_real() {
+double TimelineTransformHorizontal::getLengthTick_real() {
 	return 200.0 * getScale().GetReal();
 }
 
-double TimelineTransform::getLengthTick_lerped() {
+double TimelineTransformHorizontal::getLengthTick_lerped() {
 	return 200.0 * getScale().GetLerped();
 }
 
-void TimelineTransform::centerize(const double& relative_point, const bool& isScreen) {
+void TimelineTransformHorizontal::centerize(const double& relative_point, const bool& isScreen) {
 
 	float screen_center = width_available / 2.f;
 	float screen_point = isScreen == true? relative_point : getPostionScreen_real(relative_point);
@@ -84,32 +85,32 @@ void TimelineTransform::centerize(const double& relative_point, const bool& isSc
 
 }
 
-void TimelineTransform::addZoom(const double& value) {
+void TimelineTransformHorizontal::addZoom(const double& value) {
 	real_scale += value;
 	getScale().Set(real_scale);
 }
-void TimelineTransform::scaleZoomBy(const double& value) {
+void TimelineTransformHorizontal::scaleZoomBy(const double& value) {
 	zoomToPointByValue(width_available / 2.f, value);
 }
 
-void TimelineTransform::addOffset(const double& value) {
+void TimelineTransformHorizontal::addOffset(const double& value) {
 	real_offset += value;
 	getOffset().Set(real_offset + real_offsetDelta);
 }
-void TimelineTransform::setOffsetDelta(const double& delta) {
+void TimelineTransformHorizontal::setOffsetDelta(const double& delta) {
 	real_offsetDelta = delta;
 	getOffset().Set(real_offset + real_offsetDelta);
 }
-void TimelineTransform::applyOffsetDelta() {
+void TimelineTransformHorizontal::applyOffsetDelta() {
 	real_offset += real_offsetDelta;
 	real_offsetDelta = 0;
 
 	getOffset().Set(real_offset + real_offsetDelta);
 }
 
-LerpedValue_float& TimelineTransform::getOffset() {
+LerpedValue_float& TimelineTransformHorizontal::getOffset() {
 	return offset;
 }
-LerpedValue_float& TimelineTransform::getScale() {
+LerpedValue_float& TimelineTransformHorizontal::getScale() {
 	return scale;
 }

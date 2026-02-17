@@ -27,9 +27,11 @@
     <ClCompile Include="source\Core\Animation\Layer\Object\Objects\Layer.Object.Solid.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Controller\Timeline.Controller.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Transform\Timeline.Transform.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Transform\Horizontal\Timeline.Transform.Horizontal.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Transform\Vertical\Timeline.Transform.Vertical.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\LayersList\Timeline.LayersList.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\ListScrollController\Timeline.ListScrollController.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Ruler\Timeline.Ruler.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TailTraceEffect\TailTraceEffect.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TimelineEditor\Timeline.Editor.cpp" />
@@ -100,9 +102,11 @@
     <ClInclude Include="source\Core\Animation\Timeline\Controller\Timeline.Controller.h" />
     <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Data\Timeline.Data.h" />
     <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Transform\Timeline.Transform.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Transform\Horizontal\Timeline.Transform.Horizontal.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Transform\Vertical\Timeline.Transform.Vertical.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\LayersList\Timeline.LayersList.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\ListScrollController\Timeline.ListScrollController.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Ruler\Timeline.Ruler.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TailTraceEffect\TailTraceEffect.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TimelineEditor\Timeline.Editor.h" />

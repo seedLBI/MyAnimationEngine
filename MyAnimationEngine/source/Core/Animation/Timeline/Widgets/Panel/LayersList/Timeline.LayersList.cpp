@@ -61,7 +61,7 @@ ImVec2 Timeline_LayersList::DrawObject(const ImVec2& p, std::shared_ptr<LayerObj
 {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	float height_object = ImGui::GetTextLineHeight();
+	float height_object = listScrollController->GetHeightListObject();
 	float width_window = ImGui::GetWindowWidth();
 
 	ImVec2 p2(p.x + width_window, p.y + height_object);
