@@ -50,6 +50,8 @@ private:
 	double real_offset = 0.f;
 	double real_offsetDelta = 0.f;
 
+	float base_step = 200.f;
+
 
 	float width_available = 0.f;
 

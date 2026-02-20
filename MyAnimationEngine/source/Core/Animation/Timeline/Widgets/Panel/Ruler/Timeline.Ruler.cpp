@@ -2,11 +2,9 @@
 
 
 Timeline_Ruler::Timeline_Ruler(
-	FPS_Timer* deltaTime, 
 	TimelineProviderData* timelineData, 
 	TimelineTransformHorizontal* timelineTransformHorizontal) 
-	: deltaTime(deltaTime),
-	  timelineData(timelineData),
+	: timelineData(timelineData),
 	  timelineTransformHorizontal(timelineTransformHorizontal)
 {
 

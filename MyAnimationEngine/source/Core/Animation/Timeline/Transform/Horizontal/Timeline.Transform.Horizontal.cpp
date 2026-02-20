@@ -65,11 +65,11 @@ void TimelineTransformHorizontal::zoomRestore() {
 }
 
 double TimelineTransformHorizontal::getLengthTick_real() {
-	return 200.0 * getScale().GetReal();
+	return base_step * getScale().GetReal();
 }
 
 double TimelineTransformHorizontal::getLengthTick_lerped() {
-	return 200.0 * getScale().GetLerped();
+	return base_step * getScale().GetLerped();
 }
 
 void TimelineTransformHorizontal::centerize(const double& relative_point, const bool& isScreen) {

@@ -17,6 +17,11 @@ void LayerObject::DrawHitBoxViewport() {
 
 }
 
+bool LayerObject::isHit() {
+	return false;
+}
+
+
 void LayerObject::Update()
 {
 

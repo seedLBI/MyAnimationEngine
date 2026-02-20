@@ -10,6 +10,7 @@ public:
 
 	void Draw() override;
 	void DrawHitBoxViewport() override;
+	bool isHit() override;
 	void Update() override;
 
 private:

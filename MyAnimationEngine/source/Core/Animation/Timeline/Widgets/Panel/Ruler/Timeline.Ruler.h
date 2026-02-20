@@ -11,7 +11,7 @@
 
 class Timeline_Ruler {
 public:
-	Timeline_Ruler(FPS_Timer* deltaTime, TimelineProviderData* timelineData, TimelineTransformHorizontal* timelineTransformHorizontal);
+	Timeline_Ruler(TimelineProviderData* timelineData, TimelineTransformHorizontal* timelineTransformHorizontal);
 	~Timeline_Ruler();
 
 	void Draw();
@@ -19,7 +19,6 @@ public:
 
 private:
 
-	FPS_Timer* deltaTime = nullptr;
 	TimelineProviderData* timelineData = nullptr;
 	TimelineTransformHorizontal* timelineTransformHorizontal = nullptr;
 	

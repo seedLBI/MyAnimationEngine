@@ -294,15 +294,6 @@
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.cpp">
       <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel</Filter>
     </ClCompile>
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\LayersList\Timeline.LayersList.cpp">
-      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\LayerList</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\ListScrollController\Timeline.ListScrollController.cpp">
-      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\ListScrollController</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TimelineEditor\Timeline.Editor.cpp">
-      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\TimelineEditor</Filter>
-    </ClCompile>
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.cpp">
       <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\UpperControls</Filter>
     </ClCompile>
@@ -331,6 +322,21 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Ruler\Timeline.Ruler.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\List\Timeline.Layers.List.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\Viewer\Timeline.Layers.Viewer.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Vertical\Timeline.Scroll.Vertical.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Horizontal\Timeline.Scroll.Horizontal.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Range\Timeline.Range.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -493,15 +499,6 @@
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.h">
       <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\LayersList\Timeline.LayersList.h">
-      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\LayerList</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\ListScrollController\Timeline.ListScrollController.h">
-      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\ListScrollController</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TimelineEditor\Timeline.Editor.h">
-      <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\TimelineEditor</Filter>
-    </ClInclude>
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.h">
       <Filter>Исходные файлы\Core\Animation\Timeline\Widgets\Panel\UpperControls</Filter>
     </ClInclude>
@@ -536,6 +533,21 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Ruler\Timeline.Ruler.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\List\Timeline.Layers.List.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\Viewer\Timeline.Layers.Viewer.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Vertical\Timeline.Scroll.Vertical.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Horizontal\Timeline.Scroll.Horizontal.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Range\Timeline.Range.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

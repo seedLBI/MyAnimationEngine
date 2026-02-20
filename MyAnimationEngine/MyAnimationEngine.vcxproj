@@ -29,12 +29,14 @@
     <ClCompile Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Transform\Horizontal\Timeline.Transform.Horizontal.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Transform\Vertical\Timeline.Transform.Vertical.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\LayersList\Timeline.LayersList.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\ListScrollController\Timeline.ListScrollController.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\List\Timeline.Layers.List.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Horizontal\Timeline.Scroll.Horizontal.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Vertical\Timeline.Scroll.Vertical.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\Viewer\Timeline.Layers.Viewer.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Range\Timeline.Range.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Ruler\Timeline.Ruler.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TailTraceEffect\TailTraceEffect.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TimelineEditor\Timeline.Editor.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.cpp" />
     <ClCompile Include="source\Core\DebugOverlay\DebugOverlay.cpp" />
@@ -104,12 +106,14 @@
     <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Transform\Horizontal\Timeline.Transform.Horizontal.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Transform\Vertical\Timeline.Transform.Vertical.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\LayersList\Timeline.LayersList.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\ListScrollController\Timeline.ListScrollController.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\List\Timeline.Layers.List.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Horizontal\Timeline.Scroll.Horizontal.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Vertical\Timeline.Scroll.Vertical.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\Viewer\Timeline.Layers.Viewer.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Range\Timeline.Range.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Ruler\Timeline.Ruler.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TailTraceEffect\TailTraceEffect.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TimelineEditor\Timeline.Editor.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.h" />
     <ClInclude Include="source\Core\DebugOverlay\DebugOverlay.h" />
@@ -180,6 +184,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -193,6 +198,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">

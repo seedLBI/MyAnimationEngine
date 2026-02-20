@@ -9,20 +9,20 @@ TimelinePanel::TimelinePanel(FPS_Timer* deltaTime, TimelineProviderData* timelin
 	layerFactory(layerFactory)
 {
 
+
 	timelineTransformHorizontal = new TimelineTransformHorizontal(timelineData);
+	timelineTransformVertical	= new TimelineTransformVertical();
 
-	timelineRuler = new Timeline_Ruler(deltaTime, timelineData, timelineTransformHorizontal);
+	scrollHorizontal = new Timeline_Scroll_Horizontal(timelineData, timelineTransformHorizontal);
+	scrollVertical = new Timeline_Scroll_Vertical(layersData, timelineTransformVertical);
 
-
-
-	listScrollController = new Timeline_ListScrollController(layersData);
 	upperControls = new Timeline_UpperControls(timelineData);
-	layersList = new Timeline_LayersList(layersData, layerFactory, listScrollController);
-	timelineEditor = new Timeline_Editor(deltaTime, timelineTransformHorizontal, timelineData, layersData, listScrollController);
 
+	timelineRuler = new Timeline_Ruler(timelineData, timelineTransformHorizontal);
+	timelineRange = new Timeline_Range(timelineData, timelineTransformHorizontal);
 
-
-
+	layersList = new Timeline_Layers_List(layersData, timelineTransformVertical);
+	layersViewer = new Timeline_Layers_Viewer(layersData, timelineData, timelineTransformVertical, timelineTransformHorizontal);
 
 	layerFactory->CreateSolid();
 	layerFactory->CreateSolid();
@@ -45,32 +45,34 @@ TimelinePanel::TimelinePanel(FPS_Timer* deltaTime, TimelineProviderData* timelin
 
 TimelinePanel::~TimelinePanel() {
 	delete layersList;
-	delete listScrollController;
+	delete layersViewer;
+	delete timelineRuler;
+	delete timelineRange;
 	delete upperControls;
-	delete timelineEditor;
+
+	delete scrollHorizontal;
+	delete scrollVertical;
+
+	delete timelineTransformHorizontal;
+	delete timelineTransformVertical;
+
 }
 
 void TimelinePanel::Draw() {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
-	if (ImGui::Begin(u8"TimelinePanel")) {
+	if (ImGui::Begin(u8"TimelinePanel",0,ImGuiWindowFlags_NoScrollbar)) {
 
-		
-		DrawLeftSide();
+		const float thickness_separator = 1.f;
 
-		ImGui::SameLine();
-
-		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, 3.f);
-
-		ImGui::SameLine();
-
-		DrawRightSide();
-
-		ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, 3.f);
-
-		DrawBottomControls();
-
+		Draw_1Level(thickness_separator);
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, thickness_separator);
+		Draw_2Level(thickness_separator);
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, thickness_separator);
+		Draw_3Level(thickness_separator);
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, thickness_separator);
+		Draw_4Level(thickness_separator);
 
 		
 	}
@@ -80,75 +82,181 @@ void TimelinePanel::Draw() {
 
 }
 
-void TimelinePanel::Update() {
-	timelineTransformHorizontal->update(deltaTime->GetDeltaTime());
+void TimelinePanel::Draw_1Level(const float& thickness_separator) {
 
-	timelineRuler->Update();
+	float height = ImGui::GetTextLineHeight() * 2.f;
 
+	DrawLayerSide_1Level(height);
 
-	layersList->Update();
-	upperControls->Update();
-	timelineEditor->Update();
-	listScrollController->Update();
+	ImGui::SameLine();
+	ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, thickness_separator);
+	ImGui::SameLine();
+
+	DrawTimelineSide_1Level(height);
+
+	ImGui::SameLine();
+	ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, thickness_separator);
+	ImGui::SameLine();
+
+	DrawVerticalSliderBox_1Level(height);
+
 }
-
-void TimelinePanel::DrawLeftSide() {
-	ImGui::BeginChild(u8"Timeline_LeftSide",ImVec2(500,ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()*2.5f));
-
-		DrawUpperControls();
-		ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, 3.f);
-		DrawLayerList();
-
-	ImGui::EndChild();
-}
-
-void TimelinePanel::DrawRightSide() {
-	ImGui::BeginChild(u8"Timeline_RightSide",ImVec2(0, ImGui::GetWindowHeight() - ImGui::GetTextLineHeight() * 2.5f));
-
-		DrawRuler();
-		ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, 3.f);
-		DrawEditors();
-
-	ImGui::EndChild();
-}
-
-void TimelinePanel::DrawRuler() {
-	timelineRuler->Draw();
-}
-
-void TimelinePanel::DrawUpperControls() {
-	ImGui::BeginChild(u8"Timeline_UpperControls", ImVec2(0, ImGui::GetTextLineHeight()*2.f));
+void TimelinePanel::DrawLayerSide_1Level(const float& height) {
+	ImGui::BeginChild(u8"Timeline_LayerSide_1Level", ImVec2(500, height));
 
 	upperControls->Draw();
 
 	ImGui::EndChild();
 }
+void TimelinePanel::DrawTimelineSide_1Level(const float& height) {
+	ImGui::BeginChild(u8"Timeline_TimelineSide_1Level", ImVec2(ImGui::GetContentRegionAvail().x - 20, height));
 
-void TimelinePanel::DrawBottomControls() {
-	ImGui::BeginChild(u8"Timeline_BottomControls", ImVec2(0, ImGui::GetTextLineHeight()));
-
-	ImGui::Text("BottomControl");
-
+	timelineRuler->Draw();
 
 	ImGui::EndChild();
 }
+void TimelinePanel::DrawVerticalSliderBox_1Level(const float& height) {
+	ImGui::BeginChild(u8"Timeline_SliderSide_1Level", ImVec2(20, height));
 
-void TimelinePanel::DrawLayerList() {
-	ImGui::BeginChild(u8"Timeline_LayerList");
-
-		layersList->Draw();
-
-	ImGui::EndChild();
-}
-
-void TimelinePanel::DrawEditors() {
-	ImGui::BeginChild(u8"Timeline_Editors",ImVec2(0,0),0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-
-		timelineEditor->Draw();
+	
 
 	ImGui::EndChild();
 }
 
 
+void TimelinePanel::Draw_2Level(const float& thickness_separator) {
+	float height = ImGui::GetTextLineHeight();
+
+	DrawLayerSide_2Level(height);
+
+	ImGui::SameLine();
+	ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, thickness_separator);
+	ImGui::SameLine();
+
+	DrawTimelineSide_2Level(height);
+
+	ImGui::SameLine();
+	ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, thickness_separator);
+	ImGui::SameLine();
+
+	DrawVerticalSliderBox_2Level(height);
+
+}
+void TimelinePanel::DrawLayerSide_2Level(const float& height) {
+
+	ImGui::BeginChild(u8"Timeline_LayerSide_2Level", ImVec2(500, height));
 
 
+
+	ImGui::EndChild();
+
+}
+void TimelinePanel::DrawTimelineSide_2Level(const float& height) {
+	ImGui::BeginChild(u8"Timeline_TimelineSide_2Level", ImVec2(ImGui::GetContentRegionAvail().x - 20, height));
+
+	timelineRange->Draw();
+
+	ImGui::EndChild();
+}
+void TimelinePanel::DrawVerticalSliderBox_2Level(const float& height) {
+	ImGui::BeginChild(u8"Timeline_SliderSide_2Level", ImVec2(20, height));
+
+
+
+	ImGui::EndChild();
+}
+
+
+void TimelinePanel::Draw_3Level(const float& thickness_separator) {
+	float height = ImGui::GetContentRegionAvail().y - 20.f;
+
+	DrawLayerSide_3Level(height);
+
+	ImGui::SameLine();
+	ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, thickness_separator);
+	ImGui::SameLine();
+
+	DrawTimelineSide_3Level(height);
+
+	ImGui::SameLine();
+	ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, thickness_separator);
+	ImGui::SameLine();
+
+	DrawVerticalSliderBox_3Level(height);
+}
+void TimelinePanel::DrawLayerSide_3Level(const float& height) {
+	ImGui::BeginChild(u8"Timeline_LayerSide_3Level", ImVec2(500, height));
+
+
+
+	ImGui::EndChild();
+}
+void TimelinePanel::DrawTimelineSide_3Level(const float& height) {
+	ImGui::BeginChild(u8"Timeline_TimelineSide_3Level", ImVec2(ImGui::GetContentRegionAvail().x - 20, height));
+
+
+
+	ImGui::EndChild();
+}
+void TimelinePanel::DrawVerticalSliderBox_3Level(const float& height) {
+	ImGui::BeginChild(u8"Timeline_SliderSide_3Level", ImVec2(20, height));
+
+	scrollVertical->Draw();
+
+	ImGui::EndChild();
+}
+
+
+void TimelinePanel::Draw_4Level(const float& thickness_separator) {
+	float height = 20.f;
+
+	DrawLayerSide_4Level(height);
+
+	ImGui::SameLine();
+	ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, thickness_separator);
+	ImGui::SameLine();
+
+	DrawTimelineSide_4Level(height);
+
+	ImGui::SameLine();
+	ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, thickness_separator);
+	ImGui::SameLine();
+
+	DrawVerticalSliderBox_4Level(height);
+}
+void TimelinePanel::DrawLayerSide_4Level(const float& height) {
+	ImGui::BeginChild(u8"Timeline_LayerSide_4Level", ImVec2(500, height));
+
+
+
+	ImGui::EndChild();
+}
+void TimelinePanel::DrawTimelineSide_4Level(const float& height) {
+	ImGui::BeginChild(u8"Timeline_TimelineSide_4Level", ImVec2(ImGui::GetContentRegionAvail().x - 20, height));
+
+	scrollHorizontal->Draw();
+
+	ImGui::EndChild();
+}
+void TimelinePanel::DrawVerticalSliderBox_4Level(const float& height) {
+	ImGui::BeginChild(u8"Timeline_SliderSide_4Level", ImVec2(20, height));
+
+
+
+	ImGui::EndChild();
+}
+
+
+void TimelinePanel::Update() {
+	timelineTransformHorizontal->update(deltaTime->GetDeltaTime());
+	timelineTransformVertical->update(deltaTime->GetDeltaTime());
+
+	scrollHorizontal->Update();
+	scrollVertical->Update();
+
+	timelineRuler->Update();
+	timelineRange->Update();
+	layersList->Update();
+	layersViewer->Update();
+	upperControls->Update();
+}

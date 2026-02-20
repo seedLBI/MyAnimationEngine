@@ -22,6 +22,11 @@ void LayerObject_Solid::DrawHitBoxViewport()
 	
 }
 
+bool LayerObject_Solid::isHit() {
+	return false;
+}
+
+
 LayerObject_Solid::LayerObject_Solid(const LayerInfo& info) : LayerObject(info)
 {
 

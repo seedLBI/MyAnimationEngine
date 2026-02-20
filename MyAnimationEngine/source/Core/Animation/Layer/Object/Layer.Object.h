@@ -11,6 +11,7 @@ public:
 
 	virtual void Draw();
 	virtual void DrawHitBoxViewport();
+	virtual bool isHit();
 	virtual void Update();
 
 	LayerInfo& GetLayerInfo();

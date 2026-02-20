@@ -1,8 +1,13 @@
 #ifndef TIMELINE_PANEL_H
 #define TIMELINE_PANEL_H
 
-#include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
+
+
 #include "Core/Animation/Timeline/Transform/Horizontal/Timeline.Transform.Horizontal.h"
+#include "Core/Animation/Timeline/Transform/Vertical/Timeline.Transform.Vertical.h"
+
+
+#include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Layer/Factory/Layer.Factory.h"
 
@@ -10,11 +15,13 @@
 
 //elements ruler
 #include "UpperControls/Timeline.UpperControls.h"
-#include "TimelineEditor/Timeline.Editor.h"
-#include "Ruler/Timeline.Ruler.h"
 
-#include "Core/Animation//Timeline/Widgets/Panel/LayersList/Timeline.LayersList.h"
-#include "Core/Animation//Timeline/Widgets/Panel/ListScrollController/Timeline.ListScrollController.h"
+#include "Ruler/Timeline.Ruler.h"
+#include "Range/Timeline.Range.h"
+#include "Scroll/Horizontal/Timeline.Scroll.Horizontal.h"
+#include "Scroll/Vertical/Timeline.Scroll.Vertical.h"
+#include "Layers/List/Timeline.Layers.List.h"
+#include "Layers/Viewer/Timeline.Layers.Viewer.h"
 
 
 #include "Core/DebugOverlay/DebugOverlay.h"
@@ -32,26 +39,47 @@ public:
 
 private:
 	FPS_Timer* deltaTime = nullptr;
-	TimelineProviderData* timelineData = nullptr;
-	TimelineTransformHorizontal* timelineTransformHorizontal = nullptr;
 
+	TimelineProviderData* timelineData = nullptr;
 	LayersDataProvider* layersData = nullptr;
+
 	LayerFactory* layerFactory = nullptr;
 
-	Timeline_Ruler* timelineRuler;
-	Timeline_Editor* timelineEditor;
-	Timeline_LayersList* layersList;
+	TimelineTransformHorizontal* timelineTransformHorizontal = nullptr;
+	TimelineTransformVertical*   timelineTransformVertical = nullptr;
+
+	Timeline_Scroll_Horizontal* scrollHorizontal;
+	Timeline_Scroll_Vertical*   scrollVertical;
+
+	Timeline_Ruler*			timelineRuler;
+	Timeline_Range*			timelineRange;
+	Timeline_Layers_List*	layersList;
+	Timeline_Layers_Viewer* layersViewer;
 	Timeline_UpperControls* upperControls;
-	Timeline_ListScrollController* listScrollController;
 
-	void DrawLeftSide();
-	void DrawRightSide();
 
-	void DrawEditors();
-	void DrawUpperControls();
-	void DrawBottomControls();
-	void DrawRuler();
-	void DrawLayerList();
+	void Draw_1Level(const float& thickness_separator);
+	void DrawLayerSide_1Level(const float& height);
+	void DrawTimelineSide_1Level(const float& height);
+	void DrawVerticalSliderBox_1Level(const float& height);
+
+
+	void Draw_2Level(const float& thickness_separator);
+	void DrawLayerSide_2Level(const float& height);
+	void DrawTimelineSide_2Level(const float& height);
+	void DrawVerticalSliderBox_2Level(const float& height);
+
+
+	void Draw_3Level(const float& thickness_separator);
+	void DrawLayerSide_3Level(const float& height);
+	void DrawTimelineSide_3Level(const float& height);
+	void DrawVerticalSliderBox_3Level(const float& height);
+
+
+	void Draw_4Level(const float& thickness_separator);
+	void DrawLayerSide_4Level(const float& height);
+	void DrawTimelineSide_4Level(const float& height);
+	void DrawVerticalSliderBox_4Level(const float& height);
 
 
 };
