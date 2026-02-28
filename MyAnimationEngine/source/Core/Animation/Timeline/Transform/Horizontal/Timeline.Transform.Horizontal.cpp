@@ -1,4 +1,4 @@
-#include "Timeline.Transform.Horizontal.h"
+﻿#include "Timeline.Transform.Horizontal.h"
 
 TimelineTransformHorizontal::TimelineTransformHorizontal(TimelineProviderData* providerData) 
 	: providerData(providerData) 
@@ -107,12 +107,14 @@ void TimelineTransformHorizontal::applyOffsetDelta() {
 	getOffset().Set(real_offset + real_offsetDelta);
 }
 
-float TimelineTransformHorizontal::getLeftRange_global() {
+float TimelineTransformHorizontal::getLeftBoundView_global() {
 	return getPostionGlobal_real(0.f);
 }
-float TimelineTransformHorizontal::getRightRange_global() {
+float TimelineTransformHorizontal::getRightBoundView_global() {
 	return getPostionGlobal_real(this->width_available);
 }
+
+
 
 void TimelineTransformHorizontal::fitToRanges(const double& global_left, const double& global_right) {
 

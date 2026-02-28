@@ -3,10 +3,12 @@
 
 TimelinePanel::TimelinePanel(
 	FPS_Timer* deltaTime, 
+	TimelineController* timelineController,
 	TimelineProviderData* timelineData, 
 	LayersDataProvider* layersData, 
 	LayerFactory* layerFactory) 
 	 :	deltaTime(deltaTime),
+		timelineController(timelineController),
 		timelineData(timelineData), 
 		layersData(layersData),
 		layerFactory(layerFactory)
@@ -21,7 +23,7 @@ TimelinePanel::TimelinePanel(
 
 	upperControls = new Timeline_UpperControls(timelineData);
 
-	timelineRuler = new Timeline_Ruler(timelineData, timelineTransformHorizontal);
+	timelineRuler = new Timeline_Ruler(timelineController, timelineData, timelineTransformHorizontal);
 	timelineRange = new Timeline_Range(timelineData, timelineTransformHorizontal);
 
 	layersList = new Timeline_Layers_List(layersData, timelineTransformVertical);
@@ -77,14 +79,20 @@ void TimelinePanel::Draw() {
 		std::string str_s_mouse = "screen: " + std::to_string(timelineRuler->getScreenMouse());
 		std::string str_g_mouse = "global: " + std::to_string(timelineRuler->getGlobalMouse());
 
-		std::string str_left_range = "[" + std::to_string(timelineTransformHorizontal->getLeftRange_global()) + "]";
-		std::string str_right_range = "[" + std::to_string(timelineTransformHorizontal->getRightRange_global()) + "]";
-
+		std::string str_left_range =  std::to_string(timelineTransformHorizontal->getLeftBoundView_global());
+		std::string str_right_range = std::to_string(timelineTransformHorizontal->getRightBoundView_global());
 
 		DebugOverlay::AddText(str_s_mouse, ImColor(1.f, 1.f, 1.f, 1.f));
 		DebugOverlay::AddText(str_g_mouse, ImColor(1.f, 1.f, 1.f, 1.f));
-		DebugOverlay::AddText(str_left_range, ImColor(0.f, 1.f, 0.f, 1.f));
-		DebugOverlay::AddText(str_right_range, ImColor(1.f, 0.f, 0.f, 1.f));
+
+		DebugOverlay::AddText(
+			{
+				{str_left_range, ImColor(0.f, 1.f, 0.f, 1.f)},
+				{str_right_range, ImColor(1.f, 0.f, 0.f, 1.f)}
+			}
+		);
+
+
 	
 	ImGui::End();
 

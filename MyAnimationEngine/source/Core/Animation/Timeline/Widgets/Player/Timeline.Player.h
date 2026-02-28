@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
 
 class Timeline_Player
@@ -12,4 +12,5 @@ public:
 
 private:
 	TimelineController* controller;
+	float multiplier = 1.f;
 };

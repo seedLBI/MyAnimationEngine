@@ -25,7 +25,7 @@ Application::Application() {
 
 	layersFactory		= new LayerFactory(timelineData, layersData);
 	timelineController  = new TimelineController(timelineData);
-	timelinePanel		= new TimelinePanel(fps_limiter, timelineData, layersData, layersFactory);
+	timelinePanel		= new TimelinePanel(fps_limiter, timelineController, timelineData, layersData, layersFactory);
 
 	playerComposition	= new Timeline_Player(timelineController);
 

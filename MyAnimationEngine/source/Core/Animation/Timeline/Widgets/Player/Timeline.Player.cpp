@@ -19,7 +19,7 @@ Timeline_Player::~Timeline_Player()
 
 void Timeline_Player::Draw() {
 
-	ImGui::Begin(u8"Проигрователь");
+	ImGui::Begin(u8"Проигрыватель");
 
 	if (ImGui::Button(ICON_FA_BACKWARD_FAST)) {
 		controller->FirstFrame();
@@ -36,6 +36,12 @@ void Timeline_Player::Draw() {
 	}
 	ImGui::SameLine();
 
+	if (ImGui::Button(ICON_FA_ARROW_ROTATE_RIGHT)) {
+		controller->PlayCycle();
+	}
+	ImGui::SameLine();
+
+
 	if (ImGui::Button(ICON_FA_FORWARD)) {
 		controller->NextFrame();
 	}
@@ -44,6 +50,10 @@ void Timeline_Player::Draw() {
 	if (ImGui::Button(ICON_FA_FORWARD_FAST)) {
 		controller->LastFrame();
 	}
+
+	ImGui::SliderFloat(u8"Скорость", &multiplier, 0.1f, 5.f);
+
+	controller->SetSpeedMultiplier(multiplier);
 
 	ImGui::End();
 

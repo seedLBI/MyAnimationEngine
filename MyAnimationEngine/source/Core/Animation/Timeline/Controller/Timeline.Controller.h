@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Utils/Timer/Timer.h"
@@ -24,11 +24,16 @@ public:
 	void NextFrame();
 	void LastFrame();
 
+	void SetSpeedMultiplier(const float& multiplier);
+
+	const TimelineRunState& GetState();
 
 	void Update();
 
 private:
 	TimelineProviderData* data;
+
+	float speed_multiplier = 1.f;
 
 	Timer timer;
 

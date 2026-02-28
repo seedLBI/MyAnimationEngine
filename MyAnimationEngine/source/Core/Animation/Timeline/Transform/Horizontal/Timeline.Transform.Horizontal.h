@@ -1,4 +1,4 @@
-#ifndef TIMELINE_TRANSFORM_HORIZONTAL_H
+﻿#ifndef TIMELINE_TRANSFORM_HORIZONTAL_H
 #define TIMELINE_TRANSFORM_HORIZONTAL_H
 
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
@@ -37,8 +37,9 @@ public:
 	void setOffsetDelta(const double& delta);
 	void applyOffsetDelta();
 
-	float getLeftRange_global();
-	float getRightRange_global();
+	float getLeftBoundView_global();
+	float getRightBoundView_global();
+
 
 	void fitToRanges(const double& global_left, const double& global_right);
 

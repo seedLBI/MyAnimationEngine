@@ -1,8 +1,9 @@
-#ifndef TIMELINE_RULER_H
+﻿#ifndef TIMELINE_RULER_H
 #define TIMELINE_RULER_H
 
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Timeline/Transform/Horizontal/Timeline.Transform.Horizontal.h"
+#include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
 #include "Utils/Timer/Timer.Framerate.h"
 
 
@@ -11,7 +12,7 @@
 
 class Timeline_Ruler {
 public:
-	Timeline_Ruler(TimelineProviderData* timelineData, TimelineTransformHorizontal* timelineTransformHorizontal);
+	Timeline_Ruler(TimelineController* timelineController, TimelineProviderData* timelineData, TimelineTransformHorizontal* timelineTransformHorizontal);
 	~Timeline_Ruler();
 
 	void Draw();
@@ -23,7 +24,7 @@ public:
 
 
 private:
-
+	TimelineController* timelineController = nullptr;
 	TimelineProviderData* timelineData = nullptr;
 	TimelineTransformHorizontal* timelineTransformHorizontal = nullptr;
 	
@@ -42,6 +43,17 @@ private:
 
 	void FitAllTimeline();
 
+
+	bool OutOfView(const ImVec2& pos);
+
+	bool OutOfView(const ImVec2& pos_min, const ImVec2& pos_max);
+
+
+
+	ImColor color_background = { 0.f,0.f,0.f,1.f };
+	ImColor color_mainTick = { 1.f,1.f,1.f,1.f };
+	ImColor color_subTick = { 1.f,1.f,1.f,0.4f };
+	ImColor color_bounds = { 0.2f,0.7f,1.f,1.f };
 
 };
 

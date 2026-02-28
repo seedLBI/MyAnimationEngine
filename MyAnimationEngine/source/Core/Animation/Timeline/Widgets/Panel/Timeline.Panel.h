@@ -8,6 +8,8 @@
 #include "Core/Animation/Timeline/Transform/Horizontal/Timeline.Transform.Horizontal.h"
 #include "Core/Animation/Timeline/Transform/Vertical/Timeline.Transform.Vertical.h"
 
+#include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
+
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Layer/Factory/Layer.Factory.h"
@@ -32,6 +34,7 @@ class TimelinePanel {
 public:
 	TimelinePanel(
 		FPS_Timer* deltaTime, 
+		TimelineController* timelineController,
 		TimelineProviderData* timelineData, 
 		LayersDataProvider* layersData, 
 		LayerFactory* layerFactory
@@ -44,6 +47,7 @@ public:
 private:
 	FPS_Timer* deltaTime = nullptr;
 
+	TimelineController* timelineController = nullptr;
 	TimelineProviderData* timelineData = nullptr;
 	LayersDataProvider* layersData = nullptr;
 
