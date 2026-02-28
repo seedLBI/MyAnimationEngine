@@ -16,7 +16,7 @@ Timeline_Ruler::~Timeline_Ruler() {
 
 
 void Timeline_Ruler::Draw() {
-	ImGui::BeginChild(u8"Timeline_Ruler", ImVec2(0, ImGui::GetTextLineHeight() * 2.f));
+	//ImGui::BeginChild(u8"Timeline_Ruler", ImVec2(0, ImGui::GetTextLineHeight() * 2.f));
 
 
 	auto drawlist = ImGui::GetWindowDrawList();
@@ -145,6 +145,8 @@ void Timeline_Ruler::Draw() {
 
 	drawlist->AddRectFilled(min_pos_main_tick, max_pos_main_tick, color_main_tick_timeline, 2.f, 0.f);
 
+	/*
+	
 	min_pos_main_tick = { pos_timeline - width_main_tick * 6.f, p_max.y - height_timeline };
 	max_pos_main_tick = { pos_timeline, p_max.y };
 
@@ -152,10 +154,11 @@ void Timeline_Ruler::Draw() {
 		min_pos_main_tick, max_pos_main_tick,
 		color_main_tick_timeline_transparent, color_main_tick_timeline, color_main_tick_timeline, color_main_tick_timeline_transparent);
 
+	*/
 
 
 
-	ImGui::EndChild();
+	//ImGui::EndChild();
 }
 
 #include <iostream>
@@ -168,6 +171,7 @@ void Timeline_Ruler::UpdateVars() {
 	float mouse_fixed = mouse_real_screen - cursor_pos.x;
 	mouse_global = timelineTransformHorizontal->getPostionGlobal_real(mouse_fixed);
 	mouse_screen = timelineTransformHorizontal->getPostionScreen_real(mouse_global);
+
 }
 void Timeline_Ruler::UpdateZoom() {
 	if (!isHovered) return;
@@ -179,6 +183,19 @@ void Timeline_Ruler::UpdateZoom() {
 		timelineTransformHorizontal->zoomToPointByValue(mouse_global, 0.75f, false);
 	}
 }
+
+void Timeline_Ruler::FitAllTimeline() {
+
+}
+
+
+const float& Timeline_Ruler::getGlobalMouse() {
+	return mouse_global;
+}
+const float& Timeline_Ruler::getScreenMouse() {
+	return mouse_screen;
+}
+
 
 void Timeline_Ruler::Update() {
 	UpdateVars();
@@ -194,14 +211,15 @@ void Timeline_Ruler::Update() {
 		timelineTransformHorizontal->applyOffsetDelta();
 	}
 
-
-
-
-
 	if (!isHovered) return;
 
 	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
 		isDraging = true;
+	}
+
+
+	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left, false)) {
+		timelineTransformHorizontal->fitToRanges(0.0, timelineData->GetData().totalTime);
 	}
 
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Right, false)) {
@@ -209,7 +227,7 @@ void Timeline_Ruler::Update() {
 	}
 
 	if (ImGui::IsKeyPressed(ImGuiKey_A)) {
-		timelineTransformHorizontal->centerize(0.0);
+		timelineTransformHorizontal->centerize(timelineData->GetData().totalTime/2.f);
 	}
 	
 

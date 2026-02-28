@@ -1,4 +1,4 @@
-#include "Timeline.Player.h"
+п»ї#include "Timeline.Player.h"
 
 #include "ThirdParty/ImGui/imgui.h"
 #include "ThirdParty/ImGui/imgui_internal.h"
@@ -19,7 +19,7 @@ Timeline_Player::~Timeline_Player()
 
 void Timeline_Player::Draw() {
 
-	ImGui::Begin(u8"Проигрыватель композиций");
+	ImGui::Begin(u8"РџСЂРѕРёРіСЂРѕРІР°С‚РµР»СЊ");
 
 	if (ImGui::Button(ICON_FA_BACKWARD_FAST)) {
 		controller->FirstFrame();

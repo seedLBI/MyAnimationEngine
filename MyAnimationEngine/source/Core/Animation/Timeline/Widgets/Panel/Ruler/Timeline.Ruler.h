@@ -17,6 +17,11 @@ public:
 	void Draw();
 	void Update();
 
+	const float& getGlobalMouse();
+	const float& getScreenMouse();
+
+
+
 private:
 
 	TimelineProviderData* timelineData = nullptr;
@@ -33,6 +38,9 @@ private:
 
 	void UpdateVars();
 	void UpdateZoom();
+
+
+	void FitAllTimeline();
 
 
 };

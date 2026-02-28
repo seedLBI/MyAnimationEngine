@@ -1,8 +1,11 @@
-#ifndef TIMELINE_RANGE_H
+﻿#ifndef TIMELINE_RANGE_H
 #define TIMELINE_RANGE_H
 
 #include "Core/Animation/Timeline/Transform/Horizontal/Timeline.Transform.Horizontal.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
+
+#include "ThirdParty/ImGui/imgui.h"
+#include "ThirdParty/ImGui/imgui_internal.h"
 
 class Timeline_Range {
 public:

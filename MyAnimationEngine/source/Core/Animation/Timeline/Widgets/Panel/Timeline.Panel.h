@@ -1,20 +1,16 @@
-#ifndef TIMELINE_PANEL_H
+﻿#ifndef TIMELINE_PANEL_H
 #define TIMELINE_PANEL_H
 
-
+#include "ThirdParty/ImGui/imgui.h"
+#include "ThirdParty/ImGui/imgui_internal.h"
+#include "Utils/Timer/Timer.Framerate.h"
 
 #include "Core/Animation/Timeline/Transform/Horizontal/Timeline.Transform.Horizontal.h"
 #include "Core/Animation/Timeline/Transform/Vertical/Timeline.Transform.Vertical.h"
 
-
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Layer/Factory/Layer.Factory.h"
-
-
-
-//elements ruler
-#include "UpperControls/Timeline.UpperControls.h"
 
 #include "Ruler/Timeline.Ruler.h"
 #include "Range/Timeline.Range.h"
@@ -22,16 +18,24 @@
 #include "Scroll/Vertical/Timeline.Scroll.Vertical.h"
 #include "Layers/List/Timeline.Layers.List.h"
 #include "Layers/Viewer/Timeline.Layers.Viewer.h"
+#include "UpperControls/Timeline.UpperControls.h"
+
+#include "TimeCursor/Timeline.TimeCursor.h"
 
 
 #include "Core/DebugOverlay/DebugOverlay.h"
 
-#include "Utils/Timer/Timer.Framerate.h"
+
 
 
 class TimelinePanel {
 public:
-	TimelinePanel(FPS_Timer* deltaTime, TimelineProviderData* timelineData, LayersDataProvider* layersData, LayerFactory* layerFactory);
+	TimelinePanel(
+		FPS_Timer* deltaTime, 
+		TimelineProviderData* timelineData, 
+		LayersDataProvider* layersData, 
+		LayerFactory* layerFactory
+	);
 	~TimelinePanel();
 
 	void Draw();
@@ -56,6 +60,8 @@ private:
 	Timeline_Layers_List*	layersList;
 	Timeline_Layers_Viewer* layersViewer;
 	Timeline_UpperControls* upperControls;
+
+	Timeline_TimeCursor* timeCursor;
 
 
 	void Draw_1Level(const float& thickness_separator);

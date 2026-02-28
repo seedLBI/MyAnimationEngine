@@ -7,31 +7,44 @@ namespace DebugOverlay {
 	}
 
 	void DrawDebug() {
-        ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImVec2 pos_begin = { viewport->Pos.x + 40.f,  viewport->Pos.y + 40.f };
 
-        ImGui::SetNextWindowPos({ viewport->Pos.x,  viewport->Pos.y + 60.f });
-        ImGui::SetNextWindowSize(viewport->Size);
-        ImGui::SetNextWindowViewport(viewport->ID);
-
-        ImGuiWindowFlags flags =
-            ImGuiWindowFlags_NoDecoration |
-            ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoResize |
-            ImGuiWindowFlags_NoSavedSettings |
-            ImGuiWindowFlags_NoBringToFrontOnFocus |
-            ImGuiWindowFlags_NoFocusOnAppearing |
-            ImGuiWindowFlags_NoInputs |
-            ImGuiWindowFlags_NoNav;
-
-        ImGui::Begin("DebugOverlay", nullptr, flags);
-
+        ImDrawList* draw_list = ImGui::GetForegroundDrawList();
 
         for (const auto& text : vars::elements) {
-            ImGui::TextColored(text.second, text.first.c_str());
+
+			ImVec2 sizeText = ImGui::CalcTextSize(text.first.c_str());
+
+			ImColor color_foreground = text.second;
+			ImColor color_background = ImColor(0.f,0.f,0.f,1.f );
+
+			float padding_x = 6.f;
+
+			ImVec2 pmin = { pos_begin.x - padding_x,  pos_begin.y };
+			ImVec2 pmax = { pos_begin.x + sizeText.x + padding_x, pos_begin.y + sizeText.y };
+
+
+			pmin.x -= 2.f;
+			pmin.y -= 2.f;
+
+			pmax.x += 2.f;
+			pmax.y += 2.f;
+
+			draw_list->AddRectFilled(pmin, pmax, color_foreground, 10.f);
+
+			pmin.x += 2.f;
+			pmin.y += 2.f;
+
+			pmax.x -= 2.f;
+			pmax.y -= 2.f;
+
+
+			draw_list->AddRectFilled(pmin, pmax, color_background, 10.f);
+
+            draw_list->AddText(pos_begin, text.second, text.first.c_str());
+            pos_begin.y += ImGui::GetTextLineHeight() + 6.f;
         }
-
-        ImGui::End();
-
 
 		vars::elements.clear();
 	}

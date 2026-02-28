@@ -16,7 +16,6 @@ private:
 	LayersDataProvider* layersData;
 	TimelineTransformVertical* verticalTransform;
 
-	ImVec2 DrawInfoLine(const ImVec2& p);
 	ImVec2 DrawObject(const ImVec2& p, std::shared_ptr<LayerObject>& object);
 };
 

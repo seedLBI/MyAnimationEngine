@@ -1,12 +1,15 @@
-#include "Timeline.Panel.h"
-#include "ThirdParty/ImGui/imgui.h"
-#include "ThirdParty/ImGui/imgui_internal.h"
+﻿#include "Timeline.Panel.h"
 
-TimelinePanel::TimelinePanel(FPS_Timer* deltaTime, TimelineProviderData* timelineData, LayersDataProvider* layersData, LayerFactory* layerFactory) :
-	deltaTime(deltaTime),
-	timelineData(timelineData), 
-	layersData(layersData),
-	layerFactory(layerFactory)
+
+TimelinePanel::TimelinePanel(
+	FPS_Timer* deltaTime, 
+	TimelineProviderData* timelineData, 
+	LayersDataProvider* layersData, 
+	LayerFactory* layerFactory) 
+	 :	deltaTime(deltaTime),
+		timelineData(timelineData), 
+		layersData(layersData),
+		layerFactory(layerFactory)
 {
 
 
@@ -24,22 +27,17 @@ TimelinePanel::TimelinePanel(FPS_Timer* deltaTime, TimelineProviderData* timelin
 	layersList = new Timeline_Layers_List(layersData, timelineTransformVertical);
 	layersViewer = new Timeline_Layers_Viewer(layersData, timelineData, timelineTransformVertical, timelineTransformHorizontal);
 
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
-	layerFactory->CreateSolid();
+	timeCursor = new Timeline_TimeCursor(timelineData, timelineTransformHorizontal);
 
+	layerFactory->CreateSolid(0.f, 2.f);
+	layerFactory->CreateSolid(1.f, 2.f);
+	layerFactory->CreateSolid(2.f, 2.f);
+	layerFactory->CreateSolid(3.f, 2.f);
+	layerFactory->CreateSolid(4.f, 2.f);
+	layerFactory->CreateSolid(5.f, 2.f);
+	layerFactory->CreateSolid(6.f, 2.f);
+	layerFactory->CreateSolid(7.f, 2.f);
+	layerFactory->CreateSolid(8.f, 2.f);
 
 }
 
@@ -62,8 +60,8 @@ void TimelinePanel::Draw() {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
-	if (ImGui::Begin(u8"TimelinePanel",0,ImGuiWindowFlags_NoScrollbar)) {
-
+	ImGui::Begin(u8"Временная шкала");
+	
 		const float thickness_separator = 1.f;
 
 		Draw_1Level(thickness_separator);
@@ -74,8 +72,20 @@ void TimelinePanel::Draw() {
 		ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, thickness_separator);
 		Draw_4Level(thickness_separator);
 
-		
-	}
+
+
+		std::string str_s_mouse = "screen: " + std::to_string(timelineRuler->getScreenMouse());
+		std::string str_g_mouse = "global: " + std::to_string(timelineRuler->getGlobalMouse());
+
+		std::string str_left_range = "[" + std::to_string(timelineTransformHorizontal->getLeftRange_global()) + "]";
+		std::string str_right_range = "[" + std::to_string(timelineTransformHorizontal->getRightRange_global()) + "]";
+
+
+		DebugOverlay::AddText(str_s_mouse, ImColor(1.f, 1.f, 1.f, 1.f));
+		DebugOverlay::AddText(str_g_mouse, ImColor(1.f, 1.f, 1.f, 1.f));
+		DebugOverlay::AddText(str_left_range, ImColor(0.f, 1.f, 0.f, 1.f));
+		DebugOverlay::AddText(str_right_range, ImColor(1.f, 0.f, 0.f, 1.f));
+	
 	ImGui::End();
 
 	ImGui::PopStyleVar(2);
@@ -187,14 +197,14 @@ void TimelinePanel::Draw_3Level(const float& thickness_separator) {
 void TimelinePanel::DrawLayerSide_3Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_LayerSide_3Level", ImVec2(500, height));
 
-
+	layersList->Draw();
 
 	ImGui::EndChild();
 }
 void TimelinePanel::DrawTimelineSide_3Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_TimelineSide_3Level", ImVec2(ImGui::GetContentRegionAvail().x - 20, height));
 
-
+	layersViewer->Draw();
 
 	ImGui::EndChild();
 }

@@ -37,6 +37,12 @@ public:
 	void setOffsetDelta(const double& delta);
 	void applyOffsetDelta();
 
+	float getLeftRange_global();
+	float getRightRange_global();
+
+	void fitToRanges(const double& global_left, const double& global_right);
+
+
 	LerpedValue_float& getOffset();
 	LerpedValue_float& getScale();
 

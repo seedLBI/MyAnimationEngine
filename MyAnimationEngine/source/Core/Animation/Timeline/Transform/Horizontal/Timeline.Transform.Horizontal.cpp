@@ -75,13 +75,12 @@ double TimelineTransformHorizontal::getLengthTick_lerped() {
 void TimelineTransformHorizontal::centerize(const double& relative_point, const bool& isScreen) {
 
 	float screen_center = width_available / 2.f;
-	float screen_point = isScreen == true? relative_point : getPostionScreen_real(relative_point);
+	float screen_point = isScreen == true ? relative_point : getPostionScreen_real(relative_point);
 
 	real_offset -= screen_point - screen_center;
 	real_offsetDelta = 0.0;
 
 	getOffset().Set(real_offset + real_offsetDelta);
-
 
 }
 
@@ -107,6 +106,32 @@ void TimelineTransformHorizontal::applyOffsetDelta() {
 
 	getOffset().Set(real_offset + real_offsetDelta);
 }
+
+float TimelineTransformHorizontal::getLeftRange_global() {
+	return getPostionGlobal_real(0.f);
+}
+float TimelineTransformHorizontal::getRightRange_global() {
+	return getPostionGlobal_real(this->width_available);
+}
+
+void TimelineTransformHorizontal::fitToRanges(const double& global_left, const double& global_right) {
+
+	float screen_left = getPostionScreen_real(global_left);
+	float screen_right = getPostionScreen_real(global_right);
+
+	float width = std::abs(screen_left - screen_right);
+
+	float scaleKoef = this->width_available / width;
+
+	getScale().Set(getScale().GetReal() * scaleKoef);
+	getOffset().Set(getOffset().GetReal() - getPostionScreen_real(global_left));
+
+
+	real_scale = getScale().GetReal();
+	real_offset = getOffset().GetReal();
+
+}
+
 
 LerpedValue_float& TimelineTransformHorizontal::getOffset() {
 	return offset;

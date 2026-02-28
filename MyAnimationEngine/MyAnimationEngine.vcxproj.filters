@@ -315,9 +315,6 @@
     <ClCompile Include="source\Utils\LerpedValue\LerpedValue.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TailTraceEffect\TailTraceEffect.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="source\Core\Animation\Timeline\Transform\Vertical\Timeline.Transform.Vertical.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -337,6 +334,9 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Range\Timeline.Range.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TimeCursor\Timeline.TimeCursor.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -526,9 +526,6 @@
     <ClInclude Include="source\Utils\LerpedValue\LerpedValue.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TailTraceEffect\TailTraceEffect.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="source\Core\Animation\Timeline\Transform\Vertical\Timeline.Transform.Vertical.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
@@ -548,6 +545,9 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Range\Timeline.Range.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TimeCursor\Timeline.TimeCursor.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

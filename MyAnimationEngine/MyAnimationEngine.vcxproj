@@ -35,7 +35,7 @@
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\Viewer\Timeline.Layers.Viewer.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Range\Timeline.Range.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Ruler\Timeline.Ruler.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TailTraceEffect\TailTraceEffect.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TimeCursor\Timeline.TimeCursor.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.cpp" />
@@ -112,7 +112,7 @@
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\Viewer\Timeline.Layers.Viewer.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Range\Timeline.Range.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Ruler\Timeline.Ruler.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TailTraceEffect\TailTraceEffect.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TimeCursor\Timeline.TimeCursor.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.h" />
@@ -177,6 +177,8 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>false</EnableASAN>
+    <EnableFuzzer>false</EnableFuzzer>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -184,13 +186,15 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <EnableASAN>true</EnableASAN>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>false</EnableASAN>
+    <EnableFuzzer>false</EnableFuzzer>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -198,7 +202,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <EnableASAN>true</EnableASAN>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">

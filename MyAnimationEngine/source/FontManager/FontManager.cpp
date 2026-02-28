@@ -1,4 +1,4 @@
-#include "FontManager.h"
+Ôªø#include "FontManager.h"
 
 
 
@@ -120,7 +120,7 @@ void FontManager::ReloadFont() {
 		font_cfg.MergeMode = false;
 
 
-		io.Fonts->Clear();  // Œ˜ËÒÚËÚ¸ ÚÂÍÛ˘ËÂ ¯ËÙÚ˚
+		io.Fonts->Clear();  // –û—á–∏—Å—Ç–∏—Ç—å —Ç–µ–∫—É—â–∏–µ —à—Ä–∏—Ñ—Ç—ã
 		io.Fonts->Fonts.clear();
 
 
@@ -147,7 +147,13 @@ void FontManager::ReloadFont() {
 
 
 
-		MainFont = io.Fonts->AddFontFromMemoryTTF(MainFontData.data(), static_cast<int>(MainFontData.size()), static_cast<float>(Current_Scale), &font_cfg, ranges);
+		MainFont = io.Fonts->AddFontFromMemoryTTF(
+			MainFontData.data(), 
+			static_cast<int>(MainFontData.size()), 
+			static_cast<float>(Current_Scale), 
+			&font_cfg, 
+			ranges
+		);
 
 		//MainFont = io.Fonts->AddFontFromFileTTF("fonts/JetBrainsMonoNL-Regular.ttf", Current_Scale, &font_cfg, ranges);
 		
@@ -176,7 +182,7 @@ void FontManager::ReloadFont() {
 
 
 
-		io.Fonts->Build();  // œÂÂÒÚÓËÚ¸ ‡ÚÎ‡Ò ¯ËÙÚÓ‚
+		io.Fonts->Build();  // –ü–µ—Ä–µ—Å—Ç—Ä–æ–∏—Ç—å –∞—Ç–ª–∞—Å —à—Ä–∏—Ñ—Ç–æ–≤
 
 
 		ImGui_ImplOpenGL3_DestroyDeviceObjects();
@@ -222,7 +228,7 @@ void FontManager::DrawSetting() {
 
 	ISettingObject::DrawBegin();
 
-	if (ImGui::BeginCombo(u8"ÿËÙÚ", Name_Font_Selected.c_str(), ImGuiComboFlags_WidthFitPreview)) {
+	if (ImGui::BeginCombo(u8"–®—Ä–∏—Ñ—Ç", Name_Font_Selected.c_str(), ImGuiComboFlags_WidthFitPreview)) {
 
 		for (int i = 0; i < List_Fonts.size(); i++)
 		{
@@ -237,7 +243,7 @@ void FontManager::DrawSetting() {
 		}
 
 
-		if (ButtonCenteredOnLine(u8"ƒÓ·‡‚ËÚ¸ Ò‚ÓÈ ¯ËÙÚ", 0.5f)) {
+		if (ButtonCenteredOnLine(u8"–î–æ–±–∞–≤–∏—Ç—å —Å–≤–æ–π —à—Ä–∏—Ñ—Ç", 0.5f)) {
 			nfdchar_t* outPath = NULL;
 			nfdresult_t result = NFD_OpenDialog("ttf,otf", NULL, &outPath);
 			if (result == NFD_OKAY) {
@@ -256,11 +262,11 @@ void FontManager::DrawSetting() {
 		ImGui::EndCombo();
 	}
 	ImGui::SameLine();
-	HelpMarker(u8"¬˚·Ó ÚËÔ‡ ¯ËÙÚ‡");
+	HelpMarker(u8"–í—ã–±–æ—Ä —Ç–∏–ø–∞ —à—Ä–∏—Ñ—Ç–∞");
 
 
 
-	if (ImGui::BeginCombo(u8"–‡ÁÏÂ", std::to_string(Current_Scale).c_str(), ImGuiComboFlags_WidthFitPreview)) {
+	if (ImGui::BeginCombo(u8"–†–∞–∑–º–µ—Ä", std::to_string(Current_Scale).c_str(), ImGuiComboFlags_WidthFitPreview)) {
 
 		for (int i = 0; i < GetListSizes().size(); i++) {
 
@@ -278,7 +284,7 @@ void FontManager::DrawSetting() {
 		ImGui::EndCombo();
 	}
 	ImGui::SameLine();
-	HelpMarker(u8"≈‰ËÌËˆ‡ ËÁÏÂÂÌËˇ - ÔËÍÒÂÎ¸.");
+	HelpMarker(u8"–ï–¥–∏–Ω–∏—Ü–∞ –∏–∑–º–µ—Ä–µ–Ω–∏—è - –ø–∏–∫—Å–µ–ª—å.");
 
 
 
@@ -321,7 +327,7 @@ void FontManager::LoadDefaultMainFont_fromFile() {
 
 	if (isFileExist(L"resources/fonts/JetBrainsMonoNL-Regular.ttf") == false)
 	{
-		MessageBoxW(0, L"¿ „‰Â ¯ËÙÚ˚? (JetBrainsMonoNL-Regular.ttf)", L"Œ¯Ë·Í‡ Á‡„ÛÁÍË ¯ËÙÚÓ‚", MB_ICONERROR | MB_OK);
+		MessageBoxW(0, L"–ê –≥–¥–µ —à—Ä–∏—Ñ—Ç—ã? (JetBrainsMonoNL-Regular.ttf)", L"–û—à–∏–±–∫–∞ –∑–∞–≥—Ä—É–∑–∫–∏ —à—Ä–∏—Ñ—Ç–æ–≤", MB_ICONERROR | MB_OK);
 		exit(0);
 	}
 	
@@ -340,7 +346,7 @@ void FontManager::LoadDefaultMainFont_fromFile() {
 void FontManager::LoadIconsFont_fromFile() {
 	if (isFileExist(L"resources/fonts/Font Awesome 6 Free-Solid-900.otf") == false)
 	{
-		MessageBoxW(0, L"¿ „‰Â ¯ËÙÚ˚? (Font Awesome 6 Free-Solid-900.otf)", L"Œ¯Ë·Í‡ Á‡„ÛÁÍË ¯ËÙÚÓ‚", MB_ICONERROR | MB_OK);
+		MessageBoxW(0, L"–ê –≥–¥–µ —à—Ä–∏—Ñ—Ç—ã? (Font Awesome 6 Free-Solid-900.otf)", L"–û—à–∏–±–∫–∞ –∑–∞–≥—Ä—É–∑–∫–∏ —à—Ä–∏—Ñ—Ç–æ–≤", MB_ICONERROR | MB_OK);
 		exit(0);
 	}
 	IconsFontData = ReadFileToByteArray("resources/fonts/Font Awesome 6 Free-Solid-900.otf");

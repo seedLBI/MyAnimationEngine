@@ -24,33 +24,41 @@ void Timeline_Layers_Viewer::Draw() {
 	ImVec2 SizeBody{ ASize.x, ASize.y - 1 };
 
 
-	float headerHeight = ImGui::GetTextLineHeight();
 
-	ImGui::BeginChild("TimelineEditorBody_EmptyInfo", ImVec2(0, headerHeight), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-	{
-		ImVec2 p = ImGui::GetCursorScreenPos();
-		ImDrawList* draw_list = ImGui::GetWindowDrawList();
-		float height_object = ImGui::GetTextLineHeight();
-		float width_window = ImGui::GetWindowWidth();
+	auto& layers = layersData->GetData().layers;
 
-		ImVec2 p2(p.x + width_window, p.y + height_object);
+	ImVec2 p = ImGui::GetCursorScreenPos();
 
-		draw_list->AddRectFilled(p, p2, ImColor(0.3f, 0.3f, 0.3f, 1.f), 0.f, 0);
+	float itemHeight = verticalTransform->getScaledHeightOneObject();
+	float width_window = ImGui::GetWindowWidth();
+
+
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+
+
+
+
+
+	for (size_t i = 0; i < layers.size(); i++) {
+
+
+		float time_begin = layers[i].get()->GetLayerInfo().time.Begin;
+		float time_end = layers[i].get()->GetLayerInfo().time.End;
+
+
+		float screen_time_begin = horizontalTransform->getPostionScreen_lerped(time_begin);
+		float screen_time_end = horizontalTransform->getPostionScreen_lerped(time_end);
+
+		ImVec2 p_min = { p.x + screen_time_begin, p.y };
+		ImVec2 p_max = { p.x + screen_time_end, p.y + itemHeight };
+
+		draw_list->AddRectFilled(p_min, p_max, ImColor(0.6f, 0.1f, 0.1f, 1.f), 0.f, 0);
+
+
+		p.y += itemHeight + 1.f;
 	}
-	ImGui::EndChild();
 
-
-	ImGui::BeginChild(u8"TimelineEditorBody", SizeBody, 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-
-	for (size_t i = 0; i < layersData->GetData().layers.size(); i++) {
-
-
-
-
-	}
-
-
-	ImGui::EndChild();
 
 }
 

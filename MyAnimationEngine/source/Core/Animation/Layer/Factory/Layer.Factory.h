@@ -14,6 +14,7 @@ public:
 	~LayerFactory();
 
 	void CreateSolid();
+	void CreateSolid(const float& begin,const float& time);
 
 private:
 	LayersDataProvider* layers;

@@ -132,12 +132,20 @@ void Application::Run() {
 }
 
 void Application::Draw() {
+
+	DebugOverlay::AddText("FPS: " + std::to_string(ImGui::GetIO().Framerate), ImColor{ 0.5f,0.5f,1.f,1.f });
+
 	mainMenuBar->Draw();
 
-	timelinePanel->Draw();
+
 	playerComposition->Draw();
+	timelinePanel->Draw();
 
 	ImGui::ShowDemoWindow();
+
+
+
+
 
 	DebugOverlay::DrawDebug();
 
