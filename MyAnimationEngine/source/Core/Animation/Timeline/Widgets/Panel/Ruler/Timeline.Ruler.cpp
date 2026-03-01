@@ -286,7 +286,8 @@ void Timeline_Ruler::Update() {
 
 
 	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left, false)) {
-		timelineTransformHorizontal->fitToRanges(0.0, timelineData->GetData().totalTime);
+
+		timelineTransformHorizontal->fitToRanges(-0.1, timelineData->GetData().totalTime + 0.1);
 	}
 
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Right, false)) {
