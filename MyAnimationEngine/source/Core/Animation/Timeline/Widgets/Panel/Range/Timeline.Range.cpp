@@ -1,5 +1,7 @@
 ﻿#include "Timeline.Range.h"
 
+#include <algorithm>
+
 Timeline_Range::Timeline_Range(
 	TimelineProviderData* timelineData,
 	TimelineTransformHorizontal* horizontalTransform)
