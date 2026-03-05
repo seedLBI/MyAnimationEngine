@@ -1,5 +1,12 @@
-#include "LerpedValue.h"
+﻿#include "LerpedValue.h"
 
+
+LerpedValue_float::LerpedValue_float() {
+	SetAll(0.f);
+}
+LerpedValue_float::LerpedValue_float(const float& value) {
+	SetAll(value);
+}
 
 
 void LerpedValue_float::SetAll(const float& value) {

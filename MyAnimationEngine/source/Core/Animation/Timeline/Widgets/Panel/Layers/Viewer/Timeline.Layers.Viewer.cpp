@@ -1,4 +1,4 @@
-#include "Timeline.Layers.Viewer.h"
+﻿#include "Timeline.Layers.Viewer.h"
 
 Timeline_Layers_Viewer::Timeline_Layers_Viewer(
 	Timeline_TimeCursor* timeCursor,
@@ -42,6 +42,9 @@ void Timeline_Layers_Viewer::Draw() {
 	float width_window = ImGui::GetWindowWidth();
 
 
+	float left_range  = horizontalTransform->getPostionScreen_lerped(timelineData->GetData().left_range_repeat);
+	float right_range = horizontalTransform->getPostionScreen_lerped(timelineData->GetData().right_range_repeat);
+
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 
@@ -66,7 +69,15 @@ void Timeline_Layers_Viewer::Draw() {
 		p.y += itemHeight + 1.f;
 	}
 
+
+	draw_list->AddRectFilled({ p_min.x + left_range, p_min.y}, { p_min.x + right_range, p_max.y }, ImColor(1.f, 1.f, 1.f, 0.1f), 0.f, 0);
+
+
+
 	timeCursor->Draw(p_min, p_max);
+
+
+
 
 
 }

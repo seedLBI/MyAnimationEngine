@@ -16,8 +16,8 @@ Application::Application() {
 	fontManager->ReloadFont();
 
 	fps_limiter = new FPS_Timer;
-	fps_limiter->SetTargetFPS(120);
-	glfwSwapInterval(1);
+	fps_limiter->SetTargetFPS(60);
+	glfwSwapInterval(0);
 
 
 	layersData			= new LayersDataProvider();
@@ -136,7 +136,8 @@ void Application::Run() {
 
 void Application::Draw() {
 
-	DebugOverlay::AddText("FPS: " + std::to_string(ImGui::GetIO().Framerate), ImColor{ 0.5f,0.5f,1.f,1.f });
+	DebugOverlay::AddText("FPS_imgui_io: " + std::to_string(ImGui::GetIO().Framerate), ImColor{ 0.5f,0.5f,1.f,1.f });
+	DebugOverlay::AddText("FPS_limiter : " + std::to_string(1.f / fps_limiter->GetDeltaTime()), ImColor{ 0.5f,0.5f,1.f,1.f });
 
 	mainMenuBar->Draw();
 
@@ -147,14 +148,18 @@ void Application::Draw() {
 	ImGui::ShowDemoWindow();
 
 
-
-
-
 	DebugOverlay::DrawDebug();
 
 
 }
 void Application::Update() {
+	
+	if (ImGui::IsKeyPressed(ImGuiKey_Tab))
+	{
+		DebugOverlay::ToggleShow();
+	}
+
+	DebugOverlay::Update(fps_limiter->GetDeltaTime());
 	timelinePanel->Update();
 	timelineController->Update();
 	playerComposition->Update();
@@ -171,6 +176,8 @@ void Application::BeginDraw() {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+
+	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
 }
 

@@ -8,6 +8,33 @@ namespace DebugOverlay {
 
 	namespace vars {
 		std::vector<LineTexts> elements;
+		LerpedValue_float timer_show = LerpedValue_float(1.f);
+		bool isShow = true;
+	}
+
+	void Show() {
+		vars::isShow = true;
+		vars::timer_show.Set(1.f);
+	}
+	void Hide() {
+		vars::isShow = false;
+		vars::timer_show.Set(0.f);
+	}
+
+	void ToggleShow() {
+		if (vars::isShow)
+			Hide();
+		else
+			Show();
+	}
+
+	void Update(const float& dt) {
+		vars::timer_show.Update(dt*10.f);
+
+		if (vars::isShow) {
+			vars::timer_show.Set(1.f);
+		}
+
 	}
 
 	void DrawDebug() {
@@ -16,16 +43,29 @@ namespace DebugOverlay {
 
         ImDrawList* draw_list = ImGui::GetForegroundDrawList();
 
+
+
+		if (vars::timer_show.GetLerped() < 0.01f)
+			return;
+
+		float AddPos_x = -300.f + vars::timer_show.GetLerped() * (40.f - (-300.f));
+
+
+
         for (const auto& line : vars::elements) {
 
-			pos_begin.x = viewport->Pos.x + 40.f;
+			pos_begin.x = viewport->Pos.x + AddPos_x;
 
 			for (const auto& text : line.texts)
 			{
 				ImVec2 sizeText = ImGui::CalcTextSize(text.first.c_str());
 
 				ImColor color_foreground = text.second;
-				ImColor color_background = ImColor(0.f, 0.f, 0.f, 0.8f);
+				ImColor color_background = ImColor(0.f, 0.f, 0.f, 0.8f * vars::timer_show.GetLerped());
+
+
+				color_foreground.Value.w *= vars::timer_show.GetLerped();
+
 
 				float padding_x = 6.f;
 
@@ -50,7 +90,7 @@ namespace DebugOverlay {
 
 				draw_list->AddRectFilled(pmin, pmax, color_background, 10.f);
 
-				draw_list->AddText(pos_begin, text.second, text.first.c_str());
+				draw_list->AddText(pos_begin, color_foreground, text.first.c_str());
 
 				pos_begin.x += sizeText.x + 3.f * padding_x + 3.f;
 

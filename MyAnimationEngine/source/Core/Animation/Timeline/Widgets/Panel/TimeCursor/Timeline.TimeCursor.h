@@ -1,11 +1,9 @@
 ﻿#ifndef TIMELINE_TIME_CURSOR_H
 #define TIMELINE_TIME_CURSOR_H
-
-#include "Utils/Timer/Timer.Framerate.h"
-
 #include "Core/Animation/Timeline/Transform/Horizontal/Timeline.Transform.Horizontal.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 
+#include "Utils/LerpedValue/LerpedValue.h"
 
 #include "ThirdParty/ImGui/imgui.h"
 
@@ -19,11 +17,15 @@ public:
 	~Timeline_TimeCursor();
 
 	void Draw(const ImVec2& p_min, const ImVec2& p_max);
-	void Update();
+	void Update(const float& dt);
 
 private:
 	TimelineProviderData* timelineData;
 	TimelineTransformHorizontal* horizontalTransform;
+
+
+	LerpedValue_float width_tail_lerped;
+	const float max_width_tail = 50.f;
 
 	const float width_cursor = 2.f;
 

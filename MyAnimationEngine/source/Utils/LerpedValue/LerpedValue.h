@@ -1,4 +1,4 @@
-#ifndef LERPED_VALUE_H
+﻿#ifndef LERPED_VALUE_H
 #define LERPED_VALUE_H
 
 
@@ -8,6 +8,11 @@ private:
 	float lerped;
 
 public:
+
+	LerpedValue_float();
+	LerpedValue_float(const float& value);
+
+
 	void SetAll(const float& value);
 	void Set(const float& real);
 	const float& GetLerped() const;

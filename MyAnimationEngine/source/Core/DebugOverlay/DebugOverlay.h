@@ -1,6 +1,8 @@
 ﻿#ifndef DEBUG_OVERLAY_H
 #define DEBUG_OVERLAY_H
 
+#include "Utils/LerpedValue/LerpedValue.h"
+
 #include "ThirdParty/ImGui/imgui.h"
 #include "ThirdParty/ImGui/imgui_impl_glfw.h"
 #include "ThirdParty/ImGui/imgui_impl_opengl3.h"
@@ -14,7 +16,15 @@ namespace DebugOverlay {
 
 	namespace vars {
 		extern std::vector<LineTexts> elements;
+		extern LerpedValue_float timer_show;
+		extern bool isShow;
 	}
+
+	void Show();
+	void Hide();
+	void ToggleShow();
+
+	void Update(const float& dt);
 
 	void DrawDebug();
 	void AddText(const std::string& text, const ImColor& color);

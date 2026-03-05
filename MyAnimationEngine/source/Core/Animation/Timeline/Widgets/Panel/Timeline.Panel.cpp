@@ -281,6 +281,8 @@ void TimelinePanel::Update() {
 	timelineTransformHorizontal->update(deltaTime->GetDeltaTime());
 	timelineTransformVertical->update(deltaTime->GetDeltaTime());
 
+	timelineTimeCursor->Update(deltaTime->GetDeltaTime());
+
 	scrollHorizontal->Update();
 	scrollVertical->Update();
 

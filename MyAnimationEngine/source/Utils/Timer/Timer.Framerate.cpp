@@ -1,4 +1,4 @@
-#include "Utils/Timer/Timer.Framerate.h"
+﻿#include "Utils/Timer/Timer.Framerate.h"
 
 void FPS_Timer::SetTargetFPS(const double& value) {
 	targetFPS = value;
@@ -11,10 +11,13 @@ double FPS_Timer::GetDeltaTime() {
 }
 
 void FPS_Timer::wait() {
-	
+	timer.stop();
+	Delta = timer.elapsedSeconds();
 
-	if (targetFPS == 0)
+	if (targetFPS == 0) {
+		timer.start();
 		return;
+	}
 
 	LARGE_INTEGER currentTime;
 	QueryPerformanceCounter(&currentTime);
@@ -34,6 +37,9 @@ void FPS_Timer::wait() {
 	}
 
 	lastTime = currentTime;
+	Delta = elapsedTime;
+	timer.start();
+
 }
 
 FPS_Timer::FPS_Timer() {

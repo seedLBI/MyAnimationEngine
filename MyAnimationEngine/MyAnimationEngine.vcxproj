@@ -30,6 +30,7 @@
     <ClCompile Include="source\Core\Animation\Timeline\Transform\Horizontal\Timeline.Transform.Horizontal.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Transform\Vertical\Timeline.Transform.Vertical.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\List\Timeline.Layers.List.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Markers\Timeline.Markers.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Horizontal\Timeline.Scroll.Horizontal.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Vertical\Timeline.Scroll.Vertical.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\Viewer\Timeline.Layers.Viewer.cpp" />
@@ -107,6 +108,7 @@
     <ClInclude Include="source\Core\Animation\Timeline\Transform\Horizontal\Timeline.Transform.Horizontal.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Transform\Vertical\Timeline.Transform.Vertical.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\List\Timeline.Layers.List.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Markers\Timeline.Markers.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Horizontal\Timeline.Scroll.Horizontal.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Vertical\Timeline.Scroll.Vertical.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\Viewer\Timeline.Layers.Viewer.h" />

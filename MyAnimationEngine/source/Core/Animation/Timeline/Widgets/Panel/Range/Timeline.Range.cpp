@@ -94,7 +94,11 @@ void Timeline_Range::Draw() {
 		else if (mouse_x_in_range_button) {
 			color_range_button = color_range_hovered;
 
-			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
+			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+				timelineData->GetData().left_range_repeat = 0.f;
+				timelineData->GetData().right_range_repeat = timelineData->GetData().totalTime;
+			}
+			else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
 				range_dragging = true;
 
 

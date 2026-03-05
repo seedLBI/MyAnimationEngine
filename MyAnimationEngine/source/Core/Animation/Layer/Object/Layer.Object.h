@@ -1,4 +1,6 @@
-#pragma once
+﻿#ifndef LAYER_OBJECT_H
+#define LAYER_OBJECT_H
+
 #include "Core/Animation/Component/Component.h"
 
 #include <vector>
@@ -23,3 +25,4 @@ protected:
 	Component_Color color;
 };
 
+#endif

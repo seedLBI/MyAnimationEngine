@@ -1,9 +1,10 @@
-#ifndef UTILS_TIMER_FRAMERATE_H
+﻿#ifndef UTILS_TIMER_FRAMERATE_H
 #define UTILS_TIMER_FRAMERATE_H
 
 #pragma comment(lib, "winmm.lib")
 #include <Windows.h>
 
+#include "Utils/Timer/Timer.h"
 
 class FPS_Timer
 {
@@ -18,6 +19,8 @@ public:
 
 private:
     double Start = 0.0, End = 0.0, Delta = 0.0;
+
+    Timer timer;
 
     LARGE_INTEGER frequency;
     LARGE_INTEGER lastTime;

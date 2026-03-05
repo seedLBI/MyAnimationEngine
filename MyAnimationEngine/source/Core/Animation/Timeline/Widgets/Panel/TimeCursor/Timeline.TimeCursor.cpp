@@ -21,22 +21,40 @@ void Timeline_TimeCursor::Draw(const ImVec2& p_min, const ImVec2& p_max) {
 
 	float height_timeline = ImGui::GetTextLineHeight() * 2.f;
 
-	ImVec2 min_pos_main_tick = { pos_timeline - width_cursor / 2.f, p_min.y };
-	ImVec2 max_pos_main_tick = { pos_timeline + width_cursor / 2.f, p_max.y };
+	ImVec2 min_pos = { pos_timeline - width_cursor / 2.f, p_min.y };
+	ImVec2 max_pos = { pos_timeline + width_cursor / 2.f, p_max.y };
 
 
-	ImColor color_main_tick_timeline = ImColor(1.f, 0.3f, 0.3f, 1.f);
-	ImColor color_main_tick_timeline_transparent = ImColor(1.f, 0.3f, 0.3f, 0.f);
+	ImColor color = ImColor(1.f, 0.3f, 0.3f, 1.f);
+	ImColor color_alpha = ImColor(1.f, 0.0f, 0.0f, 0.f);
 
 
-	drawlist->AddRectFilled(min_pos_main_tick, max_pos_main_tick, color_main_tick_timeline, 2.f, 0.f);
+	drawlist->AddRectFilled(min_pos, max_pos, color, 2.f, 0.f);
+
+	drawlist->AddRectFilledMultiColor(
+		{ min_pos.x - width_tail_lerped.GetLerped(), min_pos.y },
+		max_pos,
+		color_alpha, color, color, color_alpha);
+
+
 
 }
 
-void Timeline_TimeCursor::Update() {
+void Timeline_TimeCursor::Update(const float& dt) {
 
 	delta_time = timelineData->GetData().currentTime - prev_value;
 	prev_value = timelineData->GetData().currentTime;
 
+	float value_set_delta = delta_time * 300.f;
 
+	if (std::abs(value_set_delta) > max_width_tail){
+		value_set_delta = max_width_tail * (std::abs(value_set_delta) / value_set_delta);
+	}
+
+
+	width_tail_lerped.Set(value_set_delta);
+
+
+
+	width_tail_lerped.Update(dt * 10.f);
 }
