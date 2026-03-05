@@ -25,7 +25,7 @@ namespace DebugOverlay {
 				ImVec2 sizeText = ImGui::CalcTextSize(text.first.c_str());
 
 				ImColor color_foreground = text.second;
-				ImColor color_background = ImColor(0.f, 0.f, 0.f, 1.f);
+				ImColor color_background = ImColor(0.f, 0.f, 0.f, 0.8f);
 
 				float padding_x = 6.f;
 
@@ -39,7 +39,7 @@ namespace DebugOverlay {
 				pmax.x += 2.f;
 				pmax.y += 2.f;
 
-				draw_list->AddRectFilled(pmin, pmax, color_foreground, 10.f);
+				draw_list->AddRect(pmin, pmax, color_foreground, 10.f,0,2.f);
 
 				pmin.x += 2.f;
 				pmin.y += 2.f;

@@ -4,10 +4,12 @@
 #include "Core/DebugOverlay/DebugOverlay.h"
 
 Timeline_Ruler::Timeline_Ruler(
+	Timeline_TimeCursor* timeCursor,
 	TimelineController* timelineController,
 	TimelineProviderData* timelineData, 
 	TimelineTransformHorizontal* timelineTransformHorizontal) 
-	: timelineController(timelineController),
+	: timeCursor(timeCursor),
+	  timelineController(timelineController),
 	  timelineData(timelineData),
 	  timelineTransformHorizontal(timelineTransformHorizontal)
 {
@@ -86,29 +88,46 @@ void Timeline_Ruler::Draw() {
 
 	if (OutOfView(block_max) == false || block_max.x > p_max.x) {
 
+
 		drawlist->AddRectFilled(
 			block_min,
-			block_max,
+			{ block_max.x - width_gradient_bound, block_max.y},
 			color_bounds,
 			0.f,
 			0.f
 		);
+
+
+		drawlist->AddRectFilledMultiColor(
+			{ block_max.x - width_gradient_bound,  block_min.y},
+			block_max,
+			color_bounds, color_background, color_background, color_bounds
+		);
+
 	}
-
-
-
 
 	block_min = { cursor_pos.x + timelineTransformHorizontal->getPostionScreen_lerped(timelineData->GetData().totalTime), cursor_pos.y };
 	block_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
 
 	if (OutOfView(block_min) == false || block_min.x < p_max.x) {
-		drawlist->AddRectFilled(
+
+		drawlist->AddRectFilledMultiColor(
 			block_min,
+			{ block_min.x + width_gradient_bound, block_max.y },
+			color_background, color_bounds, color_bounds, color_background
+		);
+
+		drawlist->AddRectFilled(
+			{ block_min.x + width_gradient_bound, block_min.y },
 			block_max,
 			color_bounds,
 			0.f,
 			0.f
 		);
+
+
+
+
 	}
 
 
@@ -198,34 +217,8 @@ void Timeline_Ruler::Draw() {
 
 	DebugOverlay::AddText("tick rendered: " + std::to_string(count_tick_rendered), ImColor(1.f, 0.3f, 0.3f, 1.f));
 
+	timeCursor->Draw(p_min, p_max);
 
-	float pos_timeline = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(timelineData->GetData().currentTime);
-
-	float height_timeline = ImGui::GetTextLineHeight() * 2.f;
-
-	ImVec2 min_pos_main_tick = { pos_timeline - width_main_tick / 2.5f, p_max.y - height_timeline };
-	ImVec2 max_pos_main_tick = { pos_timeline + width_main_tick / 2.5f, p_max.y };
-
-
-	ImColor color_main_tick_timeline = ImColor(1.f, 0.3f, 0.3f, 1.f);
-	ImColor color_main_tick_timeline_transparent = ImColor(1.f, 0.3f, 0.3f, 0.f);
-
-	drawlist->AddRectFilled(min_pos_main_tick, max_pos_main_tick, color_main_tick_timeline, 2.f, 0.f);
-
-	/*
-	
-	min_pos_main_tick = { pos_timeline - width_main_tick * 6.f, p_max.y - height_timeline };
-	max_pos_main_tick = { pos_timeline, p_max.y };
-
-	drawlist->AddRectFilledMultiColor(
-		min_pos_main_tick, max_pos_main_tick,
-		color_main_tick_timeline_transparent, color_main_tick_timeline, color_main_tick_timeline, color_main_tick_timeline_transparent);
-
-	*/
-
-
-
-	//ImGui::EndChild();
 }
 
 #include <iostream>

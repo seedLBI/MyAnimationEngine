@@ -4,12 +4,15 @@
 #include "Core/Animation/Timeline/Transform/Horizontal/Timeline.Transform.Horizontal.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 
+#include "Core/Animation/Timeline/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
+
 #include "ThirdParty/ImGui/imgui.h"
 #include "ThirdParty/ImGui/imgui_internal.h"
 
 class Timeline_Range {
 public:
 	Timeline_Range(
+		Timeline_TimeCursor* timeCursor,
 		TimelineProviderData* timelineData, 
 		TimelineTransformHorizontal* horizontalTransform
 	);
@@ -19,6 +22,7 @@ public:
 	void Update();
 
 private:
+	Timeline_TimeCursor* timeCursor;
 	TimelineProviderData* timelineData;
 	TimelineTransformHorizontal* horizontalTransform;
 

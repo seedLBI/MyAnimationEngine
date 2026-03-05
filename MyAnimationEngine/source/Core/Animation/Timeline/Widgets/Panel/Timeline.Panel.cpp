@@ -18,18 +18,21 @@ TimelinePanel::TimelinePanel(
 	timelineTransformHorizontal = new TimelineTransformHorizontal(timelineData);
 	timelineTransformVertical	= new TimelineTransformVertical();
 
+
+	timelineTimeCursor = new Timeline_TimeCursor(timelineData, timelineTransformHorizontal);
+
 	scrollHorizontal = new Timeline_Scroll_Horizontal(timelineData, timelineTransformHorizontal);
 	scrollVertical = new Timeline_Scroll_Vertical(layersData, timelineTransformVertical);
 
 	upperControls = new Timeline_UpperControls(timelineData);
 
-	timelineRuler = new Timeline_Ruler(timelineController, timelineData, timelineTransformHorizontal);
-	timelineRange = new Timeline_Range(timelineData, timelineTransformHorizontal);
+	timelineRuler = new Timeline_Ruler(timelineTimeCursor, timelineController, timelineData, timelineTransformHorizontal);
+	timelineRange = new Timeline_Range(timelineTimeCursor, timelineData, timelineTransformHorizontal);
+
+	layersViewer = new Timeline_Layers_Viewer(timelineTimeCursor, layersData, timelineData, timelineTransformVertical, timelineTransformHorizontal);
 
 	layersList = new Timeline_Layers_List(layersData, timelineTransformVertical);
-	layersViewer = new Timeline_Layers_Viewer(layersData, timelineData, timelineTransformVertical, timelineTransformHorizontal);
 
-	timeCursor = new Timeline_TimeCursor(timelineData, timelineTransformHorizontal);
 
 	layerFactory->CreateSolid(0.f, 2.f);
 	layerFactory->CreateSolid(1.f, 2.f);
@@ -87,11 +90,20 @@ void TimelinePanel::Draw() {
 
 		DebugOverlay::AddText(
 			{
+				{u8"Видимые границы", ImColor(1.f, 1.f, 1.f, 1.f)},
 				{str_left_range, ImColor(0.f, 1.f, 0.f, 1.f)},
 				{str_right_range, ImColor(1.f, 0.f, 0.f, 1.f)}
 			}
 		);
 
+		DebugOverlay::AddText(
+			
+			{
+				{u8"Время анимации ", ImColor(1.f, 1.f, 1.f, 1.f)},
+				{std::to_string(timelineData->GetData().currentTime), ImColor(0.5f, 0.5f, 1.f, 1.f)}
+			}
+		
+		);
 
 	
 	ImGui::End();

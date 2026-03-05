@@ -5,12 +5,13 @@
 #include "Core/Animation/Timeline/Transform/Vertical/Timeline.Transform.Vertical.h"
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
-
+#include "Core/Animation/Timeline/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
 
 class Timeline_Layers_Viewer
 {
 public:
 	Timeline_Layers_Viewer(
+		Timeline_TimeCursor* timeCursor,
 		LayersDataProvider* layersData, 
 		TimelineProviderData* timelineData, 
 		TimelineTransformVertical* verticalTransform, 
@@ -23,6 +24,8 @@ public:
 	void Update();
 
 private:
+	Timeline_TimeCursor* timeCursor;
+
 	LayersDataProvider*		layersData;
 	TimelineProviderData*	timelineData;
 

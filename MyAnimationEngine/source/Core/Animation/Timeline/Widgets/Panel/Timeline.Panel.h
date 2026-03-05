@@ -59,13 +59,15 @@ private:
 	Timeline_Scroll_Horizontal* scrollHorizontal;
 	Timeline_Scroll_Vertical*   scrollVertical;
 
+
+	Timeline_TimeCursor*	timelineTimeCursor;
+
 	Timeline_Ruler*			timelineRuler;
 	Timeline_Range*			timelineRange;
 	Timeline_Layers_List*	layersList;
 	Timeline_Layers_Viewer* layersViewer;
 	Timeline_UpperControls* upperControls;
 
-	Timeline_TimeCursor* timeCursor;
 
 
 	void Draw_1Level(const float& thickness_separator);

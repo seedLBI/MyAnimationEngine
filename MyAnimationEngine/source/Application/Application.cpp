@@ -16,8 +16,8 @@ Application::Application() {
 	fontManager->ReloadFont();
 
 	fps_limiter = new FPS_Timer;
-	fps_limiter->SetTargetFPS(60);
-
+	fps_limiter->SetTargetFPS(120);
+	glfwSwapInterval(1);
 
 
 	layersData			= new LayersDataProvider();
@@ -38,6 +38,9 @@ void Application::Init_OpenGL() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	
+
 	windowManager = new WindowManager(Title, 1280, 720, 100, 100);
 
 }

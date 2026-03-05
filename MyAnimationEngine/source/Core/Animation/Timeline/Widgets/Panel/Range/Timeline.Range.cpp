@@ -3,9 +3,11 @@
 #include <algorithm>
 
 Timeline_Range::Timeline_Range(
+	Timeline_TimeCursor* timeCursor,
 	TimelineProviderData* timelineData,
 	TimelineTransformHorizontal* horizontalTransform)
-	: timelineData(timelineData),
+	: timeCursor(timeCursor),
+	timelineData(timelineData),
 	horizontalTransform(horizontalTransform)
 {
 
@@ -19,6 +21,11 @@ void Timeline_Range::Draw() {
 	auto drawlist = ImGui::GetWindowDrawList();
 	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
 	ImVec2 region_max = ImGui::GetContentRegionAvail();
+
+	
+	ImVec2 p_min = cursor_pos;
+	ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
+
 
 	ImGui::InvisibleButton("Timeline_Range_canvas_button", region_max, ImGuiButtonFlags_MouseButtonLeft);
 
@@ -183,6 +190,9 @@ void Timeline_Range::Draw() {
 
 	}
 
+
+
+	timeCursor->Draw(p_min, p_max);
 
 
 }
