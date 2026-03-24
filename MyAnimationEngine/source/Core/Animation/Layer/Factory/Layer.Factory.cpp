@@ -1,4 +1,4 @@
-#include "Layer.Factory.h"
+п»ї#include "Layer.Factory.h"
 
 #include "Core/Animation/Layer/Object/Layer.Object.h"
 #include "Core/Animation/Layer/Object/Objects/Layer.Object.Solid.h"
@@ -11,7 +11,7 @@ LayerFactory::~LayerFactory()
 void LayerFactory::CreateSolid()
 {
 	LayerInfo newLayerInfo;
-	newLayerInfo.name = u8"Сплошной";
+	newLayerInfo.name = u8"РЎРїР»РѕС€РЅРѕР№";
 
 	int count = 0;
 	for (size_t i = 0; i < layers->GetData().layers.size(); i++) {
@@ -20,7 +20,6 @@ void LayerFactory::CreateSolid()
 			count++;
 
 	}
-
 	newLayerInfo.name += " " + std::to_string(count);
 
 
@@ -28,13 +27,19 @@ void LayerFactory::CreateSolid()
 	newLayerInfo.time.End = timeline->GetData().totalTime;
 	newLayerInfo.isVisible = true;
 
+	newLayerInfo.color.r = 1.f;
+	newLayerInfo.color.g = 0.f;
+	newLayerInfo.color.b = 0.2f;
+
+	newLayerInfo.index = layers->GetData().layers.size();
+
 
 	layers->GetData().layers.emplace_back(std::make_shared<LayerObject_Solid>(newLayerInfo));
 }
 
 void LayerFactory::CreateSolid(const float& begin, const float& time) {
 	LayerInfo newLayerInfo;
-	newLayerInfo.name = u8"Сплошной";
+	newLayerInfo.name = u8"РЎРїР»РѕС€РЅРѕР№";
 
 	int count = 0;
 	for (size_t i = 0; i < layers->GetData().layers.size(); i++) {
@@ -55,6 +60,12 @@ void LayerFactory::CreateSolid(const float& begin, const float& time) {
 
 
 	newLayerInfo.isVisible = true;
+
+	newLayerInfo.color.r = 1.f;
+	newLayerInfo.color.g = 0.f;
+	newLayerInfo.color.b = 0.2f;
+
+	newLayerInfo.index = layers->GetData().layers.size();
 
 
 	layers->GetData().layers.emplace_back(std::make_shared<LayerObject_Solid>(newLayerInfo));

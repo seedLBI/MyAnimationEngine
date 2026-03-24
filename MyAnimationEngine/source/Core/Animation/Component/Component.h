@@ -1,4 +1,6 @@
-#pragma once
+﻿#pragma once
+
+#include "Utils/Color/Utils.Color.h"
 
 #include <glm/glm.hpp>
 #include <string>
@@ -69,6 +71,8 @@ struct TimeSector {
 
 struct LayerInfo {
 	std::string name;
+	uint64_t index;
+	colorRGB color;
 	TimeSector time;
 	bool isVisible;
 };

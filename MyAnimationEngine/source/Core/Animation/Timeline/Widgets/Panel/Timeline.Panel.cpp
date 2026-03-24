@@ -105,6 +105,15 @@ void TimelinePanel::Draw() {
 		
 		);
 
+		DebugOverlay::AddText(
+
+			{
+				{u8"Кадр анимации  ", ImColor(1.f, 1.f, 1.f, 1.f)},
+				{std::to_string(timelineData->GetData().currentFrame), ImColor(0.5f, 0.5f, 1.f, 1.f)}
+			}
+
+		);
+
 	
 	ImGui::End();
 
@@ -278,6 +287,10 @@ void TimelinePanel::DrawVerticalSliderBox_4Level(const float& height) {
 
 
 void TimelinePanel::Update() {
+
+	//timelineTransformHorizontal->centerize(timelineData->GetData().currentTime, false);
+
+
 	timelineTransformHorizontal->update(deltaTime->GetDeltaTime());
 	timelineTransformVertical->update(deltaTime->GetDeltaTime());
 

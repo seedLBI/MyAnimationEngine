@@ -339,6 +339,12 @@
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TimeCursor\Timeline.TimeCursor.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Markers\Timeline.Markers.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Utils\Color\Utils.Color.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="resources\LOGO_small.png">
@@ -548,6 +554,12 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TimeCursor\Timeline.TimeCursor.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Markers\Timeline.Markers.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Utils\Color\Utils.Color.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

@@ -52,10 +52,11 @@ void Timeline_Layers_Viewer::Draw() {
 
 	for (size_t i = 0; i < layers.size(); i++) {
 
+		auto layer = layers[i].get();
+		auto& layerInfo = layer->GetLayerInfo();
 
-		float time_begin = layers[i].get()->GetLayerInfo().time.Begin;
-		float time_end = layers[i].get()->GetLayerInfo().time.End;
-
+		float time_begin = layerInfo.time.Begin;
+		float time_end = layerInfo.time.End;
 
 		float screen_time_begin = horizontalTransform->getPostionScreen_lerped(time_begin);
 		float screen_time_end = horizontalTransform->getPostionScreen_lerped(time_end);
@@ -63,7 +64,20 @@ void Timeline_Layers_Viewer::Draw() {
 		ImVec2 rect_min = { p.x + screen_time_begin, p.y };
 		ImVec2 rect_max = { p.x + screen_time_end,	 p.y + itemHeight };
 
-		draw_list->AddRectFilled(rect_min, rect_max, ImColor(0.6f, 0.1f, 0.1f, 1.f), 0.f, 0);
+		draw_list->AddRectFilled(rect_min, rect_max, ImColor(layerInfo.color.r, layerInfo.color.g, layerInfo.color.b, 1.f), 0.f, 0);
+
+		colorRGB out;
+		if (getLuminance(layerInfo.color) > 0.6f) {
+			out = lerp(layerInfo.color, colorRGB{ 0,0,0 }, 0.55f);
+		}
+		else {
+			out = lerp(layerInfo.color, colorRGB{ 1,1,1 }, 0.45f);
+		}
+
+
+		draw_list->AddRect(rect_min, rect_max, ImColor(out.r, out.g, out.b, 1.f), 0.f, 0,2.f);
+
+		draw_list->AddLine({ p_min.x,rect_max.y }, { p_max.x,rect_max.y }, ImColor(0.3f, 0.3f, 0.3f), 1.f);
 
 
 		p.y += itemHeight + 1.f;

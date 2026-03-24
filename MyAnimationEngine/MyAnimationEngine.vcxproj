@@ -55,6 +55,7 @@
     <ClCompile Include="source\ThirdParty\ImGui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="source\ThirdParty\ImGui\imgui_tables.cpp" />
     <ClCompile Include="source\ThirdParty\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="source\Utils\Color\Utils.Color.cpp" />
     <ClCompile Include="source\Utils\File\File.cpp" />
     <ClCompile Include="source\Utils\ImGui\Utils.ImGui.cpp" />
     <ClCompile Include="source\Utils\Keyboard\Keyboard.cpp" />
@@ -136,6 +137,7 @@
     <ClInclude Include="source\ThirdParty\ImGui\imstb_textedit.h" />
     <ClInclude Include="source\ThirdParty\ImGui\imstb_truetype.h" />
     <ClInclude Include="source\ThirdParty\ImGui\linmath.h" />
+    <ClInclude Include="source\Utils\Color\Utils.Color.h" />
     <ClInclude Include="source\Utils\File\File.h" />
     <ClInclude Include="source\Utils\ImGui\Utils.ImGui.h" />
     <ClInclude Include="source\Utils\Keyboard\Keyboard.h" />

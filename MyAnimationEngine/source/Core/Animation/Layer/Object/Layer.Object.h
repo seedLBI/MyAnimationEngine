@@ -1,6 +1,8 @@
 ﻿#ifndef LAYER_OBJECT_H
 #define LAYER_OBJECT_H
 
+
+
 #include "Core/Animation/Component/Component.h"
 
 #include <vector>
@@ -11,10 +13,11 @@ public:
 	virtual ~LayerObject() = default;
 	LayerObject(const LayerInfo& info);
 
-	virtual void Draw();
-	virtual void DrawHitBoxViewport();
-	virtual bool isHit();
-	virtual void Update();
+	virtual void LayerList_DrawIconType() = 0;
+	virtual void Draw() = 0;
+	virtual void DrawHitBoxViewport() = 0;
+	virtual bool isHit() = 0;
+	virtual void Update() = 0;
 
 	LayerInfo& GetLayerInfo();
 

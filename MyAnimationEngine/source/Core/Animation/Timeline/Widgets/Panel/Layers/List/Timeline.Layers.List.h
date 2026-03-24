@@ -1,4 +1,4 @@
-#ifndef TIMELINE_LAYERS_LIST_H
+﻿#ifndef TIMELINE_LAYERS_LIST_H
 #define TIMELINE_LAYERS_LIST_H
 
 #include "Core/Animation/Timeline/Transform/Vertical/Timeline.Transform.Vertical.h"
@@ -16,7 +16,14 @@ private:
 	LayersDataProvider* layersData;
 	TimelineTransformVertical* verticalTransform;
 
-	ImVec2 DrawObject(const ImVec2& p, std::shared_ptr<LayerObject>& object);
+	void DrawObject(std::shared_ptr<LayerObject>& object);
+
+	bool DrawVisible(std::shared_ptr<LayerObject>& object);
+	bool DrawToggle(std::shared_ptr<LayerObject>& object);
+	void DrawLayerColor(std::shared_ptr<LayerObject>& object);
+	void DrawLayerIndex(std::shared_ptr<LayerObject>& object);
+	bool DrawLayerIconType(std::shared_ptr<LayerObject>& object);
+	bool DrawLayerName(std::shared_ptr<LayerObject>& object);
 };
 
 
