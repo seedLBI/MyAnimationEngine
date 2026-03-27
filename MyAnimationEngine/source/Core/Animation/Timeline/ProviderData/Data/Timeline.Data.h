@@ -3,6 +3,9 @@
 #include <glm/glm.hpp>
 
 struct Timeline{
+private:
+	long double lengthTimeFrame;
+public:
 	uint64_t framerate;
 	uint64_t currentFrame;
 	uint64_t totalFrames;
@@ -23,7 +26,7 @@ struct Timeline{
 		left_range_repeat(2.5l),
 		right_range_repeat(7.5l)
 	{
-
+		lengthTimeFrame = 1.0 / (double)framerate;
 	}
 
 	Timeline(const uint64_t& framerate, const uint64_t& currentFrame, const uint64_t& totalFrames) {
@@ -32,7 +35,14 @@ struct Timeline{
 		this->totalFrames = totalFrames;
 		totalTime = (long double)totalFrames / (long double)framerate;
 		UpdateCurrentTime();
+
+		lengthTimeFrame = 1.0 / (double)framerate;
 	}
+
+	const long double &getLengthTimeFrame() {
+		return lengthTimeFrame;
+	}
+
 
 	void SetTime(const uint64_t& frame) {
 		currentFrame = frame > totalFrames ? totalFrames : frame;
