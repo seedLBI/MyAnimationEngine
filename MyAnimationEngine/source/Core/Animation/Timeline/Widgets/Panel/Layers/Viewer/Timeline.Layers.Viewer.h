@@ -32,6 +32,14 @@ private:
 	TimelineTransformVertical*	 verticalTransform;
 	TimelineTransformHorizontal* horizontalTransform;
 
+
+	void DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered);
+
+	const float width_hover = 5.f;
+	bool IsHovered_LeftResize(const ImRect& rect);
+	bool IsHovered_RightResize(const ImRect& rect);
+	bool IsHovered_BodyMove(const ImRect& rect);
+
 };
 
 

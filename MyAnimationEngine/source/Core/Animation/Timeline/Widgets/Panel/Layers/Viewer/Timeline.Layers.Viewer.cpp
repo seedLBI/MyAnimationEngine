@@ -20,6 +20,37 @@ Timeline_Layers_Viewer::~Timeline_Layers_Viewer() {
 }
 
 
+bool Timeline_Layers_Viewer::IsHovered_LeftResize(const ImRect& rect) {
+	return ImGui::IsMouseHoveringRect(rect.Min, { rect.Min.x + width_hover, rect.Max.y });
+}
+bool Timeline_Layers_Viewer::IsHovered_RightResize(const ImRect& rect) {
+	return ImGui::IsMouseHoveringRect({ rect.Max.x - width_hover, rect.Min.y }, { rect.Max.x + width_hover, rect.Max.y });
+}
+bool Timeline_Layers_Viewer::IsHovered_BodyMove(const ImRect& rect) {
+	return ImGui::IsMouseHoveringRect({ rect.Min.x + width_hover, rect.Min.y }, { rect.Max.x - width_hover, rect.Max.y });
+}
+
+void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered) {
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	colorRGB outline;
+	colorRGB body = info.color;
+
+	if (getLuminance(info.color) > 0.6f)
+		outline = lerp(info.color, colorRGB{ 0,0,0 }, 0.55f);
+	else
+		outline = lerp(info.color, colorRGB{ 1,1,1 }, 0.45f);
+
+	if (hovered) {
+		outline = lerp(outline, colorRGB{ 1,1,1 }, 0.35f);
+		body = lerp(body, colorRGB{ 1,1,1 }, 0.25f);
+	}
+
+	draw_list->AddRectFilled(rect.Min, rect.Max, ImColor(body.r, body.g, body.b, 1.f), 0.f, 0);
+	draw_list->AddRect(rect.Min, rect.Max, ImColor(outline.r, outline.g, outline.b, 1.f), 0.f, 0, 2.f);
+}
+
+
 void Timeline_Layers_Viewer::Draw() {
 	ImVec2 ASize = ImGui::GetWindowSize();
 
@@ -64,29 +95,28 @@ void Timeline_Layers_Viewer::Draw() {
 		ImVec2 rect_min = { p.x + screen_time_begin, p.y };
 		ImVec2 rect_max = { p.x + screen_time_end,	 p.y + itemHeight };
 
-
-
-		bool hovered = ImGui::IsMouseHoveringRect(rect_min, rect_max);
-		colorRGB outline;
-
-		if (getLuminance(layerInfo.color) > 0.6f)
-			outline = lerp(layerInfo.color, colorRGB{ 0,0,0 }, 0.55f);
-		else
-			outline = lerp(layerInfo.color, colorRGB{ 1,1,1 }, 0.45f);
+		ImRect rect = ImRect{ rect_min, rect_max };
 
 
 
 
-		colorRGB body = layerInfo.color;
+		ImGui::SetCursorScreenPos({ rect_min.x - width_hover,rect_min.y});
+		ImGui::InvisibleButton(("Rect_LAYER##" + std::to_string(i)).c_str(), { rect.GetWidth() + width_hover * 2.f, rect.GetHeight()});
+
+		bool hovered = ImGui::IsItemHovered();
+		bool active = ImGui::IsItemActive();
+
+		DrawLayerBox(rect, layerInfo, hovered || active);
+
+		if (IsHovered_BodyMove(rect))
+		{
+			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+			{
+				std::cout << "privet\n";
 
 
-		if (hovered) {
-			outline = lerp(outline, colorRGB{ 1,1,1 }, 0.35f);
-			body = lerp(body, colorRGB{ 1,1,1 }, 0.25f);
+			}
 		}
-
-		draw_list->AddRectFilled(rect_min, rect_max, ImColor(body.r, body.g, body.b, 1.f), 0.f, 0);
-		draw_list->AddRect(rect_min, rect_max, ImColor(outline.r, outline.g, outline.b, 1.f), 0.f, 0,2.f);
 
 
 
