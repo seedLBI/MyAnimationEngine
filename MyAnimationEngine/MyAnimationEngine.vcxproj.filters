@@ -174,12 +174,6 @@
     <ClCompile Include="source\Application\Application.cpp">
       <Filter>Исходные файлы\Application</Filter>
     </ClCompile>
-    <ClCompile Include="source\FontManager\Fonts\IconsFont.cpp">
-      <Filter>Исходные файлы\FontManager\Fonts</Filter>
-    </ClCompile>
-    <ClCompile Include="source\FontManager\Fonts\MainFont.cpp">
-      <Filter>Исходные файлы\FontManager\Fonts</Filter>
-    </ClCompile>
     <ClCompile Include="source\FontManager\FontManager.cpp">
       <Filter>Исходные файлы\FontManager</Filter>
     </ClCompile>
@@ -227,12 +221,6 @@
     </ClCompile>
     <ClCompile Include="source\Utils\OpenGL\Texture\Texture.cpp">
       <Filter>Исходные файлы\Utils\OpenGL\Texture</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Utils\OpenGL\Window\Window.cpp">
-      <Filter>Исходные файлы\Utils\OpenGL\Window</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Utils\OpenGL\Window\Manager\WindowManager.cpp">
-      <Filter>Исходные файлы\Utils\OpenGL\Window\Manager</Filter>
     </ClCompile>
     <ClCompile Include="source\Utils\ProcessRunner\ProcessRunner.cpp">
       <Filter>Исходные файлы\Utils\ProcessRunner</Filter>
@@ -345,24 +333,16 @@
     <ClCompile Include="source\Utils\Color\Utils.Color.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <CopyFileToFolders Include="resources\LOGO_small.png">
-      <Filter>Файлы ресурсов\resources</Filter>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="resources\LOGO_transparent.png">
-      <Filter>Файлы ресурсов\resources</Filter>
-    </CopyFileToFolders>
+    <ClCompile Include="source\CursorManager\CursorManger.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\WindowManager\WindowManager.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Application\Application.h">
       <Filter>Исходные файлы\Application</Filter>
-    </ClInclude>
-    <ClInclude Include="source\FontManager\Fonts\IconsFont.h">
-      <Filter>Исходные файлы\FontManager\Fonts</Filter>
-    </ClInclude>
-    <ClInclude Include="source\FontManager\Fonts\MainFont.h">
-      <Filter>Исходные файлы\FontManager\Fonts</Filter>
     </ClInclude>
     <ClInclude Include="source\FontManager\FontManager.h">
       <Filter>Исходные файлы\FontManager</Filter>
@@ -426,12 +406,6 @@
     </ClInclude>
     <ClInclude Include="source\Utils\OpenGL\Texture\Texture.h">
       <Filter>Исходные файлы\Utils\OpenGL\Texture</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Utils\OpenGL\Window\Window.h">
-      <Filter>Исходные файлы\Utils\OpenGL\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Utils\OpenGL\Window\Manager\WindowManager.h">
-      <Filter>Исходные файлы\Utils\OpenGL\Window\Manager</Filter>
     </ClInclude>
     <ClInclude Include="source\Utils\ProcessRunner\ProcessRunner.h">
       <Filter>Исходные файлы\Utils\ProcessRunner</Filter>
@@ -560,6 +534,12 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Utils\Color\Utils.Color.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\CursorManager\CursorManger.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\WindowManager\WindowManager.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

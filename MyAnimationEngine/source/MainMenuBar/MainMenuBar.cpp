@@ -1,8 +1,7 @@
-#include "MainMenuBar.h"
+п»ї#include "MainMenuBar.h"
 
-MainMenuBar::MainMenuBar(WindowManager* windowManager) {
-	this->windowManager = windowManager;
-	window = windowManager->GetMainWindow()->GetHandle();
+MainMenuBar::MainMenuBar() {
+	window = WindowManager::getInstance().GetHandle();
 	LoadIcon();
 }
 
@@ -41,7 +40,7 @@ void MainMenuBar::Draw_MainMenu() {
 		menuBarSize = ImGui::GetWindowSize();
 
 
-		//DrawLogo();
+		DrawLogo();
 
 
 		ImGui::Text("My Animation Engine");
@@ -67,7 +66,7 @@ void MainMenuBar::Draw_SecondaryMenu() {
 
 			ImGui::Dummy(ImVec2(20.f, 0.f));
 
-			ImGui::Text(u8"Привет мир:)");
+			ImGui::Text(u8"РџСЂРёРІРµС‚ РјРёСЂ:)");
 
 			// code...
 
@@ -92,7 +91,7 @@ void MainMenuBar::Draw_DownMenu() {
 		if (ImGui::BeginMenuBar()) {
 
 
-			ImGui::Text(u8"Фоновые задачи не выполняются");
+			ImGui::Text(u8"Р¤РѕРЅРѕРІС‹Рµ Р·Р°РґР°С‡Рё РЅРµ РІС‹РїРѕР»РЅСЏСЋС‚СЃСЏ");
 
 
 			ImGui::EndMenuBar();
@@ -126,23 +125,18 @@ void MainMenuBar::DrawWindowButtons() {
 	float paddingRight = style.WindowPadding.x;
 	float totalWidth = 3 * buttonWidth;
 
-	// выравниваем блок кнопок по правому краю
 	ImGui::SetCursorPosX(windowWidth - totalWidth);
 
-	// сохраняем текущие цвета кнопки
 	ImVec4 colBtn = style.Colors[ImGuiCol_Button];
 	ImVec4 colBtnHover = style.Colors[ImGuiCol_ButtonHovered];
 	ImVec4 colBtnActive = style.Colors[ImGuiCol_ButtonActive];
 
-	// делаем «фон» кнопок таким же, как фон окна (невидимыми)
 	ImGui::PushStyleColor(ImGuiCol_Button, style.Colors[ImGuiCol_MenuBarBg]);
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colBtnHover);
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, colBtnActive);
 
 	const ImVec2 buttonSize = ImVec2(buttonWidth, ImGui::GetFrameHeight() - 1.f);
 
-
-	// кнопки
 	if (ImGui::Button(ICON_FA_MINUS, buttonSize)) {
 		glfwIconifyWindow(window);
 	}
@@ -170,7 +164,6 @@ void MainMenuBar::DrawWindowButtons() {
 	}
 	PushSizeButtonIntoList();
 
-	// восстанавливаем старые цвета
 	ImGui::PopStyleColor(3);
 }
 
@@ -197,8 +190,8 @@ void MainMenuBar::LoadIcon() {
 		icon_logo.Init();
 	}
 	else {
-		std::wstring text = L"А где иконки? " + stringUTF8_to_wstring(Path2IconLogo);
-		MessageBoxW(0, text.c_str(), L"Ошибка загрузки иконки", MB_ICONERROR | MB_OK);
+		std::wstring text = L"Рђ РіРґРµ РёРєРѕРЅРєРё? " + stringUTF8_to_wstring(Path2IconLogo);
+		MessageBoxW(0, text.c_str(), L"РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё РёРєРѕРЅРєРё", MB_ICONERROR | MB_OK);
 		exit(0);
 	}
 }

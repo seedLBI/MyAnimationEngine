@@ -1,9 +1,5 @@
-#ifndef FONT_MANAGER_H
+﻿#ifndef FONT_MANAGER_H
 #define FONT_MANAGER_H
-
-#include "Fonts/IconsFont.h"
-#include "Fonts/MainFont.h"
-
 #include "ThirdParty/ImGui/imgui.h"
 #include "ThirdParty/ImGui/imgui_internal.h"
 #include "ThirdParty/ImGui/imgui_impl_glfw.h"
@@ -20,49 +16,35 @@
 #include <iostream>
 
 
-struct FontInfo {
-	std::string Name;
-	std::string Path;
-	std::vector<uint8_t> Data;
-};
-
 class FontManager {
-
+private:
+	const std::string path_Icons = u8"resources\\fonts\\Font Awesome 6 Free-Solid-900.otf";
+	const std::string path_Main  = u8"resources\\fonts\\JetBrainsMonoNL-Regular.ttf";
+	const std::string path_Bold  = u8"resources\\fonts\\JetBrainsMonoNL-ExtraBold.ttf";
 public:
-	FontManager();
-	~FontManager();
+	FontManager(const FontManager&) = delete;
+	FontManager& operator=(const FontManager&) = delete;
 
-	void SetFont(const std::string& NameFont);
+	static FontManager& getInstance();
+
 	void SetSize(const int& sizeFont);
 
 	void SetOneStepBigger();
 	void SetOneStepSmaller();
 
-	std::vector<FontInfo> GetList_FontInfo();
-	std::vector<std::string> GetListSizes();
+	ImFont* GetBoldFont();
 
-	/*
-	void DrawSetting() override;
-	std::string SaveSetting() override;
-	void LoadSetting(const std::string& Data) override;
-	*/
-
-	void ReloadFont();
-
+	void Update();
 
 private:
+	FontManager();
+	~FontManager();
+
 	int Current_Scale = 21;
 	static const int Min_Scale = 12;
 	static const int Max_Scale = 34;
 
-	std::vector<FontInfo> List_Fonts;
-
-
-	bool NeedReloadFontSize = false;
-	std::string Name_Font_Selected = "";
-
-	uint8_t* ptr_MainFontData;
-	uint8_t* ptr_IconsFontData;
+	bool NeedReloadFontSize = true;
 
 	ImFont* MainFont = nullptr;
 	ImFont* MainBoldFont = nullptr;
@@ -70,19 +52,13 @@ private:
 
 	std::vector<uint8_t> IconsFontData;
 	std::vector<uint8_t> MainFontData;
+	std::vector<uint8_t> BoldFontData;
 
-
-	void LoadFontFromFile(std::string Path2File);
-
-	void LoadDefaultMainFont_fromFile();
-	void LoadIconsFont_fromFile();
-
-	void Load_MainFont_FromMemory();
-	void Load_IconsFont_FromMemory();
-
+	std::vector<uint8_t> LoadFontFromFile(const std::string& Path2File);
 };
 
-
+void Push_BoldFont();
+void Pop_BoldFont();
 
 
 

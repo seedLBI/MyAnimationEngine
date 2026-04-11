@@ -1,11 +1,11 @@
-#ifndef MAINMENUBAR_H
+﻿#ifndef MAINMENUBAR_H
 #define MAINMENUBAR_H
 
 #include "ThirdParty/ImGui/imgui.h"
 #include "ThirdParty/ImGui/imgui_internal.h"
 #include "ThirdParty/IconFontCppHeaders/IconsFontAwesome6.h"
 
-#include "Utils/OpenGL/Window/Manager/WindowManager.h"
+#include "WindowManager/WindowManager.h"
 #include "Utils/OpenGL/Texture/Texture.h"
 #include "Utils/File/File.h"
 #include "Utils/Text/Encoding/Wstring/Wstring.h"
@@ -18,10 +18,10 @@
 
 class MainMenuBar {
 private:
-	std::string Path2IconLogo = u8"resources\\LOGO_transparent.png";
+	std::string Path2IconLogo = u8"resources\\logo\\transparent.png";
 	ImVec4 colorLogo = ImVec4(1.f, 1.f, 1.f, 1.f);
 public:
-	MainMenuBar(WindowManager* windowManager);
+	MainMenuBar();
 	~MainMenuBar();
 
 	int GetHeightMenu();
@@ -29,7 +29,6 @@ public:
 	void Draw();
 	bool IsPointOverTitleButton(const POINT& pt) const;
 private:
-	WindowManager* windowManager = nullptr;
 
 	int heightMenu = 0;
 

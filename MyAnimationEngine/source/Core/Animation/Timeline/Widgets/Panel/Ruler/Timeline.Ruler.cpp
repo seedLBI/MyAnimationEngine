@@ -1,5 +1,5 @@
 ﻿#include "Timeline.Ruler.h"
-
+#include "CursorManager/CursorManger.h"
 
 #include "Core/DebugOverlay/DebugOverlay.h"
 
@@ -261,6 +261,11 @@ void Timeline_Ruler::Update() {
 	UpdateVars();
 	UpdateZoom();
 
+	if (isHovered)
+		CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
+	if (isDraging)
+		CursorManager::getInstance().SetCursor(TypeCursor::HAND_CLOSED);
+
 
 	if (isDraging && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 		float delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
@@ -288,12 +293,16 @@ void Timeline_Ruler::Update() {
 			long double(mouse_global),
 			timelineController->GetState() == TimelineRunState::RUNNING_CYCLE
 		);
+
+		CursorManager::getInstance().SetCursor(TypeCursor::POINT);
 	}
 
 	if (ImGui::IsKeyPressed(ImGuiKey_A)) {
 		timelineTransformHorizontal->centerize(timelineData->GetData().totalTime/2.f);
 	}
 	
+
+
 
 
 }

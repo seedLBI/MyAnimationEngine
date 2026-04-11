@@ -10,15 +10,15 @@ Application::Application() {
 	Init_IconApplication();
 	Init_ImGui();
 
-	mainMenuBar = new MainMenuBar(windowManager);
 
-	fontManager = new FontManager;
-	fontManager->ReloadFont();
+	mainMenuBar = new MainMenuBar();
+
+
+	FontManager::getInstance().Update();
 
 	fps_limiter = new FPS_Timer;
-	fps_limiter->SetTargetFPS(60);
+	fps_limiter->SetTargetFPS(180);
 	glfwSwapInterval(0);
-
 
 	layersData			= new LayersDataProvider();
 	timelineData		= new TimelineProviderData();
@@ -30,6 +30,9 @@ Application::Application() {
 	playerComposition	= new Timeline_Player(timelineController);
 
 }
+Application::~Application() {
+
+}
 
 void Application::Init_OpenGL() {
 	glfwInit();
@@ -39,21 +42,19 @@ void Application::Init_OpenGL() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	
-
-	windowManager = new WindowManager(Title, 1280, 720, 100, 100);
+	WindowManager::getInstance().SetTitle(Title);
+	WindowManager::getInstance().SetSize({ 1280,720 });
+	WindowManager::getInstance().Centerize();
+	WindowManager::getInstance().Maximize();
 
 }
-
 void Application::Init_BorderWindow() {
-	GLFWwindow* win = windowManager->GetMainWindow()->GetHandle();
+	GLFWwindow* win = WindowManager::getInstance().GetHandle();
 	HWND hwnd = glfwGetWin32Window(win);
 	g_hwnd_to_window[hwnd] = win;
 
 	LONG style = GetWindowLong(hwnd, GWL_STYLE);
 	style |= WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU;
-	//style |= WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU;
-
 
 	SetWindowLong(hwnd, GWL_STYLE, style);
 
@@ -75,13 +76,12 @@ void Application::Init_BorderWindow() {
 
 	glfwSetWindowUserPointer(win, this);
 }
-
 void Application::Init_IconApplication() {
 	if (isFileExist(Path2IconApplication)) {
 		GLFWimage images[1];
 		int width = 0, height = 0;
 		images[0].pixels = stbi_load(Path2IconApplication.c_str(), &images[0].width, &images[0].height, 0, 4);
-		glfwSetWindowIcon(windowManager->GetMainWindow()->GetHandle(), 1, images);
+		glfwSetWindowIcon(WindowManager::getInstance().GetHandle(), 1, images);
 
 #ifdef _DEBUG
 		std::cout << "Loading ICON:\n\twidth: " << images[0].width << "\n\theight: " << images[0].height << std::endl;
@@ -95,20 +95,17 @@ void Application::Init_IconApplication() {
 #endif // _DEBUG
 	}
 }
-
 void Application::Init_ImGui() {
 	ImGui::CreateContext();
 
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+
 	ImGui::StyleColorsDark();
 
-
-	ImGui_ImplGlfw_InitForOpenGL(windowManager->GetMainWindow()->GetHandle(), true);
+	ImGui_ImplGlfw_InitForOpenGL(WindowManager::getInstance().GetHandle(), true);
 	ImGui_ImplOpenGL3_Init("#version 330");
-
 
 	auto& s = ImGui::GetStyle();
 	s.ImageBorderSize = 1.f;
@@ -116,20 +113,51 @@ void Application::Init_ImGui() {
 	ImGui::GetIO().IniFilename = NULL;
 	ImGui::GetIO().LogFilename = NULL;
 }
+void Application::Init_DockLayout(ImGuiViewport* viewport, const ImGuiID& dockspace_id) {
+	static bool dock_initialized = false;
+	if (!dock_initialized) {
 
-Application::~Application() {
+		ImGui::DockBuilderRemoveNode(dockspace_id);
+		ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+		ImGui::DockBuilderSetNodePos(dockspace_id, viewport->Pos);
+		ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
 
+		ImGuiID panel_id = 0;
+		ImGuiID temp_id = 0;
+		ImGuiID player_id = 0;
+		ImGuiID left_id = 0;
+
+		ImGui::DockBuilderSplitNode(
+			dockspace_id,
+			ImGuiDir_Down,
+			0.40f,
+			&panel_id,
+			&temp_id
+		);
+		ImGui::DockBuilderSplitNode(
+			temp_id,
+			ImGuiDir_Right,
+			0.20f,
+			&player_id,
+			&left_id
+		);
+
+		ImGui::DockBuilderDockWindow(u8"Временная шкала", panel_id);
+		ImGui::DockBuilderDockWindow(u8"Проигрыватель", player_id);
+
+		ImGui::DockBuilderFinish(dockspace_id);
+		dock_initialized = true;
+	}
 }
 
+
 void Application::Run() {
-	while (windowManager->GetMainWindow()->IsShouldClose() == false) {
+	while (WindowManager::getInstance().IsShouldClose() == false) {
 		Update();
 
 		BeginDraw();
 			Draw();
 		EndDraw();
-
-
 
 	}
 }
@@ -147,13 +175,16 @@ void Application::Draw() {
 
 	ImGui::ShowDemoWindow();
 
-
 	DebugOverlay::DrawDebug();
 
-
+	auto drawlist = ImGui::GetForegroundDrawList();
+	drawlist->AddCircleFilled(ImGui::GetMousePos(), 2.f, ImColor(1.f, 0.f, 0.f, 1.f));
 }
 void Application::Update() {
-	
+	CursorManager::getInstance().Update();
+	CursorManager::getInstance().SetCursor(TypeCursor::POINTER);
+
+
 	if (ImGui::IsKeyPressed(ImGuiKey_Tab))
 	{
 		DebugOverlay::ToggleShow();
@@ -171,14 +202,16 @@ void Application::BeginDraw() {
 	glClearColor(0.2f, 0.2f, 0.2f, 1.f);
 	glClear(BufferBit::COLOR_BUFFER_BIT | BufferBit::DEPTH_BUFFER_BIT);
 
-	fontManager->ReloadFont();
+	FontManager::getInstance().Update();
 
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(0, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
 
+	Init_DockLayout(viewport, dockspace_id);
 }
 
 void Application::EndDraw() {
@@ -187,7 +220,7 @@ void Application::EndDraw() {
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	glfwSwapBuffers(windowManager->GetMainWindow()->GetHandle());
+	glfwSwapBuffers(WindowManager::getInstance().GetHandle());
 
 	fps_limiter->wait();
 }
@@ -267,32 +300,29 @@ LRESULT CALLBACK custom_wndproc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 	}
 	case WM_SETCURSOR: {
 
-		if (IsZoomed(hwnd) || glfwGetWindowMonitor(win)) {
-			SetCursor(LoadCursor(NULL, IDC_ARROW));
-			return TRUE;
+		if (!IsZoomed(hwnd) && glfwGetWindowMonitor(win) == NULL) {
+			int hitTest = LOWORD(lParam);
+
+			switch (hitTest) {
+			case HTLEFT:
+			case HTRIGHT:
+				SetCursor(LoadCursor(NULL, IDC_SIZEWE));
+				return TRUE;
+			case HTTOP:
+			case HTBOTTOM:
+				SetCursor(LoadCursor(NULL, IDC_SIZENS));
+				return TRUE;
+			case HTTOPLEFT:
+			case HTBOTTOMRIGHT:
+				SetCursor(LoadCursor(NULL, IDC_SIZENWSE));
+				return TRUE;
+			case HTTOPRIGHT:
+			case HTBOTTOMLEFT:
+				SetCursor(LoadCursor(NULL, IDC_SIZENESW));
+				return TRUE;
+			}
 		}
 
-		int hitTest = LOWORD(lParam);
-		switch (hitTest) {
-		case HTLEFT:
-		case HTRIGHT:
-			SetCursor(LoadCursor(NULL, IDC_SIZEWE));
-			return TRUE;
-		case HTTOP:
-		case HTBOTTOM:
-			SetCursor(LoadCursor(NULL, IDC_SIZENS));
-			return TRUE;
-		case HTTOPLEFT:
-		case HTBOTTOMRIGHT:
-			SetCursor(LoadCursor(NULL, IDC_SIZENWSE));
-			return TRUE;
-		case HTTOPRIGHT:
-		case HTBOTTOMLEFT:
-			SetCursor(LoadCursor(NULL, IDC_SIZENESW));
-			return TRUE;
-		default:
-			break;
-		}
 		break;
 	}
 	case WM_GETMINMAXINFO: {

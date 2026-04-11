@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 
@@ -15,7 +15,10 @@ public:
 private:
 	TimelineProviderData* timelineData;
 
-	ImColor color_timerText = { 38, 110, 235, 255 };
+	float scale_upper = 1.1f;
+	float scale_bottom = 0.8f;
+	ImColor color_upperTimerText  = { 58, 150, 255, 255 };
+	ImColor color_bottomTimerText = { 58, 150, 255, 255 };
 
 	ImVec2 DrawTimer(const ImVec2& p);
 };

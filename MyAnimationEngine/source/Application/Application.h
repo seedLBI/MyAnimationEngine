@@ -1,4 +1,4 @@
-#ifndef APPLICATION_H
+﻿#ifndef APPLICATION_H
 #define APPLICATION_H
 
 #include <Windows.h>
@@ -22,7 +22,9 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
-#include "Utils/OpenGL/Window/Manager/WindowManager.h"
+#include "WindowManager/WindowManager.h"
+#include "CursorManager/CursorManger.h"
+
 #include "Utils/Timer/Timer.Framerate.h"
 
 #include "Utils/File/File.h"
@@ -54,8 +56,8 @@ enum BufferBit {
 
 class Application {
 private:
-	const std::string Title = u8"Template";
-	const std::string Path2IconApplication = u8"resources\\LOGO_small.png";
+	const std::string Title = u8"My Animation Engine";
+	const std::string Path2IconApplication = u8"resources\\logo\\small.png";
 public:
 	Application();
 	~Application();
@@ -65,10 +67,7 @@ public:
 private:
 
 	FPS_Timer* fps_limiter = nullptr;
-	WindowManager* windowManager = nullptr;
 	MainMenuBar* mainMenuBar = nullptr;
-	FontManager* fontManager = nullptr;
-
 
 	LayersDataProvider* layersData = nullptr;
 	LayerFactory* layersFactory = nullptr;
@@ -89,6 +88,8 @@ private:
 	void Init_BorderWindow();
 	void Init_IconApplication();
 	void Init_ImGui();
+
+	void Init_DockLayout(ImGuiViewport* viewport, const ImGuiID& dockspace_id);
 };
 
 

@@ -41,9 +41,8 @@
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.cpp" />
     <ClCompile Include="source\Core\DebugOverlay\DebugOverlay.cpp" />
+    <ClCompile Include="source\CursorManager\CursorManger.cpp" />
     <ClCompile Include="source\FontManager\FontManager.cpp" />
-    <ClCompile Include="source\FontManager\Fonts\IconsFont.cpp" />
-    <ClCompile Include="source\FontManager\Fonts\MainFont.cpp" />
     <ClCompile Include="source\Main.cpp" />
     <ClCompile Include="source\MainMenuBar\MainMenuBar.cpp" />
     <ClCompile Include="source\RenderObjects\Quad\Quad.cpp" />
@@ -64,8 +63,6 @@
     <ClCompile Include="source\Utils\OpenGL\Framebuffer\Framebuffer.cpp" />
     <ClCompile Include="source\Utils\OpenGL\Renderbuffer\Renderbuffer.cpp" />
     <ClCompile Include="source\Utils\OpenGL\Texture\Texture.cpp" />
-    <ClCompile Include="source\Utils\OpenGL\Window\Manager\WindowManager.cpp" />
-    <ClCompile Include="source\Utils\OpenGL\Window\Window.cpp" />
     <ClCompile Include="source\Utils\ProcessRunner\ProcessRunner.cpp" />
     <ClCompile Include="source\Utils\Synchronization\CriticalSection\CriticalSection.cpp" />
     <ClCompile Include="source\Utils\Synchronization\Event\Event.cpp" />
@@ -79,20 +76,7 @@
     <ClCompile Include="source\Utils\Timer\Timer.Framerate.cpp" />
     <ClCompile Include="source\Utils\Time\Time.cpp" />
     <ClCompile Include="source\Utils\Values\Values.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <CopyFileToFolders Include="resources\LOGO_small.png">
-      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\resources</DestinationFolders>
-      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\resources</DestinationFolders>
-      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\resources</DestinationFolders>
-      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)\resources</DestinationFolders>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="resources\LOGO_transparent.png">
-      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\resources</DestinationFolders>
-      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\resources</DestinationFolders>
-      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\resources</DestinationFolders>
-      <DestinationFolders Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)\resources</DestinationFolders>
-    </CopyFileToFolders>
+    <ClCompile Include="source\WindowManager\WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Application\Application.h" />
@@ -120,9 +104,8 @@
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.h" />
     <ClInclude Include="source\Core\DebugOverlay\DebugOverlay.h" />
+    <ClInclude Include="source\CursorManager\CursorManger.h" />
     <ClInclude Include="source\FontManager\FontManager.h" />
-    <ClInclude Include="source\FontManager\Fonts\IconsFont.h" />
-    <ClInclude Include="source\FontManager\Fonts\MainFont.h" />
     <ClInclude Include="source\MainMenuBar\MainMenuBar.h" />
     <ClInclude Include="source\RenderObjects\Quad\Quad.h" />
     <ClInclude Include="source\RenderObjects\RenderableObject.h" />
@@ -149,8 +132,6 @@
     <ClInclude Include="source\Utils\OpenGL\Shaders\Shader.h" />
     <ClInclude Include="source\Utils\OpenGL\Texture\Texture.h" />
     <ClInclude Include="source\Utils\OpenGL\UBO\UBO.h" />
-    <ClInclude Include="source\Utils\OpenGL\Window\Manager\WindowManager.h" />
-    <ClInclude Include="source\Utils\OpenGL\Window\Window.h" />
     <ClInclude Include="source\Utils\ProcessRunner\ProcessRunner.h" />
     <ClInclude Include="source\Utils\Synchronization\CriticalSection\CriticalSection.h" />
     <ClInclude Include="source\Utils\Synchronization\Event\Event.h" />
@@ -164,6 +145,7 @@
     <ClInclude Include="source\Utils\Timer\Timer.h" />
     <ClInclude Include="source\Utils\Time\Time.h" />
     <ClInclude Include="source\Utils\Values\Values.h" />
+    <ClInclude Include="source\WindowManager\WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -99,11 +99,47 @@ void Timeline_Layers_List::DrawLayerColor(std::shared_ptr<LayerObject>& object) 
         object.get()->GetLayerInfo().color.b 
     };
 
+    std::string button_id = "##color_picker_layer##" + index;
+    std::string popup_id = "##color_picker_popup##" + index;
+
+    ImVec4 col = ImVec4(c[0], c[1], c[2], 1.0f);
+
+    const float size = 18.0f;
+    if (ImGui::ColorButton(button_id.c_str(), col, ImGuiColorEditFlags_None, ImVec2(size, size))) {
+        ImGui::OpenPopup(popup_id.c_str()); 
+    }
+
+    if (ImGui::BeginDragDropSource()) {
+        ImGui::SetDragDropPayload("COLOR_LAYER_PAYLOAD", c, sizeof(float) * 3);
+        ImGui::Text(u8"Цвет маркера");
+        ImGui::EndDragDropSource();
+    }
+
+    if (ImGui::BeginDragDropTarget())
+    {
+        const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COLOR_LAYER_PAYLOAD");
+        if (payload) {
+            float* color_payload = static_cast<float*>(payload->Data);
+
+            c[0] = color_payload[0];
+            c[1] = color_payload[1];
+            c[2] = color_payload[2];
+        }
+        ImGui::EndDragDropTarget();
+    }
 
 
-    ImGui::ColorEdit3(("##color_picker_layer##" + index).c_str(), c, ImGuiColorEditFlags_NoInputs);
 
-    object.get()->GetLayerInfo().color = { c[0],c[1],c[2] };
+    if (ImGui::BeginPopup(popup_id.c_str())) {
+        ImGui::ColorPicker3(("##picker##" + index).c_str(), c,
+            ImGuiColorEditFlags_NoAlpha |
+            ImGuiColorEditFlags_NoSidePreview |
+            ImGuiColorEditFlags_NoSmallPreview);
+
+        ImGui::EndPopup();
+    }
+
+    object.get()->GetLayerInfo().color = { c[0], c[1], c[2] };
 }
 
 void Timeline_Layers_List::DrawLayerIndex(std::shared_ptr<LayerObject>& object) {

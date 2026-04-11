@@ -1,5 +1,5 @@
 ﻿#include "Timeline.Range.h"
-
+#include "CursorManager/CursorManger.h"
 #include <algorithm>
 
 Timeline_Range::Timeline_Range(
@@ -69,12 +69,13 @@ void Timeline_Range::Draw() {
 	bool need_check_hover = !(left_range_dragging || right_range_dragging || range_dragging);
 	bool mouse_y_in_box = (mouse.y >= range_box_min.y && mouse.y <= range_box_max.y);
 
+	bool mouse_x_in_left_button = mouse.x >= left_hitbox_min_x && mouse.x <= left_hitbox_max_x;
+	bool mouse_x_in_right_button = mouse.x >= right_hitbox_min_x && mouse.x <= right_hitbox_max_x;
+	bool mouse_x_in_range_button = mouse.x > range_hitbox_min_x && mouse.x < range_hitbox_max_x;
 
 	if (need_check_hover && mouse_y_in_box) {
 
-		bool mouse_x_in_left_button = mouse.x >= left_hitbox_min_x && mouse.x <= left_hitbox_max_x;
-		bool mouse_x_in_right_button = mouse.x >= right_hitbox_min_x && mouse.x <= right_hitbox_max_x;
-		bool mouse_x_in_range_button = mouse.x > range_hitbox_min_x && mouse.x < range_hitbox_max_x;
+
 
 		if (mouse_x_in_left_button) {
 			color_left_button = color_button_hovered;
@@ -159,6 +160,18 @@ void Timeline_Range::Draw() {
 		else range_dragging = false;
 	}
 
+	bool isHovered = (mouse_x_in_left_button || mouse_x_in_right_button || mouse_x_in_range_button) && mouse_y_in_box;
+	bool isResizing = left_range_dragging || right_range_dragging;
+	bool isDraging  = range_dragging;
+
+	if (isHovered)
+		CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
+	if (isResizing)
+		CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_HORIZONTAL);
+	if(isDraging)
+		CursorManager::getInstance().SetCursor(TypeCursor::HAND_CLOSED);
+
+
 
 
 
@@ -189,8 +202,6 @@ void Timeline_Range::Draw() {
 
 
 		drawlist->AddRectFilled(pos_debug_drag_line_min, pos_debug_drag_line_max, ImColor(1.f, 1.f, 0.f, 0.7f), 8.f);
-
-
 
 	}
 
