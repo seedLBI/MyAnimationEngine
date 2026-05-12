@@ -1,4 +1,4 @@
-#include "Keyframe.h"
+п»ї#include "Keyframe.h"
 
 
 
@@ -28,7 +28,7 @@ void Keyframes::discretize_optimized() {
 
 	samples.clear();
 
-	// Шаг 1: Вычисляем среднюю нормализованную кривизну по всей кривой
+	// РЁР°Рі 1: Р’С‹С‡РёСЃР»СЏРµРј СЃСЂРµРґРЅСЋСЋ РЅРѕСЂРјР°Р»РёР·РѕРІР°РЅРЅСѓСЋ РєСЂРёРІРёР·РЅСѓ РїРѕ РІСЃРµР№ РєСЂРёРІРѕР№
 	float totalCurvature = 0.0f;
 	int totalPoints = 0;
 	for (size_t i = 1; i < keys.size(); ++i) {
@@ -148,12 +148,12 @@ float Keyframes::calculateCurvature(const Keyframe& k1, const Keyframe& k2, floa
 	glm::vec2 p2 = k2.in;
 	glm::vec2 p3 = k2.pos;
 
-	// Первая производная
+	// РџРµСЂРІР°СЏ РїСЂРѕРёР·РІРѕРґРЅР°СЏ
 	glm::vec2 d1 = 3.0f * (1.0f - t) * (1.0f - t) * (p1 - p0) +
 		6.0f * (1.0f - t) * t * (p2 - p1) +
 		3.0f * t * t * (p3 - p2);
 
-	// Вторая производная
+	// Р’С‚РѕСЂР°СЏ РїСЂРѕРёР·РІРѕРґРЅР°СЏ
 	glm::vec2 d2 = 6.0f * (1.0f - t) * (p2 - 2.0f * p1 + p0) +
 		6.0f * t * (p3 - 2.0f * p2 + p1);
 
@@ -166,16 +166,16 @@ float Keyframes::calculateCurvature(const Keyframe& k1, const Keyframe& k2, floa
 	float denominator = std::pow(dx_dt * dx_dt + dy_dt * dy_dt, 1.5f);
 	float curvature = denominator > 0.0001f ? numerator / denominator : 0.0f;
 
-	// Нормализация на длину хорды
+	// РќРѕСЂРјР°Р»РёР·Р°С†РёСЏ РЅР° РґР»РёРЅСѓ С…РѕСЂРґС‹
 	float chordLength = glm::length(k2.pos - k1.pos);
-	return curvature * chordLength; // Теперь кривизна безразмерная
+	return curvature * chordLength; // РўРµРїРµСЂСЊ РєСЂРёРІРёР·РЅР° Р±РµР·СЂР°Р·РјРµСЂРЅР°СЏ
 }
 
 int Keyframes::estimateSampleCount(const Keyframe& k1, const Keyframe& k2, const float& maxCurvatureThreshold) {
 	const int testPoints = 10;
 	float maxCurvature = 0.0f;
 
-	// Проверяем кривизну в нескольких точках
+	// РџСЂРѕРІРµСЂСЏРµРј РєСЂРёРІРёР·РЅСѓ РІ РЅРµСЃРєРѕР»СЊРєРёС… С‚РѕС‡РєР°С…
 	for (int i = 0; i < testPoints; ++i) {
 		float t = i / (float)(testPoints - 1);
 		float curvature = calculateCurvature(k1, k2, t);

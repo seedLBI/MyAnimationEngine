@@ -20,13 +20,13 @@ public:
 	Timeline() : 
 		framerate(24), 
 		currentFrame(0), 
-		totalFrames(240), 
-		totalTime(10), 
+		totalTime(20), 
 		currentTime(0),
 		left_range_repeat(2.5l),
 		right_range_repeat(7.5l)
 	{
 		lengthTimeFrame = 1.0 / (double)framerate;
+		totalFrames = framerate * totalTime;
 	}
 
 	Timeline(const uint64_t& framerate, const uint64_t& currentFrame, const uint64_t& totalFrames) {

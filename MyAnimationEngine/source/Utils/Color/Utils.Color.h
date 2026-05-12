@@ -22,6 +22,10 @@ struct colorHSV {
 	float h, s, v;
 };
 
+
+uint32_t get32uint(const colorRGB& color);
+
+
 colorHSV rgb2hsv(const colorRGB& color);
 colorRGB hsv2rgb(const colorHSV& color);
 

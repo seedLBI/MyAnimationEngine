@@ -10,6 +10,9 @@ public:
 	~Timeline_Layers_List();
 
 	void Draw();
+
+	void DrawColumnsHeader();
+
 	void Update();
 
 private:

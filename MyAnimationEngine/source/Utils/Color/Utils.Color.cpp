@@ -64,6 +64,17 @@ colorRGB hsv2rgb(const colorHSV& c) {
     return {r,g,b};
 }
 
+
+uint32_t get32uint(const colorRGB& color) {
+    uint8_t r = (uint8_t)(color.r * 255.f);
+    uint8_t g = (uint8_t)(color.g * 255.f);
+    uint8_t b = (uint8_t)(color.b * 255.f);
+    uint8_t a = 255;
+
+    return uint32_t(a) << (24) | uint32_t(b) << (16) | uint32_t(g) << (8) | uint32_t(r);
+}
+
+
 float getLuminance(const colorRGB& color) {
     return 0.2126f * color.r + 0.7152f * color.g + 0.0722f * color.b;
 }

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Core/Animation/Component/Component.h"
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"

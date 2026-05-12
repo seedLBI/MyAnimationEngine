@@ -158,6 +158,10 @@ bool Timeline_Layers_List::DrawLayerName(std::shared_ptr<LayerObject>& object) {
 
 
 
+void Timeline_Layers_List::DrawColumnsHeader() {
+
+}
+
 void Timeline_Layers_List::Draw() {
 	auto data = layersData->GetData().layers;
 

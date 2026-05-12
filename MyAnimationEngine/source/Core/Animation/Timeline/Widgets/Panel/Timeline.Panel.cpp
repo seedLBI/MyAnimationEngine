@@ -185,7 +185,7 @@ void TimelinePanel::DrawLayerSide_2Level(const float& height) {
 
 	ImGui::BeginChild(u8"Timeline_LayerSide_2Level", ImVec2(500, height));
 
-
+	layersList->DrawColumnsHeader();
 
 	ImGui::EndChild();
 

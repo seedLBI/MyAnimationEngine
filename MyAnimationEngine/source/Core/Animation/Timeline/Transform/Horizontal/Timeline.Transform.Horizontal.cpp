@@ -1,4 +1,5 @@
 ﻿#include "Timeline.Transform.Horizontal.h"
+#include "Core/DebugOverlay/DebugOverlay.h"
 
 TimelineTransformHorizontal::TimelineTransformHorizontal(TimelineProviderData* providerData) 
 	: providerData(providerData) 
@@ -18,7 +19,38 @@ void TimelineTransformHorizontal::updateAvailableWidth(const double& availableWi
 void TimelineTransformHorizontal::update(const float& dt) {
 	scale.Update(dt * 20.f);
 	offset.Update(dt * 20.f);
+
+	DebugOverlay::AddText("real_offset " + std::to_string(real_offset), ImColor{ 0.5f,0.5f,1.f,1.f });
 }
+
+
+
+
+
+float TimelineTransformHorizontal::clampOffsetByHalfWidth_screen(const float& screen_value) {
+
+	const float left_screen_bound_in_global  = getPostionGlobal_real(0.f);
+	const float right_screen_bound_in_global = getPostionGlobal_real(this->width_available / 2.f);
+	const float length_for_centered_bound    = right_screen_bound_in_global - left_screen_bound_in_global;
+	
+	const float left_timeline_bound   = 0.f;
+	const float& right_timeline_bound = providerData->GetData().totalTime;
+
+
+	const float min_left_pos_transform_screen  = (left_timeline_bound  - length_for_centered_bound) * getLengthTick_real();
+	const float max_right_pos_transform_screen =  (right_timeline_bound - length_for_centered_bound) * getLengthTick_real();
+
+	const float offset = -screen_value;
+
+
+	if (offset < min_left_pos_transform_screen)
+		return -min_left_pos_transform_screen;
+	else if (offset > max_right_pos_transform_screen)
+		return -max_right_pos_transform_screen;
+	else
+		return screen_value;
+}
+
 
 float TimelineTransformHorizontal::getPostionScreen_real(const float& globalPos) {
 	return getOffset().GetReal() +  getLengthTick_real() * globalPos;
@@ -56,7 +88,11 @@ void TimelineTransformHorizontal::zoomToPointByValue(const double& relative_poin
 	else
 		real_offset += prev - next;
 
-	getOffset().Set(real_offset + real_offsetDelta);
+	real_offset = clampOffsetByHalfWidth_screen(real_offset);
+
+	getOffset().Set(
+		(real_offset + real_offsetDelta) 
+	);
 
 }
 void TimelineTransformHorizontal::zoomRestore() {
@@ -94,17 +130,27 @@ void TimelineTransformHorizontal::scaleZoomBy(const double& value) {
 
 void TimelineTransformHorizontal::addOffset(const double& value) {
 	real_offset += value;
+
+	real_offset = clampOffsetByHalfWidth_screen(real_offset);
+
 	getOffset().Set(real_offset + real_offsetDelta);
 }
 void TimelineTransformHorizontal::setOffsetDelta(const double& delta) {
 	real_offsetDelta = delta;
-	getOffset().Set(real_offset + real_offsetDelta);
+
+	getOffset().Set(
+		clampOffsetByHalfWidth_screen(
+			real_offset + real_offsetDelta
+		)
+	);
 }
 void TimelineTransformHorizontal::applyOffsetDelta() {
 	real_offset += real_offsetDelta;
 	real_offsetDelta = 0;
 
-	getOffset().Set(real_offset + real_offsetDelta);
+	real_offset = clampOffsetByHalfWidth_screen(real_offset);
+
+	getOffset().Set(real_offset);
 }
 
 float TimelineTransformHorizontal::getLeftBoundView_global() {

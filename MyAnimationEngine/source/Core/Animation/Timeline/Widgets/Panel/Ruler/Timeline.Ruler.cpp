@@ -245,7 +245,7 @@ void Timeline_Ruler::UpdateZoom() {
 }
 
 void Timeline_Ruler::FitAllTimeline() {
-
+	timelineTransformHorizontal->fitToRanges(-0.1, timelineData->GetData().totalTime + 0.1);
 }
 
 
@@ -261,19 +261,26 @@ void Timeline_Ruler::Update() {
 	UpdateVars();
 	UpdateZoom();
 
+
+
 	if (isHovered)
 		CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
 	if (isDraging)
 		CursorManager::getInstance().SetCursor(TypeCursor::HAND_CLOSED);
 
 
+	static bool isOfsetDeltaApplied = false;
+
 	if (isDraging && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+		isOfsetDeltaApplied = true;
 		float delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
 		timelineTransformHorizontal->setOffsetDelta(delta);
 	}
 	else {
 		isDraging = false;
-		timelineTransformHorizontal->applyOffsetDelta();
+		if (isOfsetDeltaApplied)
+			timelineTransformHorizontal->applyOffsetDelta();
+		isOfsetDeltaApplied = false;
 	}
 
 	if (!isHovered) return;
@@ -284,7 +291,6 @@ void Timeline_Ruler::Update() {
 
 
 	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left, false)) {
-
 		timelineTransformHorizontal->fitToRanges(-0.1, timelineData->GetData().totalTime + 0.1);
 	}
 
@@ -301,6 +307,7 @@ void Timeline_Ruler::Update() {
 		timelineTransformHorizontal->centerize(timelineData->GetData().totalTime/2.f);
 	}
 	
+
 
 
 

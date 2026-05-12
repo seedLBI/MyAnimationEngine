@@ -1,4 +1,4 @@
-#include "Timeline.Scroll.Horizontal.h"
+﻿#include "Timeline.Scroll.Horizontal.h"
 
 Timeline_Scroll_Horizontal::Timeline_Scroll_Horizontal(
 	TimelineProviderData* timelineData,

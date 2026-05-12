@@ -1,4 +1,4 @@
-#ifndef TIMELINE_LAYERS_LIST_TIMELINE_H
+﻿#ifndef TIMELINE_LAYERS_LIST_TIMELINE_H
 #define TIMELINE_LAYERS_LIST_TIMELINE_H
 
 #include "Core/Animation/Timeline/Transform/Horizontal/Timeline.Transform.Horizontal.h"

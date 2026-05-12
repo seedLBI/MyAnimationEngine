@@ -53,14 +53,17 @@ private:
 	LerpedValue_float scale, offset;
 
 
-	double real_scale = 1.f;
-	double real_offset = 0.f;
-	double real_offsetDelta = 0.f;
+	float real_scale = 1.f;
+	float real_offset = 0.f;
+	float real_offsetDelta = 0.f;
 
 	float base_step = 200.f;
 
 
 	float width_available = 0.f;
+
+
+	float clampOffsetByHalfWidth_screen(const float& screen_value);
 
 };
 

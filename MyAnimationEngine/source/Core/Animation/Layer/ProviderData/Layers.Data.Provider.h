@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Core/Animation/Layer/Data/Layers.Data.h"
 
 class LayersDataProvider {

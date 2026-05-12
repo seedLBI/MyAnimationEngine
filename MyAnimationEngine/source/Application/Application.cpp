@@ -167,6 +167,8 @@ void Application::Draw() {
 	DebugOverlay::AddText("FPS_imgui_io: " + std::to_string(ImGui::GetIO().Framerate), ImColor{ 0.5f,0.5f,1.f,1.f });
 	DebugOverlay::AddText("FPS_limiter : " + std::to_string(1.f / fps_limiter->GetDeltaTime()), ImColor{ 0.5f,0.5f,1.f,1.f });
 
+
+
 	mainMenuBar->Draw();
 
 

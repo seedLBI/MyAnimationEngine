@@ -3,6 +3,9 @@
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 
 #include "ThirdParty/ImGui/imgui.h"
+#include <string>
+
+#include "Utils/Color/Utils.Color.h"
 
 class Timeline_UpperControls {
 public:
@@ -15,10 +18,8 @@ public:
 private:
 	TimelineProviderData* timelineData;
 
-	float scale_upper = 1.1f;
-	float scale_bottom = 0.8f;
-	ImColor color_upperTimerText  = { 58, 150, 255, 255 };
-	ImColor color_bottomTimerText = { 58, 150, 255, 255 };
+	void DrawTimer();
 
-	ImVec2 DrawTimer(const ImVec2& p);
+	std::string getTimer();
+	std::string getFrame();
 };

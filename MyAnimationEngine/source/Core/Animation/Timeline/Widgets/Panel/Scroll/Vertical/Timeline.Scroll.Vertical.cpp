@@ -1,4 +1,4 @@
-#include "Timeline.Scroll.Vertical.h"
+﻿#include "Timeline.Scroll.Vertical.h"
 
 Timeline_Scroll_Vertical::Timeline_Scroll_Vertical(
 	LayersDataProvider* layersData,

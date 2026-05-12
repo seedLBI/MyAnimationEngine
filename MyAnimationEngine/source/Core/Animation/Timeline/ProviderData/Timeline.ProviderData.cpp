@@ -1,4 +1,4 @@
-#include "Timeline.ProviderData.h"
+﻿#include "Timeline.ProviderData.h"
 
 Timeline& TimelineProviderData::GetData() {
 	return data;
