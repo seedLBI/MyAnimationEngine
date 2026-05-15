@@ -299,7 +299,7 @@ void TimelinePanel::Update() {
 	scrollHorizontal->Update();
 	scrollVertical->Update();
 
-	timelineRuler->Update();
+	timelineRuler->Update(deltaTime->GetDeltaTime());
 	timelineRange->Update();
 	layersList->Update();
 	layersViewer->Update();

@@ -1,13 +1,20 @@
-#include "Math.Lerp.h"
+﻿#include "Math.Lerp.h"
 
 
-void Lerp(ImColor& from, const ImColor& to, const float& force_lerp, const float& deltaTime) {
+void LerpPow(ImColor& from, const ImColor& to, const float& force_lerp, const float& deltaTime) {
 	float TimesLerping = std::pow(0.15f / force_lerp, deltaTime);
 
 	from.Value.x = to.Value.x + TimesLerping * (from.Value.x - to.Value.x);
 	from.Value.y = to.Value.y + TimesLerping * (from.Value.y - to.Value.y);
 	from.Value.z = to.Value.z + TimesLerping * (from.Value.z - to.Value.z);
 	from.Value.w = to.Value.w + TimesLerping * (from.Value.w - to.Value.w);
+}
+
+void Lerp(ImColor& from, const ImColor& to, const float& t) {
+	from.Value.x = to.Value.x + t* (from.Value.x - to.Value.x);
+	from.Value.y = to.Value.y + t* (from.Value.y - to.Value.y);
+	from.Value.z = to.Value.z + t* (from.Value.z - to.Value.z);
+	from.Value.w = to.Value.w + t* (from.Value.w - to.Value.w);
 }
 
 

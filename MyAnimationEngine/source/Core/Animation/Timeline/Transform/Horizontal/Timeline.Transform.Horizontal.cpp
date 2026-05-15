@@ -6,6 +6,7 @@ TimelineTransformHorizontal::TimelineTransformHorizontal(TimelineProviderData* p
 {
 	scale.SetAll(1.f);
 	offset.SetAll(0.f);
+	reaction_to_over_scale.SetAll(0.f);
 }
 
 TimelineTransformHorizontal::~TimelineTransformHorizontal() {
@@ -17,14 +18,37 @@ void TimelineTransformHorizontal::updateAvailableWidth(const double& availableWi
 }
 
 void TimelineTransformHorizontal::update(const float& dt) {
+	clampZoomByTimeline();
 	scale.Update(dt * 20.f);
 	offset.Update(dt * 20.f);
-
-	DebugOverlay::AddText("real_offset " + std::to_string(real_offset), ImColor{ 0.5f,0.5f,1.f,1.f });
+	reaction_to_over_scale.Update(dt * 8.f);
 }
 
 
 
+const float& TimelineTransformHorizontal::getReactionToOverScale() {
+	return reaction_to_over_scale.GetLerped();
+}
+
+bool TimelineTransformHorizontal::clampZoomByTimeline() {
+
+	const float& allLenghtScreen = width_available;
+	float current_space_for_allLengthTimeline = getPostionScreen_real(providerData->GetData().totalTime) - getPostionScreen_real(0.f);
+
+	float max_screen_space = allLenghtScreen * Out_Bound_zoom_percent;
+
+	float current_percent	= current_space_for_allLengthTimeline / allLenghtScreen;
+	float min_percent		= max_screen_space / allLenghtScreen;
+
+	if (current_percent < min_percent) {
+		getScale().Set(max_screen_space / (providerData->GetData().totalTime * base_step) );
+		real_scale = getScale().GetReal();
+
+		return true;
+	}
+
+	return false;
+}
 
 
 float TimelineTransformHorizontal::clampOffsetByHalfWidth_screen(const float& screen_value) {
@@ -36,12 +60,10 @@ float TimelineTransformHorizontal::clampOffsetByHalfWidth_screen(const float& sc
 	const float left_timeline_bound   = 0.f;
 	const float& right_timeline_bound = providerData->GetData().totalTime;
 
-
 	const float min_left_pos_transform_screen  = (left_timeline_bound  - length_for_centered_bound) * getLengthTick_real();
 	const float max_right_pos_transform_screen =  (right_timeline_bound - length_for_centered_bound) * getLengthTick_real();
 
 	const float offset = -screen_value;
-
 
 	if (offset < min_left_pos_transform_screen)
 		return -min_left_pos_transform_screen;
@@ -49,6 +71,28 @@ float TimelineTransformHorizontal::clampOffsetByHalfWidth_screen(const float& sc
 		return -max_right_pos_transform_screen;
 	else
 		return screen_value;
+}
+
+float TimelineTransformHorizontal::getOffset_OutOfBounds() {
+	const float left_screen_bound_in_global = getPostionGlobal_real(0.f);
+	const float right_screen_bound_in_global = getPostionGlobal_real(this->width_available / 2.f);
+	const float length_for_centered_bound = right_screen_bound_in_global - left_screen_bound_in_global;
+
+	const float left_timeline_bound = 0.f;
+	const float& right_timeline_bound = providerData->GetData().totalTime;
+
+	const float min_left_pos_transform_screen  = (left_timeline_bound - length_for_centered_bound) * getLengthTick_real();
+	const float max_right_pos_transform_screen = (right_timeline_bound - length_for_centered_bound) * getLengthTick_real();
+
+	float offset = real_offset + real_offsetDelta;
+
+
+	if (-offset < min_left_pos_transform_screen)
+		return offset + min_left_pos_transform_screen;
+	else if (-offset > max_right_pos_transform_screen)
+		return offset + max_right_pos_transform_screen;
+	else
+		return 0.f;
 }
 
 
@@ -77,6 +121,10 @@ void TimelineTransformHorizontal::zoomToPointByValue(const double& relative_poin
 
 	real_scale *= value;
 	getScale().Set(real_scale);
+	if (clampZoomByTimeline()) {
+		reaction_to_over_scale.SetAll(1.f);
+		reaction_to_over_scale.Set(0.f);
+	}
 
 	if (isScreen)
 		next = getPostionGlobal_real(relative_point);
@@ -123,6 +171,10 @@ void TimelineTransformHorizontal::centerize(const double& relative_point, const 
 void TimelineTransformHorizontal::addZoom(const double& value) {
 	real_scale += value;
 	getScale().Set(real_scale);
+	if (clampZoomByTimeline()) {
+		reaction_to_over_scale.SetAll(1.f);
+		reaction_to_over_scale.Set(0.f);
+	}
 }
 void TimelineTransformHorizontal::scaleZoomBy(const double& value) {
 	zoomToPointByValue(width_available / 2.f, value);
@@ -135,7 +187,7 @@ void TimelineTransformHorizontal::addOffset(const double& value) {
 
 	getOffset().Set(real_offset + real_offsetDelta);
 }
-void TimelineTransformHorizontal::setOffsetDelta(const double& delta) {
+void TimelineTransformHorizontal::setOffsetDelta(const float& delta) {
 	real_offsetDelta = delta;
 
 	getOffset().Set(
@@ -143,6 +195,9 @@ void TimelineTransformHorizontal::setOffsetDelta(const double& delta) {
 			real_offset + real_offsetDelta
 		)
 	);
+}
+float TimelineTransformHorizontal::getOffsetDelta() {
+	return real_offsetDelta;
 }
 void TimelineTransformHorizontal::applyOffsetDelta() {
 	real_offset += real_offsetDelta;
@@ -177,7 +232,6 @@ void TimelineTransformHorizontal::fitToRanges(const double& global_left, const d
 
 	real_scale = getScale().GetReal();
 	real_offset = getOffset().GetReal();
-
 }
 
 

@@ -34,11 +34,15 @@ public:
 	void addZoom(const double& value);
 	void addOffset(const double& value);
 
-	void setOffsetDelta(const double& delta);
+	void setOffsetDelta(const float& delta);
+	float getOffsetDelta();
 	void applyOffsetDelta();
 
 	float getLeftBoundView_global();
 	float getRightBoundView_global();
+
+
+	float getOffset_OutOfBounds();
 
 
 	void fitToRanges(const double& global_left, const double& global_right);
@@ -46,25 +50,29 @@ public:
 
 	LerpedValue_float& getOffset();
 	LerpedValue_float& getScale();
+	const float& getReactionToOverScale();
 
 private:
 	TimelineProviderData* providerData;
 
 	LerpedValue_float scale, offset;
-
+	LerpedValue_float reaction_to_over_scale;
 
 	float real_scale = 1.f;
 	float real_offset = 0.f;
 	float real_offsetDelta = 0.f;
 
-	float base_step = 200.f;
+	float base_step = 100.f;
 
 
 	float width_available = 0.f;
 
 
-	float clampOffsetByHalfWidth_screen(const float& screen_value);
 
+	float Out_Bound_zoom_percent = 0.45f;
+
+	float clampOffsetByHalfWidth_screen(const float& screen_value);
+	bool clampZoomByTimeline();
 };
 
 

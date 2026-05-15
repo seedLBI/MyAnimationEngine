@@ -2,6 +2,7 @@
 #include "CursorManager/CursorManger.h"
 
 #include "Core/DebugOverlay/DebugOverlay.h"
+#include "Utils/Math/Math.Lerp.h"
 
 Timeline_Ruler::Timeline_Ruler(
 	Timeline_TimeCursor* timeCursor,
@@ -55,9 +56,9 @@ void Timeline_Ruler::Draw() {
 
 	ImGui::SetCursorScreenPos(cursor_pos);
 
-
 	ImVec2 p_min = cursor_pos;
 	ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
+
 
 	drawlist->AddRectFilled(
 		p_min,
@@ -86,15 +87,25 @@ void Timeline_Ruler::Draw() {
 	ImVec2 block_min = cursor_pos;
 	ImVec2 block_max = { cursor_pos.x + timelineTransformHorizontal->getPostionScreen_lerped(0.f), cursor_pos.y + region_max.y };
 
+
+
+
+
+	ImColor color_left_bound_outOfBounds  = color_bounds;
+	ImColor color_right_bound_outOfBounds = color_bounds;
+
+	Lerp(color_left_bound_outOfBounds, color_bounds_offsetMax,  1.f - time_left_bound.GetLerped());
+	Lerp(color_right_bound_outOfBounds, color_bounds_offsetMax, 1.f - time_right_bound.GetLerped());
+
+
+
 	if (OutOfView(block_max) == false || block_max.x > p_max.x) {
 
 
-		drawlist->AddRectFilled(
+		drawlist->AddRectFilledMultiColor(
 			block_min,
 			{ block_max.x - width_gradient_bound, block_max.y},
-			color_bounds,
-			0.f,
-			0.f
+			color_left_bound_outOfBounds, color_bounds, color_bounds, color_left_bound_outOfBounds
 		);
 
 
@@ -117,12 +128,10 @@ void Timeline_Ruler::Draw() {
 			color_background, color_bounds, color_bounds, color_background
 		);
 
-		drawlist->AddRectFilled(
+		drawlist->AddRectFilledMultiColor(
 			{ block_min.x + width_gradient_bound, block_min.y },
 			block_max,
-			color_bounds,
-			0.f,
-			0.f
+			color_bounds, color_right_bound_outOfBounds, color_right_bound_outOfBounds, color_bounds
 		);
 
 
@@ -215,6 +224,20 @@ void Timeline_Ruler::Draw() {
 
 	}
 
+
+
+	ImColor lerpedColor_reaction = color_reaction_overScale;
+	lerpedColor_reaction.Value.w = timelineTransformHorizontal->getReactionToOverScale() * 0.5f;
+
+	drawlist->AddRectFilled(
+		p_min,
+		p_max,
+		lerpedColor_reaction,
+		0.f,
+		0.f
+	);
+
+
 	DebugOverlay::AddText("tick rendered: " + std::to_string(count_tick_rendered), ImColor(1.f, 0.3f, 0.3f, 1.f));
 
 	timeCursor->Draw(p_min, p_max);
@@ -224,13 +247,40 @@ void Timeline_Ruler::Draw() {
 #include <iostream>
 
 
-void Timeline_Ruler::UpdateVars() {
+void Timeline_Ruler::UpdateVars(const float& dt) {
 	timelineTransformHorizontal->updateAvailableWidth(region_max.x);
 
 	float mouse_real_screen = ImGui::GetMousePos().x;
 	float mouse_fixed = mouse_real_screen - cursor_pos.x;
 	mouse_global = timelineTransformHorizontal->getPostionGlobal_real(mouse_fixed);
 	mouse_screen = timelineTransformHorizontal->getPostionScreen_real(mouse_global);
+
+
+	float offsetOutOfBound = timelineTransformHorizontal->getOffset_OutOfBounds();
+
+	const float valueForOutBounds = 250.f;
+
+	if (offsetOutOfBound > valueForOutBounds)
+		offsetOutOfBound = valueForOutBounds;
+
+	if (offsetOutOfBound < -valueForOutBounds)
+		offsetOutOfBound = -valueForOutBounds;
+
+	offsetOutOfBound /= valueForOutBounds;
+
+	time_left_bound.Set(offsetOutOfBound >= 0.f ?   offsetOutOfBound : 0.f);
+	time_right_bound.Set(offsetOutOfBound <= 0.f ? -offsetOutOfBound : 0.f);
+
+
+	time_left_bound.Update(dt * 8.f);
+	time_right_bound.Update(dt * 8.f);
+
+
+
+
+
+
+
 
 }
 void Timeline_Ruler::UpdateZoom() {
@@ -257,10 +307,9 @@ const float& Timeline_Ruler::getScreenMouse() {
 }
 
 
-void Timeline_Ruler::Update() {
-	UpdateVars();
+void Timeline_Ruler::Update(const float& dt) {
+	UpdateVars(dt);
 	UpdateZoom();
-
 
 
 	if (isHovered)
@@ -306,10 +355,5 @@ void Timeline_Ruler::Update() {
 	if (ImGui::IsKeyPressed(ImGuiKey_A)) {
 		timelineTransformHorizontal->centerize(timelineData->GetData().totalTime/2.f);
 	}
-	
-
-
-
-
 
 }

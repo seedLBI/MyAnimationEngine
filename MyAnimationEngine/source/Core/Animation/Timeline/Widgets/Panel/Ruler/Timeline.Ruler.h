@@ -18,7 +18,7 @@ public:
 	~Timeline_Ruler();
 
 	void Draw();
-	void Update();
+	void Update(const float& dt);
 
 	const float& getGlobalMouse();
 	const float& getScreenMouse();
@@ -41,7 +41,7 @@ private:
 	bool isDraging = false;
 	float scrol_zoom = 0.f;
 
-	void UpdateVars();
+	void UpdateVars(const float& dt);
 	void UpdateZoom();
 
 
@@ -55,12 +55,16 @@ private:
 
 	const float width_gradient_bound = 20.f;
 
+
+	LerpedValue_float time_left_bound;
+	LerpedValue_float time_right_bound;
+
 	ImColor color_background = { 0.f,0.f,0.f,1.f };
 	ImColor color_bounds = { 0.2f,0.7f,1.f,1.f };
+	ImColor color_bounds_offsetMax = { 1.f,0.2f,0.4f,1.f };
 	ImColor color_mainTick = { 1.f,1.f,1.f,1.f };
 	ImColor color_subTick = { 1.f,0.8f,0.8f,0.4f };
-
-
+	ImColor color_reaction_overScale = { 1.f,0.4f,0.1f,1.f };
 };
 
 

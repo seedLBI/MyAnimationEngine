@@ -9,7 +9,7 @@ CursorManager::CursorManager() {
 	LoadCursors();
 }
 CursorManager::~CursorManager() {
-	FreeCursors();
+	//FreeCursors();
 }
 
 void CursorManager::SetCursor(const TypeCursor& cursor) {

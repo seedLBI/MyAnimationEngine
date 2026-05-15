@@ -116,6 +116,13 @@ void Timeline_Layers_Viewer::Draw() {
 
 
 			}
+
+			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+			{
+				horizontalTransform->fitToRanges(time_begin - 0.1f, time_end + 0.1f);
+
+
+			}
 		}
 
 
