@@ -40,6 +40,7 @@
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.cpp" />
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Preview\Timeline.Preview.cpp" />
     <ClCompile Include="source\Core\DebugOverlay\DebugOverlay.cpp" />
     <ClCompile Include="source\CursorManager\CursorManger.cpp" />
     <ClCompile Include="source\FontManager\FontManager.cpp" />
@@ -103,6 +104,7 @@
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.h" />
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Preview\Timeline.Preview.h" />
     <ClInclude Include="source\Core\DebugOverlay\DebugOverlay.h" />
     <ClInclude Include="source\CursorManager\CursorManger.h" />
     <ClInclude Include="source\FontManager\FontManager.h" />

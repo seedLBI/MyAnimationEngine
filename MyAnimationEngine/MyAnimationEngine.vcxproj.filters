@@ -339,6 +339,9 @@
     <ClCompile Include="source\WindowManager\WindowManager.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Preview\Timeline.Preview.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Application\Application.h">
@@ -540,6 +543,9 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\WindowManager\WindowManager.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Preview\Timeline.Preview.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

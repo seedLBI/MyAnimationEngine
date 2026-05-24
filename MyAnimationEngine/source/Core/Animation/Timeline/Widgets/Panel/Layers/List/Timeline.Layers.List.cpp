@@ -1,6 +1,8 @@
 ﻿#include "Timeline.Layers.List.h"
 
 #include "ThirdParty/IconFontCppHeaders/IconsFontAwesome6.h"
+#include "Utils/Text/Text.h"
+
 
 Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, TimelineTransformVertical* verticalTransform)
 	: layersData(layersData),
@@ -143,7 +145,10 @@ void Timeline_Layers_List::DrawLayerColor(std::shared_ptr<LayerObject>& object) 
 }
 
 void Timeline_Layers_List::DrawLayerIndex(std::shared_ptr<LayerObject>& object) {
-    ImGui::Text("123");
+
+    std::string str_index = std::to_string(object.get()->GetLayerInfo().index);
+    PadLeft(str_index, '0', 3);
+    ImGui::Text(str_index.c_str());
 }
 
 bool Timeline_Layers_List::DrawLayerIconType(std::shared_ptr<LayerObject>& object) {

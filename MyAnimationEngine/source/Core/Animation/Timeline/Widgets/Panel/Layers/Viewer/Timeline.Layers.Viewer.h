@@ -7,6 +7,8 @@
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Timeline/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
 
+#include <unordered_map>
+
 class Timeline_Layers_Viewer
 {
 public:
@@ -32,6 +34,21 @@ private:
 	TimelineTransformVertical*	 verticalTransform;
 	TimelineTransformHorizontal* horizontalTransform;
 
+
+	enum class ObjectStatus : uint8_t {
+		NOTHING = 0,
+		LEFT_RESIZE = 1,
+		RIGHT_RESIZE = 2,
+		BODY_MOVE = 3
+	};
+
+	float drag_start_mouse_global = 0.f;
+	float drag_start_time_begin = 0.f;
+	float length_drag = 0.f;
+
+	uint64_t index_drag = UINT64_MAX;
+	ObjectStatus pressed_status;
+	ObjectStatus draging_status;
 
 	void DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered);
 

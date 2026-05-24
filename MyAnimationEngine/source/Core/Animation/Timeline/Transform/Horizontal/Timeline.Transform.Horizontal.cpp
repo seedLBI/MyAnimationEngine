@@ -215,8 +215,6 @@ float TimelineTransformHorizontal::getRightBoundView_global() {
 	return getPostionGlobal_real(this->width_available);
 }
 
-
-
 void TimelineTransformHorizontal::fitToRanges(const double& global_left, const double& global_right) {
 
 	float screen_left = getPostionScreen_real(global_left);
@@ -227,13 +225,17 @@ void TimelineTransformHorizontal::fitToRanges(const double& global_left, const d
 	float scaleKoef = this->width_available / width;
 
 	getScale().Set(getScale().GetReal() * scaleKoef);
-	getOffset().Set(getOffset().GetReal() - getPostionScreen_real(global_left));
+
+	getOffset().Set(
+		clampOffsetByHalfWidth_screen(
+			getOffset().GetReal() - getPostionScreen_real(global_left)
+		)
+	);
 
 
 	real_scale = getScale().GetReal();
 	real_offset = getOffset().GetReal();
 }
-
 
 LerpedValue_float& TimelineTransformHorizontal::getOffset() {
 	return offset;

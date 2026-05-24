@@ -8,6 +8,9 @@ LayerFactory::~LayerFactory()
 
 }
 
+uint64_t LayerFactory::index = 0;
+
+
 void LayerFactory::CreateSolid()
 {
 	LayerInfo newLayerInfo;
@@ -31,8 +34,8 @@ void LayerFactory::CreateSolid()
 	newLayerInfo.color.g = 0.f;
 	newLayerInfo.color.b = 0.2f;
 
-	newLayerInfo.index = layers->GetData().layers.size();
-
+	newLayerInfo.index = index;
+	index++;
 
 	layers->GetData().layers.emplace_back(std::make_shared<LayerObject_Solid>(newLayerInfo));
 }
@@ -65,7 +68,8 @@ void LayerFactory::CreateSolid(const float& begin, const float& time) {
 	newLayerInfo.color.g = 0.f;
 	newLayerInfo.color.b = 0.2f;
 
-	newLayerInfo.index = layers->GetData().layers.size();
+	newLayerInfo.index = index;
+	index++;
 
 
 	layers->GetData().layers.emplace_back(std::make_shared<LayerObject_Solid>(newLayerInfo));

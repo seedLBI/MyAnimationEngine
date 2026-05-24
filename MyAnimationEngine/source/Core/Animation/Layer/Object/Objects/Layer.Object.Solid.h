@@ -17,5 +17,6 @@ public:
 
 private:
 	Quad quad;
+	Component_Color color;
 };
 

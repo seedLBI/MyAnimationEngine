@@ -1,8 +1,6 @@
 ﻿#ifndef LAYER_OBJECT_H
 #define LAYER_OBJECT_H
 
-
-
 #include "Core/Animation/Component/Component.h"
 
 #include <vector>
@@ -23,9 +21,9 @@ public:
 
 protected:
 	LayerInfo layer_info;
-
+	std::vector<Component*> components;
+	// base component for all layers
 	Component_2DTransform transform;
-	Component_Color color;
 };
 
 #endif

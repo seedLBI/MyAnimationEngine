@@ -19,6 +19,7 @@ public:
 private:
 	LayersDataProvider* layers;
 	TimelineProviderData* timeline;
+	static uint64_t index;
 };
 
 

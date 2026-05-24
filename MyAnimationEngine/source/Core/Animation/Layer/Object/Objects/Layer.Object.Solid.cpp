@@ -49,10 +49,10 @@ void LayerObject_Solid::LayerList_DrawIconType() {
 	ImGui::ItemSize(ImRect(p_min.x, p_min.y, p_max.x, p_max.y));
 
 	ImColor color;
-	color.Value.x = LayerObject::color.color.x;
-	color.Value.y = LayerObject::color.color.y;
-	color.Value.z = LayerObject::color.color.z;
-	color.Value.w = LayerObject::color.color.w;
+	color.Value.x = this->color.color.x;
+	color.Value.y = this->color.color.y;
+	color.Value.z = this->color.color.z;
+	color.Value.w = this->color.color.w;
 
 	drawList->AddRectFilled(p_min, p_max, color);
 	drawList->AddRect(p_min, p_max, ImColor(1.f,1.f,1.f,1.f),0.f,0,2.f);

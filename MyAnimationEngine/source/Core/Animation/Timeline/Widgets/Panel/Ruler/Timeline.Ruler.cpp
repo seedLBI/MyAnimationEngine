@@ -210,8 +210,6 @@ void Timeline_Ruler::Draw() {
 
 			min_pos_sub_tick.y -= j % 2 == 0 ? height_sub_minor_tick : height_sub_major_tick;
 
-
-
 			if (max_pos_sub_tick.x < p_min.x) continue;
 			if (min_pos_sub_tick.x > p_max.x) break;
 
