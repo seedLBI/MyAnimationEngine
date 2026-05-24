@@ -201,12 +201,20 @@ void Timeline_Layers_Viewer::Draw() {
 					info.time.End = info.time.Begin + 0.1f;
 				}
 
+				if (info.time.End <= 0.f) {
+					info.time.End = 0.f;
+				}
+
 			}
 			else {
 				info.time.Begin = drag_start_time_begin + delta;
 
 				if (info.time.Begin >= info.time.End) {
 					info.time.Begin = info.time.End - 0.1f;
+				}
+
+				if (info.time.Begin >= timelineData->GetData().totalTime) {
+					info.time.Begin = timelineData->GetData().totalTime;
 				}
 			}
 
@@ -221,7 +229,7 @@ void Timeline_Layers_Viewer::Draw() {
 			info.time.Begin = drag_start_time_begin + delta;
 			info.time.End = drag_start_time_begin + length_drag + delta;
 
-			if (info.time.End < 0.f) {
+			if (info.time.End <= 0.f) {
 				info.time.End = 0.f;
 				info.time.Begin = -length_drag;
 			}
