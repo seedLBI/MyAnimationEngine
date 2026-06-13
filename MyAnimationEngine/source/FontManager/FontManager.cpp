@@ -31,7 +31,13 @@ void FontManager::SetOneStepSmaller() {
 	SetSize(Current_Scale - 1);
 }
 ImFont* FontManager::GetBoldFont() {
-	return MainBoldFont;
+	return FontMain_Bold;
+}
+ImFont* FontManager::GetSmallFont() {
+	return FontMain_Small;
+}
+ImFont* FontManager::GetSmallestFont() {
+	return FontMain_Smallest;
 }
 
 void FontManager::Update() {
@@ -53,8 +59,8 @@ void FontManager::Update() {
 		io.Fonts->Clear();
 		io.Fonts->Fonts.clear();
 
-		if (MainFont != nullptr) {
-			MainFont->ClearOutputData();
+		if (FontMain != nullptr) {
+			FontMain->ClearOutputData();
 		}
 
 		static const ImWchar ranges[] =
@@ -69,7 +75,7 @@ void FontManager::Update() {
 			0,
 		};
 
-		MainFont = io.Fonts->AddFontFromMemoryTTF(
+		FontMain = io.Fonts->AddFontFromMemoryTTF(
 			MainFontData.data(),
 			static_cast<int>(MainFontData.size()),
 			static_cast<float>(Current_Scale),
@@ -86,15 +92,27 @@ void FontManager::Update() {
 		icons_config.FontDataOwnedByAtlas = false;
 
 
-		if (IconsFont != nullptr) {
-			IconsFont->ClearOutputData();
+		if (FontIcons != nullptr) {
+			FontIcons->ClearOutputData();
 		}
 
-		IconsFont = io.Fonts->AddFontFromMemoryTTF(IconsFontData.data(), static_cast<int>(IconsFontData.size()), iconFontSize, &icons_config, icons_ranges);
+		FontIcons = io.Fonts->AddFontFromMemoryTTF(IconsFontData.data(), static_cast<int>(IconsFontData.size()), iconFontSize, &icons_config, icons_ranges);
 
-		font_cfg.MergeMode = false;
 
-		MainBoldFont = io.Fonts->AddFontFromMemoryTTF(BoldFontData.data(), static_cast<int>(BoldFontData.size()), static_cast<float>(Current_Scale), &font_cfg, ranges);
+
+		FontMain_Bold = io.Fonts->AddFontFromMemoryTTF(BoldFontData.data(), static_cast<int>(BoldFontData.size()), static_cast<float>(Current_Scale), &font_cfg, ranges);
+
+
+		float scale_small = 0.9f;
+
+		FontMain_Small = io.Fonts->AddFontFromMemoryTTF(MainFontData.data(), static_cast<int>(MainFontData.size()), static_cast<float>(Current_Scale* scale_small), &font_cfg, ranges);
+		FontIcons_Small = io.Fonts->AddFontFromMemoryTTF(IconsFontData.data(), static_cast<int>(IconsFontData.size()), static_cast<float>(Current_Scale * 2.0f / 3.0f * scale_small), &icons_config, icons_ranges);
+
+		float scale_smallest = 0.75f;
+
+		FontMain_Smallest = io.Fonts->AddFontFromMemoryTTF(MainFontData.data(), static_cast<int>(MainFontData.size()), static_cast<float>(Current_Scale * scale_smallest), &font_cfg, ranges);
+		FontIcons_Smallest = io.Fonts->AddFontFromMemoryTTF(IconsFontData.data(), static_cast<int>(IconsFontData.size()), static_cast<float>(Current_Scale * 2.0f / 3.0f * scale_smallest), &icons_config, icons_ranges);
+
 
 		io.Fonts->Build();
 
@@ -109,7 +127,7 @@ void FontManager::Update() {
 			std::cout << "[FontManager]: Error CreateFontsTexture" << std::endl;
 		}
 
-		ImGui::SetCurrentFont(MainFont);
+		ImGui::SetCurrentFont(FontMain);
 	}
 }
 
@@ -124,3 +142,16 @@ void Pop_BoldFont() {
 	ImGui::PopFont();
 }
 
+void Push_SmallFont() {
+	ImGui::PushFont(FontManager::getInstance().GetSmallFont());
+}
+void Pop_SmallFont() {
+	ImGui::PopFont();
+}
+
+void Push_SmallestFont() {
+	ImGui::PushFont(FontManager::getInstance().GetSmallestFont());
+}
+void Pop_SmallestFont() {
+	ImGui::PopFont();
+}

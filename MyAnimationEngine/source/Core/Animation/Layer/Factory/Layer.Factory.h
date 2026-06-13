@@ -1,9 +1,8 @@
-﻿#pragma once
+﻿#ifndef LAYER_FACTORY_H
+#define LAYER_FACTORY_H
 
-#include "Core/Animation/Component/Component.h"
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
-
 
 
 #include <vector>
@@ -22,4 +21,4 @@ private:
 	static uint64_t index;
 };
 
-
+#endif

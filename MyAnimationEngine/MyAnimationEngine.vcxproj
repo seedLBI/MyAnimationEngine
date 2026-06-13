@@ -21,25 +21,28 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Application\Application.cpp" />
+    <ClCompile Include="source\Core\Animation\Camera\Animation.Camera.cpp" />
     <ClCompile Include="source\Core\Animation\Layer\Factory\Layer.Factory.cpp" />
     <ClCompile Include="source\Core\Animation\Layer\Object\Layer.Object.cpp" />
-    <ClCompile Include="source\Core\Animation\Layer\Object\Objects\Layer.Object.Solid.cpp" />
+    <ClCompile Include="source\Core\Animation\Layer\Objects\Solid\Layer.Object.Solid.cpp" />
+    <ClCompile Include="source\Core\Animation\Renderer\Renderer.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Controller\Timeline.Controller.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Transform\Horizontal\Timeline.Transform.Horizontal.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Transform\Vertical\Timeline.Transform.Vertical.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\List\Timeline.Layers.List.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Markers\Timeline.Markers.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Horizontal\Timeline.Scroll.Horizontal.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Vertical\Timeline.Scroll.Vertical.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\Viewer\Timeline.Layers.Viewer.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Range\Timeline.Range.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Ruler\Timeline.Ruler.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\TimeCursor\Timeline.TimeCursor.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.cpp" />
-    <ClCompile Include="source\Core\Animation\Timeline\Widgets\Preview\Timeline.Preview.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\List\IconDrawer\Timeline.Layers.Icon.Drawer.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\Vertical\Timeline.Transform.Vertical.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\List\Timeline.Layers.List.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Markers\Timeline.Markers.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Scroll\Horizontal\Timeline.Scroll.Horizontal.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Scroll\Vertical\Timeline.Scroll.Vertical.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Viewer\Timeline.Layers.Viewer.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Range\Timeline.Range.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Ruler\Timeline.Ruler.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\TimeCursor\Timeline.TimeCursor.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Timeline.Panel.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\UpperControls\Timeline.UpperControls.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Player\Timeline.Player.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Preview\Timeline.Preview.cpp" />
     <ClCompile Include="source\Core\DebugOverlay\DebugOverlay.cpp" />
     <ClCompile Include="source\CursorManager\CursorManger.cpp" />
     <ClCompile Include="source\FontManager\FontManager.cpp" />
@@ -80,31 +83,36 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Application\Application.h" />
-    <ClInclude Include="source\Core\Animation\Component\Component.h" />
+    <ClInclude Include="source\Core\Animation\Camera\Animation.Camera.h" />
     <ClInclude Include="source\Core\Animation\Keyframe\Keyframe.h" />
     <ClInclude Include="source\Core\Animation\Keyframe\KeyframeResolver.h" />
     <ClInclude Include="source\Core\Animation\Layer\Data\Layers.Data.h" />
     <ClInclude Include="source\Core\Animation\Layer\Factory\Layer.Factory.h" />
+    <ClInclude Include="source\Core\Animation\Layer\LayerInfo.h" />
     <ClInclude Include="source\Core\Animation\Layer\Object\Layer.Object.h" />
-    <ClInclude Include="source\Core\Animation\Layer\Object\Objects\Layer.Object.Solid.h" />
+    <ClInclude Include="source\Core\Animation\Layer\Objects\Solid\Layer.Object.Solid.h" />
     <ClInclude Include="source\Core\Animation\Layer\ProviderData\Layers.Data.Provider.h" />
+    <ClInclude Include="source\Core\Animation\ObjectProperties\TypeProperties.h" />
+    <ClInclude Include="source\Core\Animation\Renderer\Renderer.h" />
     <ClInclude Include="source\Core\Animation\Timeline\Controller\Timeline.Controller.h" />
     <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Data\Timeline.Data.h" />
     <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Transform\Horizontal\Timeline.Transform.Horizontal.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Transform\Vertical\Timeline.Transform.Vertical.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\List\Timeline.Layers.List.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Markers\Timeline.Markers.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Horizontal\Timeline.Scroll.Horizontal.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Scroll\Vertical\Timeline.Scroll.Vertical.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Layers\Viewer\Timeline.Layers.Viewer.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Range\Timeline.Range.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Ruler\Timeline.Ruler.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\TimeCursor\Timeline.TimeCursor.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\Timeline.Panel.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Panel\UpperControls\Timeline.UpperControls.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Player\Timeline.Player.h" />
-    <ClInclude Include="source\Core\Animation\Timeline\Widgets\Preview\Timeline.Preview.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\List\IconDrawer\Timeline.Layers.Icon.Drawer.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Vertical\Timeline.Transform.Vertical.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\List\Timeline.Layers.List.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Markers\Timeline.Markers.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Scroll\Horizontal\Timeline.Scroll.Horizontal.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Scroll\Vertical\Timeline.Scroll.Vertical.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Viewer\Timeline.Layers.Viewer.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Range\Timeline.Range.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Ruler\Timeline.Ruler.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\TimeCursor\Timeline.TimeCursor.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Timeline.Panel.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\UpperControls\Timeline.UpperControls.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Player\Timeline.Player.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Preview\Timeline.Preview.h" />
+    <ClInclude Include="source\Core\Animation\ObjectProperties\ObjectProperties.h" />
     <ClInclude Include="source\Core\DebugOverlay\DebugOverlay.h" />
     <ClInclude Include="source\CursorManager\CursorManger.h" />
     <ClInclude Include="source\FontManager\FontManager.h" />
@@ -131,7 +139,6 @@
     <ClInclude Include="source\Utils\OpenGL\Enums\OpenGL.Enums.h" />
     <ClInclude Include="source\Utils\OpenGL\Framebuffer\Framebuffer.h" />
     <ClInclude Include="source\Utils\OpenGL\Renderbuffer\Renderbuffer.h" />
-    <ClInclude Include="source\Utils\OpenGL\Shaders\Shader.h" />
     <ClInclude Include="source\Utils\OpenGL\Texture\Texture.h" />
     <ClInclude Include="source\Utils\OpenGL\UBO\UBO.h" />
     <ClInclude Include="source\Utils\ProcessRunner\ProcessRunner.h" />
@@ -151,6 +158,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="source\Core\Animation\Shaders\quad_instanced_fs.glsl" />
+    <None Include="source\Core\Animation\Shaders\quad_instanced_vs.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

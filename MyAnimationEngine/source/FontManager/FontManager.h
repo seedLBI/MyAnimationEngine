@@ -33,6 +33,8 @@ public:
 	void SetOneStepSmaller();
 
 	ImFont* GetBoldFont();
+	ImFont* GetSmallFont();
+	ImFont* GetSmallestFont();
 
 	void Update();
 
@@ -46,9 +48,16 @@ private:
 
 	bool NeedReloadFontSize = true;
 
-	ImFont* MainFont = nullptr;
-	ImFont* MainBoldFont = nullptr;
-	ImFont* IconsFont = nullptr;
+	ImFont* FontMain = nullptr;
+	ImFont* FontIcons = nullptr;
+
+	ImFont* FontMain_Bold = nullptr;
+
+	ImFont* FontMain_Small = nullptr;
+	ImFont* FontIcons_Small = nullptr;
+
+	ImFont* FontMain_Smallest = nullptr;
+	ImFont* FontIcons_Smallest = nullptr;
 
 	std::vector<uint8_t> IconsFontData;
 	std::vector<uint8_t> MainFontData;
@@ -60,6 +69,11 @@ private:
 void Push_BoldFont();
 void Pop_BoldFont();
 
+void Push_SmallFont();
+void Pop_SmallFont();
+
+void Push_SmallestFont();
+void Pop_SmallestFont();
 
 
 #endif // !FONT_MANAGER_H

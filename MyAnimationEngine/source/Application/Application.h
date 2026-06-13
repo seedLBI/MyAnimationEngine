@@ -26,15 +26,15 @@
 #include "CursorManager/CursorManger.h"
 
 #include "Utils/Timer/Timer.Framerate.h"
-
+#include "Utils/OpenGL/Enums/OpenGL.Enums.h"
 #include "Utils/File/File.h"
 
 #include "MainMenuBar/MainMenuBar.h"
 #include "FontManager/FontManager.h"
 
 
-#include "Core/Animation/Timeline/Widgets/Panel/Timeline.Panel.h"
-#include "Core/Animation/Timeline/Widgets/Player/Timeline.Player.h"
+#include "Core/Animation/Widgets/Panel/Timeline.Panel.h"
+#include "Core/Animation/Widgets/Player/Timeline.Player.h"
 #include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
 
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
@@ -48,11 +48,6 @@ static std::unordered_map<HWND, GLFWwindow*> g_hwnd_to_window;
 
 
 
-enum BufferBit {
-	COLOR_BUFFER_BIT = GL_COLOR_BUFFER_BIT,
-	DEPTH_BUFFER_BIT = GL_DEPTH_BUFFER_BIT,
-	STENCIL_BUFFER_BIT = GL_STENCIL_BUFFER_BIT,
-};
 
 class Application {
 private:

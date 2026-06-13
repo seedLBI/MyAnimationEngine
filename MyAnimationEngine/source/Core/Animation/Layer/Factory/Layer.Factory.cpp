@@ -1,7 +1,7 @@
 ﻿#include "Layer.Factory.h"
 
 #include "Core/Animation/Layer/Object/Layer.Object.h"
-#include "Core/Animation/Layer/Object/Objects/Layer.Object.Solid.h"
+#include "Core/Animation/Layer/Objects/Solid/Layer.Object.Solid.h"
 
 LayerFactory::~LayerFactory()
 {
@@ -28,7 +28,9 @@ void LayerFactory::CreateSolid()
 
 	newLayerInfo.time.Begin = 0;
 	newLayerInfo.time.End = timeline->GetData().totalTime;
+
 	newLayerInfo.isVisible = true;
+	newLayerInfo.isExpanded = false;
 
 	newLayerInfo.color.r = 1.f;
 	newLayerInfo.color.g = 0.f;
@@ -63,10 +65,14 @@ void LayerFactory::CreateSolid(const float& begin, const float& time) {
 
 
 	newLayerInfo.isVisible = true;
+	newLayerInfo.isExpanded = false;
 
 	newLayerInfo.color.r = 1.f;
 	newLayerInfo.color.g = 0.f;
 	newLayerInfo.color.b = 0.2f;
+
+
+
 
 	newLayerInfo.index = index;
 	index++;

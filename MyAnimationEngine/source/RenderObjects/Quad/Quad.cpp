@@ -1,4 +1,4 @@
-#include "Quad.h"
+﻿#include "Quad.h"
 
 #ifdef _DEBUG
 #include <iostream>
@@ -27,11 +27,11 @@ void Quad::Init() {
 	std::cout << "void Quad::Init()\n";
 #endif
 	float vertices[] = {
-		//  pos        texcoord
-		-1.f, -1.f,    0.f, 0.f, //lb
-		-1.f,  1.f,    0.f, 1.f, //lt
-		1.f,   1.f,    1.f, 1.f, //rt
-		1.f,  -1.f,    1.f, 0.f  //rb
+		//  pos				texcoord
+		-1.f, -1.f, 0.f,    0.f, 0.f, //lb
+		-1.f,  1.f, 0.f,    0.f, 1.f, //lt
+		1.f,   1.f, 0.f,    1.f, 1.f, //rt
+		1.f,  -1.f, 0.f,    1.f, 0.f  //rb
 	};
 
 	GLuint indices[] = {
@@ -53,18 +53,19 @@ void Quad::Init() {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	// texcoord attribute
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-
 }
+
 void Quad::Render() {
 	glBindVertexArray(VAO); 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
+
 void Quad::Update() {
 
 }
