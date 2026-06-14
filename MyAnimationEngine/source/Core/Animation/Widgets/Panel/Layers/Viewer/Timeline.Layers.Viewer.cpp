@@ -72,6 +72,10 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 
 
 void Timeline_Layers_Viewer::Draw() {
+
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+
 	ImVec2 ASize = ImGui::GetWindowSize();
 
 	ImVec2 SizeBody{ ASize.x, ASize.y - 1 };
@@ -91,6 +95,10 @@ void Timeline_Layers_Viewer::Draw() {
 	ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
 
 
+	draw_list->AddRectFilled(p_min, p_max, ImColor(.15f, .15f, .15f, 1.f));
+
+
+
 	float itemHeight = verticalTransform->getScaledHeightOneObject();
 	float width_window = ImGui::GetWindowWidth();
 
@@ -98,7 +106,6 @@ void Timeline_Layers_Viewer::Draw() {
 	float left_range  = horizontalTransform->getPostionScreen_lerped(timelineData->GetData().left_range_repeat);
 	float right_range = horizontalTransform->getPostionScreen_lerped(timelineData->GetData().right_range_repeat);
 
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 
 	ImVec2 p = p_min;
@@ -269,8 +276,6 @@ void Timeline_Layers_Viewer::Draw() {
 
 	}
 		
-	
-
 
 }
 

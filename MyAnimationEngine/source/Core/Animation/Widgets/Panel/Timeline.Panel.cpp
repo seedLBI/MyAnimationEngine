@@ -146,7 +146,7 @@ void TimelinePanel::Draw_1Level(const float& thickness_separator) {
 
 }
 void TimelinePanel::DrawLayerSide_1Level(const float& height) {
-	ImGui::BeginChild(u8"Timeline_LayerSide_1Level", ImVec2(500, height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+	ImGui::BeginChild(u8"Timeline_LayerSide_1Level", ImVec2(layersList->getLengthColumn(), height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 	upperControls->Draw();
 
@@ -188,7 +188,7 @@ void TimelinePanel::Draw_2Level(const float& thickness_separator) {
 }
 void TimelinePanel::DrawLayerSide_2Level(const float& height) {
 
-	ImGui::BeginChild(u8"Timeline_LayerSide_2Level", ImVec2(500, height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+	ImGui::BeginChild(u8"Timeline_LayerSide_2Level", ImVec2(layersList->getLengthColumn(), height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 	layersList->DrawColumnsHeader();
 
@@ -229,7 +229,7 @@ void TimelinePanel::Draw_3Level(const float& thickness_separator) {
 	DrawVerticalSliderBox_3Level(height);
 }
 void TimelinePanel::DrawLayerSide_3Level(const float& height) {
-	ImGui::BeginChild(u8"Timeline_LayerSide_3Level", ImVec2(500, height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+	ImGui::BeginChild(u8"Timeline_LayerSide_3Level", ImVec2(layersList->getLengthColumn(), height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 	layersList->Draw();
 
@@ -269,7 +269,7 @@ void TimelinePanel::Draw_4Level(const float& thickness_separator) {
 	DrawVerticalSliderBox_4Level(height);
 }
 void TimelinePanel::DrawLayerSide_4Level(const float& height) {
-	ImGui::BeginChild(u8"Timeline_LayerSide_4Level", ImVec2(500, height));
+	ImGui::BeginChild(u8"Timeline_LayerSide_4Level", ImVec2(layersList->getLengthColumn(), height));
 
 
 

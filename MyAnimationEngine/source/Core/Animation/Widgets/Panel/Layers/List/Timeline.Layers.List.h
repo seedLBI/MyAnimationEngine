@@ -5,6 +5,9 @@
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "IconDrawer/Timeline.Layers.Icon.Drawer.h"
 
+#include <vector>
+#include <string>
+
 class Timeline_Layers_List {
 public:
 	Timeline_Layers_List(LayersDataProvider* layersData, TimelineTransformVertical* verticalTransform);
@@ -14,6 +17,8 @@ public:
 
 	void DrawColumnsHeader();
 
+	float getLengthColumn();
+
 	void Update();
 
 private:
@@ -22,7 +27,6 @@ private:
 
 	void DrawObject(std::shared_ptr<LayerObject>& object);
 
-	bool DrawVisible(std::shared_ptr<LayerObject>& object);
 	bool DrawToggle(std::shared_ptr<LayerObject>& object);
 	void DrawLayerColor(std::shared_ptr<LayerObject>& object);
 	void DrawLayerIndex(std::shared_ptr<LayerObject>& object);
@@ -30,8 +34,32 @@ private:
 	bool DrawLayerName(std::shared_ptr<LayerObject>& object);
 
 	void drawTriggerButton(bool& value, std::string index ,const char* symbol, float availableHeight);
+	
+	enum TypeColumn {
+		INDEX,
+		NAME,
+		MARKER,
+		FUNCTION_AV,
+		TOGGLES,
+		PARENT,
+		MODES,
+		NOTHING
+	};
 
+	struct Column {
+		std::string name;
+		float min_width;
+		float width;
+		float startCursorPos;
+		bool isRemovebal;
+		bool isDragable;
+		bool isDisable;
+		TypeColumn Left;
+		TypeColumn Right;
+	};
 
+	std::vector<Column> columns;
+	std::vector<uint8_t> index_current_columns; //order for column
 };
 
 

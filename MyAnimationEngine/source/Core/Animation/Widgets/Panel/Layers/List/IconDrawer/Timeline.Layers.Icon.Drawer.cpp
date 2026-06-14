@@ -10,7 +10,7 @@ void DrawIcon_Solid(LayerObject_Solid* layer, float height) {
 	float icon_width = icon_height;
 
 
-	float offsetY = (height - icon_height) * 0.5f;
+	float offsetY = (height - icon_height) * 0.5f + 1.f;
 	//ImGui::SetCursorPosY(ImGui::GetCursorPosY() + offsetY + 1.f);
 
 

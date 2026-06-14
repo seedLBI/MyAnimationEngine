@@ -3,6 +3,7 @@
 #include "FontManager/FontManager.h"
 #include "ThirdParty/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "Utils/Text/Text.h"
+#include "Utils/Text/Encoding/UTF8/UTF8.h"
 
 
 Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, TimelineTransformVertical* verticalTransform)
@@ -10,10 +11,107 @@ Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, Timel
 	  verticalTransform(verticalTransform)
 {
 
+    columns.resize(7);
+    columns[TypeColumn::FUNCTION_AV] = {
+        u8"Функции A/V",
+        70.f,
+        70.f,
+        0.f,
+        true,
+        true,
+        false,
+        NOTHING,
+        NOTHING
+    };
+    columns[TypeColumn::MARKER] = {
+        u8"Маркировка",
+        20.f,
+        20.f,
+        0.f,
+        true,
+        false,
+        false,
+        NOTHING,
+        INDEX
+    };
+    columns[TypeColumn::INDEX] = {
+        u8"Индекс слоя",
+        40.f,
+        40.f,
+        0.f,
+        true,
+        false,
+        false,
+        MARKER,
+        NAME
+    };
+
+    columns[TypeColumn::NAME] = {
+        u8"Имя источника",
+        110.f,
+        110.f,
+        0.f,
+        false,
+        false,
+        false,
+        INDEX,
+        NOTHING
+    };
+    columns[TypeColumn::TOGGLES] = {
+        u8"Переключатели",
+        100.f,
+        100.f,
+        0.f,
+        true,
+        true,
+        false,
+        NOTHING,
+        NOTHING
+    };
+    columns[TypeColumn::PARENT] = {
+        u8"Родительский элемент и ссылка",
+        120.f,
+        180.f,
+        0.f,
+        true,
+        true,
+        false,
+        NOTHING,
+        NOTHING
+    };
+    columns[TypeColumn::MODES] = {
+        u8"Режимы",
+        120.f,
+        120.f,
+        0.f,
+        true,
+        true,
+        false,
+        NOTHING,
+        NOTHING
+    };
+
+    index_current_columns = {
+        TypeColumn::FUNCTION_AV,
+		TypeColumn::MARKER,
+        TypeColumn::INDEX,
+		TypeColumn::NAME,
+		TypeColumn::TOGGLES,
+        TypeColumn::MODES,
+		TypeColumn::PARENT
+    };
 }
 
-Timeline_Layers_List::~Timeline_Layers_List()
-{
+Timeline_Layers_List::~Timeline_Layers_List() {
+
+}
+
+float Timeline_Layers_List::getLengthColumn() {
+    float result = 0.f;
+    for (size_t i = 0; i < columns.size(); i++)
+        if (columns[i].isDisable == false)
+            result += columns[i].width;
+    return result + 10.f * (columns.size() - 1) + 5.f;
 }
 
 void Timeline_Layers_List::drawTriggerButton(bool& value, std::string index, const char* symbol, float availableHeight) {
@@ -61,85 +159,90 @@ void Timeline_Layers_List::drawTriggerButton(bool& value, std::string index, con
 }
 
 void Timeline_Layers_List::DrawObject(std::shared_ptr<LayerObject>& object)
-{   
+{
     std::string index = std::to_string(object.get()->GetLayerInfo().index);
-
     float height_object = verticalTransform->getScaledHeightOneObject();
 
+    ImGui::BeginChild(("##Layer##" + index).c_str(), ImVec2(ImGui::GetContentRegionAvail().x, height_object), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-    ImGui::BeginChild(("##Layer##" + index).c_str(),ImVec2(ImGui::GetContentRegionAvail().x, height_object),0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    const float margin = 5.f;
 
-        const float margin = 5.f;
 
-        auto pos = ImGui::GetCursorScreenPos();
+    float startY = ImGui::GetCursorScreenPos().y;
 
-        ImGui::SetCursorPosX(10.f);     
-        drawTriggerButton(
-            object.get()->GetLayerInfo().isVisible, 
-            ("##LAYER_VISIBLE_TRIGGER" + index).c_str(), 
-            ICON_FA_EYE, 
-            height_object
-        );
-        //DrawVisible(object);
+    bool toggle_drawed = false;
 
-        ImGui::SameLine(0.f, margin);   DrawToggle(object);
-        ImGui::SameLine(0.f, margin);   DrawLayerColor(object);
-        ImGui::SameLine(0.f, margin);   DrawLayerIndex(object);
-        ImGui::SameLine(0.f, margin);   DrawLayerIconType(object);
-        ImGui::SameLine(0.f, margin);   DrawLayerName(object);
 
-    ImGui::EndChild();
-}
+    for (size_t i = 0; i < index_current_columns.size(); i++) {
 
-bool Timeline_Layers_List::DrawVisible(std::shared_ptr<LayerObject>& object) {
+        auto current_col = index_current_columns[i];
 
-    
-    std::string index = std::to_string(object.get()->GetLayerInfo().index);
+        if (columns[current_col].isDisable)
+            continue;
 
-    std::string label = "checkbox_visible##" + index;
 
-    ImGui::PushID(label.c_str());
 
-    const ImGuiStyle& style = ImGui::GetStyle();
-    const float box_size = verticalTransform->getScaledHeightOneObject();
+        if ((current_col == TypeColumn::MARKER || current_col == TypeColumn::INDEX || current_col == TypeColumn::NAME) && toggle_drawed == false) {
+            toggle_drawed = true;
+            ImGui::SetCursorScreenPos(ImVec2(columns[current_col].startCursorPos - 20.f, startY));
 
-    ImVec2 pos = ImGui::GetCursorScreenPos();
-    ImVec2 size(box_size, box_size);
+            DrawToggle(object);
 
-    ImGui::InvisibleButton(("##icon_checkbox##" + index).c_str(), size);
+        }
 
-    bool changed = false;
-    if (ImGui::IsItemClicked())
-    {
-        object.get()->GetLayerInfo().isVisible = !object.get()->GetLayerInfo().isVisible;
-        changed = true;
+        ImGui::SetCursorScreenPos(ImVec2(columns[current_col].startCursorPos, startY));
+
+
+        switch (current_col) {
+        case TypeColumn::FUNCTION_AV: {
+            drawTriggerButton(
+                object.get()->GetLayerInfo().isVisible,
+                ("##LAYER_VISIBLE_TRIGGER" + index).c_str(),
+                ICON_FA_EYE,
+                height_object
+            );
+            ImGui::SameLine(0.f, margin);
+            drawTriggerButton(
+                object.get()->GetLayerInfo().isVisible,
+                ("##LAYER_ONLY_VISIBLE_TRIGGER" + index).c_str(),
+                ICON_FA_CIRCLE,
+                height_object
+            );
+            break;
+        }
+        case TypeColumn::MARKER: {
+            DrawLayerColor(object);
+            break;
+        }
+        case TypeColumn::INDEX: {
+            DrawLayerIndex(object);
+            break;
+        }
+        case TypeColumn::NAME: {
+            DrawLayerIconType(object);
+            ImGui::SameLine(0.f, margin);
+            DrawLayerName(object);
+            break;
+        }
+        case TypeColumn::TOGGLES: {
+            
+            break;
+        }
+        case TypeColumn::PARENT: {
+
+            break;
+        }
+        case TypeColumn::MODES: {
+
+            break;
+        }
+        case TypeColumn::NOTHING:
+        default:
+            break;
+        }
     }
 
-    ImDrawList* dl = ImGui::GetWindowDrawList();
-
-    const bool hovered = ImGui::IsItemHovered();
-    ImU32 frame_col = ImGui::GetColorU32(hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
-    ImU32 border_col = ImGui::GetColorU32(ImGuiCol_Border);
-    ImU32 text_col = ImGui::GetColorU32(ImGuiCol_Text);
-
-    // box
-    dl->AddRectFilled(pos, ImVec2(pos.x + box_size, pos.y + box_size), frame_col, style.FrameRounding);
-    dl->AddRect(pos, ImVec2(pos.x + box_size, pos.y + box_size), border_col, style.FrameRounding);
-
-    // icon centered in box
-    bool isVisible = object.get()->GetLayerInfo().isVisible;
-    const char* icon = isVisible ? ICON_FA_EYE : "";
-    ImVec2 icon_size = ImGui::CalcTextSize(icon);
-    dl->AddText(
-        ImVec2(pos.x + (box_size - icon_size.x) * 0.5f,
-            pos.y + (box_size - icon_size.y) * 0.5f - 1.0f),
-        text_col,
-        icon
-    );
-
-
-    ImGui::PopID();
-    return changed;
+    ImGui::EndChild();
 }
 
 bool Timeline_Layers_List::DrawToggle(std::shared_ptr<LayerObject>& object) {
@@ -187,7 +290,6 @@ bool Timeline_Layers_List::DrawToggle(std::shared_ptr<LayerObject>& object) {
     ImGui::PopID();
     return changed;
 }
-
 void Timeline_Layers_List::DrawLayerColor(std::shared_ptr<LayerObject>& object) {
     std::string index = std::to_string(object.get()->GetLayerInfo().index);
 
@@ -245,12 +347,11 @@ void Timeline_Layers_List::DrawLayerColor(std::shared_ptr<LayerObject>& object) 
 
     object.get()->GetLayerInfo().color = { c[0], c[1], c[2] };
 }
-
 void Timeline_Layers_List::DrawLayerIndex(std::shared_ptr<LayerObject>& object) {
 
     float itemHeight = verticalTransform->getScaledHeightOneObject();
     float textHeight = ImGui::GetTextLineHeight();
-    float offsetY = (itemHeight - textHeight) * 0.5f;
+    float offsetY = (itemHeight - textHeight) * 0.5f - 1.f;
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - offsetY);
 
     std::string str_index = std::to_string(object.get()->GetLayerInfo().index);
@@ -260,16 +361,14 @@ void Timeline_Layers_List::DrawLayerIndex(std::shared_ptr<LayerObject>& object) 
     ImGui::Text(str_index.c_str());
     Pop_SmallFont();
 }
-
 bool Timeline_Layers_List::DrawLayerIconType(std::shared_ptr<LayerObject>& object) {
     DrawIcon(object.get(), verticalTransform->getScaledHeightOneObject());
     return false;
 }
-
 bool Timeline_Layers_List::DrawLayerName(std::shared_ptr<LayerObject>& object) {
     float itemHeight = verticalTransform->getScaledHeightOneObject();
     float textHeight = ImGui::GetTextLineHeight();
-    float offsetY = (itemHeight - textHeight) * 0.5f;
+    float offsetY = (itemHeight - textHeight) * 0.5f - 1.f;
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - offsetY);
 
     Push_SmallFont();
@@ -278,7 +377,162 @@ bool Timeline_Layers_List::DrawLayerName(std::shared_ptr<LayerObject>& object) {
     return false;
 }
 
+
+
 void Timeline_Layers_List::DrawColumnsHeader() {
+
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+    ImVec2 region_max = ImGui::GetContentRegionAvail();
+    ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+
+    ImVec2 p_min = cursor_pos;
+    ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
+
+
+    float itemHeight = verticalTransform->getScaledHeightOneObject();
+
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.69f, .69f, .69f, 1.f));
+
+    Push_SmallestFont();
+
+    float textHeight = ImGui::GetTextLineHeight();
+    float offsetY = (itemHeight - textHeight) * 0.5f + 2.f;
+    
+
+    ImVec2 p = p_min;
+
+    p.x += 5.f;
+
+    for (size_t i = 0; i < index_current_columns.size(); i++) {
+
+        if (columns[index_current_columns[i]].isDisable)
+            continue;
+
+
+        if (i != 0) {
+            p.x += 5.f;
+
+            draw_list->AddLine({ p.x,p_min.y + 4.f }, { p.x, p_max.y - 5.f }, ImColor(0.f, 0.f, 0.f, 1.f), 2.f);
+
+            p.x += 5.f;
+        }
+
+        columns[index_current_columns[i]].startCursorPos = p.x;
+
+        const char* textToDraw = "";
+
+
+        float x_before = p.x;
+
+        switch (index_current_columns[i]) {
+            case TypeColumn::FUNCTION_AV: {
+                
+                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_EYE);
+                p.x += ImGui::CalcTextSize(ICON_FA_EYE).x;
+                p.x += 5.f;
+                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_CIRCLE);
+                p.x += ImGui::CalcTextSize(ICON_FA_CIRCLE).x;
+
+                break;
+            }
+            case TypeColumn::INDEX: {
+                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_HASHTAG);
+                p.x += ImGui::CalcTextSize(ICON_FA_HASHTAG).x;
+
+                break;
+            }
+            case TypeColumn::NAME: {
+                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), u8"Имя источника");
+                p.x += ImGui::CalcTextSize(u8"Имя источника").x;
+                break;
+            }
+            case TypeColumn::PARENT: {
+
+                std::string Text = u8"Родительский элемент и ссылка";
+                float widthText = ImGui::CalcTextSize(Text.c_str()).x;
+
+                float availableWidth = columns[index_current_columns[i]].width;
+
+                if (availableWidth < widthText)
+                {
+                    float oneSymbol = 7.f;
+
+                    float dif = widthText - availableWidth;
+
+                    int countSymbolsRemove = int(round(dif / oneSymbol) + 3.f);
+
+                    UTF8_SPLITER_ERROR error;
+                    auto splitted = utf8_splitter(Text, error);
+                    splitted.erase(splitted.begin() + splitted.size() - 1 - countSymbolsRemove, splitted.end());
+                    std::string result = "";
+                    for (size_t i = 0; i < splitted.size(); i++){
+                        result += splitted[i];
+                    }
+                    result += "...";
+                    Text = result;
+                }
+
+
+                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), Text.c_str());
+                p.x += widthText;
+
+                break;
+            }
+            case TypeColumn::TOGGLES: {
+                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), " ");
+                p.x += ImGui::CalcTextSize(" ").x;
+                break;
+            }
+            case TypeColumn::MARKER: {
+                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_TAG);
+                p.x += ImGui::CalcTextSize(ICON_FA_TAG).x;
+
+                break;
+            }
+            case TypeColumn::MODES: {
+                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), u8"Режим");
+                p.x += ImGui::CalcTextSize(u8"Режим").x;
+
+                break;
+            }
+        }
+
+        p.x = x_before + columns[index_current_columns[i]].width;
+    }
+
+    Pop_SmallestFont();
+
+    ImGui::PopStyleColor();
+
+
+    Push_SmallFont();
+
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right,false) && ImGui::IsMouseHoveringRect(p_min,p_max))
+        ImGui::OpenPopup("POPUP_COLUMNS_SET");
+
+
+    if (ImGui::BeginPopupContextItem("POPUP_COLUMNS_SET")) {
+        for (auto& column: columns)
+        {
+            if (column.isRemovebal == false)
+                ImGui::BeginDisabled();
+
+            bool Status = column.isDisable == false;
+
+            if (ImGui::Checkbox(column.name.c_str(), &Status) && column.isRemovebal) {
+                column.isDisable = !column.isDisable;
+            }
+
+            if (column.isRemovebal == false)
+                ImGui::EndDisabled();
+        }
+
+        ImGui::EndPopup();
+    }
+    Pop_SmallFont();
+
 
 }
 
@@ -333,7 +587,7 @@ void Timeline_Layers_List::Draw() {
 
                 float textHeight = ImGui::GetTextLineHeight();
                 float offsetY = (itemHeight - textHeight) * 0.5f;
-                ImGui::SetCursorScreenPos(ImVec2(p.x + 100.f, p.y + offsetY));
+                ImGui::SetCursorScreenPos(ImVec2(p.x + 100.f, p.y - offsetY - 1.f));
 
                 bool enable = false;
                 drawTriggerButton(enable, ("##PROPERTIES_TRIGGER_" + std::to_string(i)+"_"+ propertie).c_str(), ICON_FA_STOPWATCH, itemHeight);
@@ -343,9 +597,10 @@ void Timeline_Layers_List::Draw() {
                 ImGui::Text(propertie.c_str());
                 Pop_SmallFont();
 
-                draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
-                
+
                 p.y += itemHeight;
+                draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
+
                 ImGui::SetCursorScreenPos(p);
             }
             //p.y += 1.f;
