@@ -34,7 +34,9 @@ private:
 	bool DrawLayerName(std::shared_ptr<LayerObject>& object);
 
 	void drawTriggerButton(bool& value, std::string index ,const char* symbol, float availableHeight);
-	
+	void drawAnimationEnabler(std::string index);
+
+
 	enum TypeColumn {
 		INDEX,
 		NAME,
@@ -53,6 +55,7 @@ private:
 		float startCursorPos;
 		bool isRemovebal;
 		bool isDragable;
+		bool isResizable;
 		bool isDisable;
 		TypeColumn Left;
 		TypeColumn Right;
@@ -60,6 +63,17 @@ private:
 
 	std::vector<Column> columns;
 	std::vector<uint8_t> index_current_columns; //order for column
+
+	int getCountEnabledColumns();
+
+
+	enum AV_SYMBOLS {
+		VISIBLE,
+		ONLY,
+		VOLUME,
+		LOCK
+	};
+	std::vector<float> av_symbols_cursor_pos;
 };
 
 

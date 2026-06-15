@@ -31,12 +31,15 @@ void LayerFactory::CreateSolid()
 
 	newLayerInfo.isVisible = true;
 	newLayerInfo.isExpanded = false;
+	newLayerInfo.isLocked = false;
+	newLayerInfo.isOnly = false;
 
 	newLayerInfo.color.r = 1.f;
 	newLayerInfo.color.g = 0.f;
 	newLayerInfo.color.b = 0.2f;
 
 	newLayerInfo.index = index;
+
 	index++;
 
 	layers->GetData().layers.emplace_back(std::make_shared<LayerObject_Solid>(newLayerInfo));
@@ -66,6 +69,9 @@ void LayerFactory::CreateSolid(const float& begin, const float& time) {
 
 	newLayerInfo.isVisible = true;
 	newLayerInfo.isExpanded = false;
+	newLayerInfo.isLocked = false;
+	newLayerInfo.isOnly = false;
+
 
 	newLayerInfo.color.r = 1.f;
 	newLayerInfo.color.g = 0.f;

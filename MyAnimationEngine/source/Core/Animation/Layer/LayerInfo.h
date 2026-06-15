@@ -18,6 +18,8 @@ struct LayerInfo {
 	TimeSector time;
 	bool isVisible;
 	bool isExpanded;
+	bool isLocked;
+	bool isOnly;
 };
 
 #endif
