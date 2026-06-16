@@ -8,6 +8,13 @@
 #include "TypeProperties.h"
 
 class ObjectProperties{
+private:
+	using PropertyVariant = std::variant<
+		TPBool, TPInt, TPChar, TPString, TPFloat,
+		TP2Float, TP3Float, TP4Float, TPColor
+	>;
+	robin_hood::unordered_map< std::string,PropertyVariant> properties;
+
 public:
 	ObjectProperties() {
 
@@ -15,6 +22,22 @@ public:
 	~ObjectProperties() {
 
 	}
+
+
+	PropertyVariant& getVariant(const std::string& name) {
+		auto it = properties.find(name);
+		if (it == properties.end())
+			throw std::out_of_range("Property not found: " + name); // "pshel nahui" тоже подойдет :)
+		return it->second;
+	}
+
+	const PropertyVariant& getVariant(const std::string& name) const {
+		auto it = properties.find(name);
+		if (it == properties.end())
+			throw std::out_of_range("Property not found: " + name);
+		return it->second;
+	}
+
 
 	template<typename T>
 	void set(const std::string& name, T&& value) {
@@ -89,21 +112,52 @@ public:
 	}
 
 
+	template<typename Func>
+	void forEach(Func&& func) {
+		for (const auto& name : names) {
+			auto it = properties.find(name);
+			if (it != properties.end()) {
+				func(name, it->second);
+			}
+		}
+	}
+
+	template<typename Func>
+	void forEach(Func&& func) const {
+		for (const auto& name : names) {
+			auto it = properties.find(name);
+			if (it != properties.end()) {
+				func(name, it->second);
+			}
+		}
+	}
+
+	template<typename Func>
+	void forEachUnwrapped(Func&& func) {
+		for (const auto& name : names) {
+			auto it = properties.find(name);
+			if (it != properties.end()) {
+				std::visit([&](auto& value) {
+					func(name, value);
+					}, it->second);
+			}
+		}
+	}
+
+	template<typename Func>
+	void forEachUnwrapped(Func&& func) const {
+		for (const auto& name : names) {
+			auto it = properties.find(name);
+			if (it != properties.end()) {
+				std::visit([&](const auto& value) {
+					func(name, value);
+					}, it->second);
+			}
+		}
+	}
+
+
 private:
-	robin_hood::unordered_map<
-		std::string, 
-		std::variant<
-			TPBool,
-			TPInt,
-			TPChar,
-			TPString,
-			TPFloat,
-			TP2Float,
-			TP3Float,
-			TP4Float,
-			TPColor
-		>
-	> properties;
 
 	std::vector<std::string> names;
 	bool isUnique(const std::string& name) {

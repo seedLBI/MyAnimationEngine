@@ -60,7 +60,7 @@ private:
 	LerpedValue_float time_right_bound;
 
 	ImColor color_background = { 0.f,0.f,0.f,1.f };
-	ImColor color_bounds = { 0.2f,0.7f,1.f,1.f };
+	ImColor color_bounds = { 0.4f,0.4f,0.4f,1.f };
 	ImColor color_bounds_offsetMax = { 1.f,0.2f,0.4f,1.f };
 	ImColor color_mainTick = { 1.f,1.f,1.f,1.f };
 	ImColor color_subTick = { 1.f,0.8f,0.8f,0.4f };

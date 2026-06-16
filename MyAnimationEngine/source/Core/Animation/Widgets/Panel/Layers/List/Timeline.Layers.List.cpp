@@ -181,8 +181,61 @@ void Timeline_Layers_List::drawTriggerButton(bool& value, std::string index, con
     }
 }
 
-void Timeline_Layers_List::drawAnimationEnabler(std::string index) {
+bool Timeline_Layers_List::drawAnimationEnabler(bool& value, std::string index, float availableHeight) {
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
+    const float size = availableHeight * 0.8f;
+
+    ImVec2 p_min = { ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y + (availableHeight - size) };
+    ImVec2 p_max = { p_min.x + size, p_min.y + size };
+
+
+    const auto save_pos = ImGui::GetCursorScreenPos();
+
+    ImGui::SetCursorScreenPos(p_min);
+
+
+    bool result = ImGui::InvisibleButton(std::string(index).c_str(), ImVec2(size, size));
+
+
+    ImGui::SetCursorScreenPos(save_pos);
+    ImGui::Dummy(ImVec2(size, availableHeight));
+
+
+
+    bool isHovered = ImGui::IsItemHovered();
+
+
+    const ImColor default_color = ImColor(.69f, .69f, .69f, 1.f);
+    const ImColor hovered_color = ImColor(1.f, 1.f, 1.f, 1.f);
+    const ImColor hidden_color = ImColor(.42f, .42f, .42f, 1.f);
+    const ImColor disable_color = ImColor(0.f, 0.f, 0.f, 1.f);
+    const ImColor enabled_color = ImColor(.25f, .59f, .95f, 1.f);
+    const ImColor enabled_hovered_color = ImColor(.37f, .67f, .97f, 1.f);
+
+    if (value || isHovered) {
+        draw_list->AddRectFilled(p_min, p_max, disable_color, 3.f);
+        if (isHovered == false && value)
+            draw_list->AddRect(p_min, p_max, hidden_color, 3.f, 0, 1.f);
+        else
+            draw_list->AddRect(p_min, p_max, default_color, 3.f, 0, 1.f);
+    }
+
+
+
+    ImColor result_color = default_color;
+
+    if (value)
+        result_color = isHovered ? enabled_hovered_color : enabled_color;
+    else
+        result_color = isHovered ? hovered_color : default_color;
+
+    Push_SmallestFont();
+    ImVec2 icon_size = ImGui::CalcTextSize(ICON_FA_STOPWATCH);
+    draw_list->AddText({ p_min.x + (p_max.x - p_min.x) * 0.5f - icon_size.x * 0.5f + 1.f, p_min.y + (p_max.y - p_min.y) * 0.5f - icon_size.y * 0.5f }, result_color, ICON_FA_STOPWATCH);
+    Pop_SmallestFont();
+
+    return result;
 }
 
 
@@ -671,14 +724,13 @@ void Timeline_Layers_List::Draw() {
         draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
 
 
-
-
         if (layerInfo.isExpanded) {
 
             auto& properties = layer.get()->GetProperties();
             
+            
+            properties.forEachUnwrapped([&](const std::string& name, auto& value) {
 
-            for (const auto& propertie : properties.getListNames()) {
                 Push_SmallFont();
 
                 float textHeight = ImGui::GetTextLineHeight();
@@ -689,20 +741,28 @@ void Timeline_Layers_List::Draw() {
 
                 if (columns[MARKER].isDisable == false)
                     offsetX = columns[MARKER].startCursorPos;
-                else if(columns[INDEX].isDisable == false)
+                else if (columns[INDEX].isDisable == false)
                     offsetX = columns[INDEX].startCursorPos;
                 else
                     offsetX = columns[NAME].startCursorPos;
 
                 ImGui::SetCursorScreenPos(ImVec2(p.x + offsetX, p.y - offsetY - 1.f));
 
-                bool enable = false;
-                drawTriggerButton(enable, ("##PROPERTIES_TRIGGER_" + std::to_string(i)+"_"+ propertie).c_str(), ICON_FA_STOPWATCH, itemHeight);
-
-                ImGui::SameLine(0.f,10.f);
+                bool enable = value.kr.getKeyframes().empty() == false;
 
 
-                draw_list->AddText({ p.x + offsetX + 22.f,p.y - offsetY + 1.f }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), propertie.c_str());
+                if (drawAnimationEnabler(enable, ("##PROPERTIES_TRIGGER_" + std::to_string(layer.get()->GetLayerInfo().index) + "_" + name).c_str(), itemHeight)) {
+                    if (value.kr.getKeyframes().empty())
+                        value.kr.addFromDefaultValue(0.f);
+                    else
+                        value.kr.clear();
+                }
+
+
+                ImGui::SameLine(0.f, 10.f);
+
+
+                draw_list->AddText({ p.x + offsetX + 22.f,p.y - offsetY + 1.f }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), name.c_str());
 
                 Pop_SmallFont();
 
@@ -711,15 +771,11 @@ void Timeline_Layers_List::Draw() {
                 draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
 
                 ImGui::SetCursorScreenPos(p);
-            }
-            //p.y += 1.f;
+             });
+
+
 
         }
-
-
-
-
-        //ImGui::Separator();
 
 	}
 

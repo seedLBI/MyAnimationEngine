@@ -34,7 +34,7 @@ private:
 	bool DrawLayerName(std::shared_ptr<LayerObject>& object);
 
 	void drawTriggerButton(bool& value, std::string index ,const char* symbol, float availableHeight);
-	void drawAnimationEnabler(std::string index);
+	bool drawAnimationEnabler(bool& value, std::string index, float availableHeight);
 
 
 	enum TypeColumn {

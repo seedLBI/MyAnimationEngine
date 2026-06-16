@@ -47,6 +47,7 @@ public:
 	const std::vector<Keyframe<T, N>>& getKeyframes();
 	const std::vector<TypeKeyframe>& getTypeRestrictions();
 
+	void addFromDefaultValue(float time);
 	void add(const Keyframe<T, N>& keyframe);
 	void changeKeyframe(uint64_t index, const Keyframe<T, N>& keyframe);
 	void changeType(uint64_t index, TypeKeyframe type);
@@ -192,6 +193,14 @@ template<typename T, uint8_t N>
 void KeyframeResolver<T, N>::clear() {
 	keyframes.clear();
 	is_dirty = true;
+}
+
+template<typename T, uint8_t N>
+void KeyframeResolver<T, N>::addFromDefaultValue(float time) {
+	Keyframe<T, N> keyframe;
+	keyframe.sample = {time, getDefaultValue() };
+	keyframe.type = TypeKeyframe::BINARY;
+	add(keyframe);
 }
 
 template<typename T, uint8_t N>
