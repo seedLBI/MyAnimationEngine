@@ -1,5 +1,6 @@
 ﻿#include "Timeline.Transform.Horizontal.h"
 #include "Core/DebugOverlay/DebugOverlay.h"
+#include <algorithm>
 
 TimelineTransformHorizontal::TimelineTransformHorizontal(TimelineProviderData* providerData) 
 	: providerData(providerData) 
@@ -19,37 +20,78 @@ void TimelineTransformHorizontal::updateAvailableWidth(const double& availableWi
 
 void TimelineTransformHorizontal::update(const float& dt) {
 	clampZoomByTimeline();
-	scale.Update(dt * 20.f);
-	offset.Update(dt * 20.f);
+	scale.Update(dt * 22.f);
+	offset.Update(dt * 22.f);
 	reaction_to_over_scale.Update(dt * 8.f);
 }
 
 
 
+float TimelineTransformHorizontal::getAvailableWidth() {
+	return width_available;
+}
+
 const float& TimelineTransformHorizontal::getReactionToOverScale() {
 	return reaction_to_over_scale.GetLerped();
 }
 
+float TimelineTransformHorizontal::getMinScale() {
+	const float& screenWidth = width_available;
+	const float& totalTime = providerData->GetData().totalTime;
+
+	return (screenWidth * Out_Bound_zoom_percent) / (totalTime * base_step);
+}
+
+float TimelineTransformHorizontal::getMaxScale() {
+	const float& screenWidth = width_available;
+	const float& framerate = (float)providerData->GetData().framerate;
+
+	return (screenWidth * 0.7f * framerate) / base_step;
+}
+
+
+float TimelineTransformHorizontal::getMinOffset() {
+	const float left_screen_bound_in_global = getPostionGlobal_lerped(0.f);
+	const float right_screen_bound_in_global = getPostionGlobal_lerped(this->width_available / 2.f);
+	const float length_for_centered_bound = right_screen_bound_in_global - left_screen_bound_in_global;
+	const float left_timeline_bound = 0.f;
+
+	return (length_for_centered_bound -left_timeline_bound ) * getLengthTick_lerped();
+}
+float TimelineTransformHorizontal::getMaxOffset() {
+	const float left_screen_bound_in_global = getPostionGlobal_lerped(0.f);
+	const float right_screen_bound_in_global = getPostionGlobal_lerped(this->width_available / 2.f);
+	const float length_for_centered_bound = right_screen_bound_in_global - left_screen_bound_in_global;
+	const float& right_timeline_bound = providerData->GetData().totalTime;
+
+	return (length_for_centered_bound - right_timeline_bound ) * getLengthTick_lerped();
+}
+
+
 bool TimelineTransformHorizontal::clampZoomByTimeline() {
 
-	const float& allLenghtScreen = width_available;
-	float current_space_for_allLengthTimeline = getPostionScreen_real(providerData->GetData().totalTime) - getPostionScreen_real(0.f);
+	const float& totalTime = providerData->GetData().totalTime;
+	const float& framerate = (float)providerData->GetData().framerate;
 
-	float max_screen_space = allLenghtScreen * Out_Bound_zoom_percent;
+	if (totalTime <= 0.f || framerate <= 0.f || base_step <= 0.f) return false;
 
-	float current_percent	= current_space_for_allLengthTimeline / allLenghtScreen;
-	float min_percent		= max_screen_space / allLenghtScreen;
+	float min_scale = getMinScale();
+	float max_scale = getMaxScale();
 
-	if (current_percent < min_percent) {
-		getScale().Set(max_screen_space / (providerData->GetData().totalTime * base_step) );
+	if (min_scale > max_scale)
+		min_scale = max_scale;
+
+	float current_scale = getScale().GetReal();
+	float clamped_scale = std::clamp(current_scale, min_scale, max_scale);
+
+	if (clamped_scale != current_scale) {
+		getScale().Set(clamped_scale);
 		real_scale = getScale().GetReal();
-
 		return true;
 	}
 
 	return false;
 }
-
 
 float TimelineTransformHorizontal::clampOffsetByHalfWidth_screen(const float& screen_value) {
 

@@ -45,6 +45,7 @@ private:
 		TOGGLES,
 		PARENT,
 		MODES,
+		RENDER_TIME,
 		NOTHING
 	};
 

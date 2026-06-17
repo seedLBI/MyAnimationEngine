@@ -5,6 +5,7 @@
 #include "ThirdParty/ImGui/imgui.h"
 #include "ThirdParty/ImGui/imgui_internal.h"
 
+#include "Utils/LerpedValue/LerpedValue.h"
 
 class TimelineTransformVertical {
 public:
@@ -12,11 +13,18 @@ public:
 	TimelineTransformVertical();
 	~TimelineTransformVertical();
 
+	void updateAvailableHeight(const double& height_available);
 	void update(const float& deltaTime);
 
 	float getScaledHeightOneObject();
+	float getOffset_lerped();
+
+	void addOffset(const float& value);
 
 private:
+	LerpedValue_float offset;
+	float height_available = 0.f;
+
 
 };
 

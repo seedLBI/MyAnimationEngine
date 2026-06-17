@@ -85,12 +85,18 @@ void TimelinePanel::Draw() {
 
 		std::string str_s_mouse = "screen: " + std::to_string(timelineRuler->getScreenMouse());
 		std::string str_g_mouse = "global: " + std::to_string(timelineRuler->getGlobalMouse());
+		std::string str_offset = "offset: " + std::to_string(timelineTransformHorizontal->getOffset().GetReal());
 
 		std::string str_left_range =  std::to_string(timelineTransformHorizontal->getLeftBoundView_global());
 		std::string str_right_range = std::to_string(timelineTransformHorizontal->getRightBoundView_global());
 
 		DebugOverlay::AddText(str_s_mouse, ImColor(1.f, 1.f, 1.f, 1.f));
 		DebugOverlay::AddText(str_g_mouse, ImColor(1.f, 1.f, 1.f, 1.f));
+		DebugOverlay::AddText(str_offset, ImColor(1.f, 1.f, 1.f, 1.f));
+
+		DebugOverlay::AddText("min_offset " + std::to_string(timelineTransformHorizontal->getMinOffset()), ImColor(1.f, 1.f, 1.f, 1.f));
+		DebugOverlay::AddText("max_offset " + std::to_string(timelineTransformHorizontal->getMaxOffset()), ImColor(1.f, 1.f, 1.f, 1.f));
+		DebugOverlay::AddText("length_offset " + std::to_string(timelineTransformHorizontal->getMaxOffset() - timelineTransformHorizontal->getMinOffset()), ImColor(1.f, 1.f, 1.f, 1.f));
 
 		DebugOverlay::AddText(
 			{

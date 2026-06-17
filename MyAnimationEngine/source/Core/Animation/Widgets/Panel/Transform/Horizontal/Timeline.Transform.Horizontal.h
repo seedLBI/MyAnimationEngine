@@ -10,6 +10,8 @@ public:
 	TimelineTransformHorizontal(TimelineProviderData* providerData);
 	~TimelineTransformHorizontal();
 
+
+	float getAvailableWidth();
 	void updateAvailableWidth(const double& availableWidth);
 	void update(const float& dt);
 
@@ -26,6 +28,18 @@ public:
 	double getLengthTick_real();
 	double getLengthTick_lerped();
 
+
+
+	float getMinScale();
+	float getMaxScale();
+
+	float getMinOffset();
+	float getMaxOffset();
+
+	float getLeftBoundView_global();
+	float getRightBoundView_global();
+
+
 	void centerize(const double& relative_point, const bool& isScreen = false);
 
 	void scaleZoomBy(const double& value);
@@ -37,8 +51,7 @@ public:
 	float getOffsetDelta();
 	void applyOffsetDelta();
 
-	float getLeftBoundView_global();
-	float getRightBoundView_global();
+
 
 
 	float getOffset_OutOfBounds();

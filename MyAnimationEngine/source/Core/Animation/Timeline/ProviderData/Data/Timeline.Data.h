@@ -20,7 +20,7 @@ public:
 	Timeline() : 
 		framerate(24), 
 		currentFrame(0), 
-		totalTime(20), 
+		totalTime(50), 
 		currentTime(0),
 		left_range_repeat(2.5l),
 		right_range_repeat(7.5l)

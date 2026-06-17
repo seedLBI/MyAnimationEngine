@@ -13,7 +13,7 @@ Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, Timel
 	  verticalTransform(verticalTransform)
 {
 
-    columns.resize(7);
+    columns.resize(8);
     av_symbols_cursor_pos.resize(4);
     columns[TypeColumn::FUNCTION_AV] = {
         u8"Функции A/V",
@@ -96,7 +96,19 @@ Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, Timel
         true,
         true,
         true,
-        false,
+        true,
+        NOTHING,
+        NOTHING
+    };
+    columns[TypeColumn::RENDER_TIME] = {
+        u8"Время рендеринга",
+        120.f,
+        120.f,
+        0.f,
+        true,
+        true,
+        true,
+        true,
         NOTHING,
         NOTHING
     };
@@ -108,7 +120,8 @@ Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, Timel
 		TypeColumn::NAME,
 		TypeColumn::TOGGLES,
         TypeColumn::MODES,
-		TypeColumn::PARENT
+		TypeColumn::PARENT,
+        TypeColumn::RENDER_TIME
     };
 }
 
@@ -603,6 +616,12 @@ void Timeline_Layers_List::DrawColumnsHeader() {
             case TypeColumn::MODES: {
                 draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), u8"Режим");
                 p.x += ImGui::CalcTextSize(u8"Режим").x;
+
+                break;
+            }
+            case TypeColumn::RENDER_TIME: {
+                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), u8"Время рендеринга");
+                p.x += ImGui::CalcTextSize(u8"Время рендеринга").x;
 
                 break;
             }
