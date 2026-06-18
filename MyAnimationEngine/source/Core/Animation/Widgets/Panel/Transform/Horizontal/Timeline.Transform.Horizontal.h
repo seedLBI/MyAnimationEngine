@@ -47,12 +47,12 @@ public:
 	void addZoom(const double& value);
 	void addOffset(const double& value);
 
+
+	void setOffsetWithClamp(const double& value);
+
 	void setOffsetDelta(const float& delta);
 	float getOffsetDelta();
 	void applyOffsetDelta();
-
-
-
 
 	float getOffset_OutOfBounds();
 
@@ -79,7 +79,7 @@ private:
 
 	float width_available = 0.f;
 
-
+	bool FirstCenterize = true;
 
 	float Out_Bound_zoom_percent = 0.45f;
 

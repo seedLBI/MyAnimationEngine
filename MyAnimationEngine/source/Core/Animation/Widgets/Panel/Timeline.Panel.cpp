@@ -44,6 +44,9 @@ TimelinePanel::TimelinePanel(
 	layerFactory->CreateSolid(7.f, 2.f);
 	layerFactory->CreateSolid(8.f, 2.f);
 
+
+
+
 }
 
 TimelinePanel::~TimelinePanel() {
@@ -93,10 +96,6 @@ void TimelinePanel::Draw() {
 		DebugOverlay::AddText(str_s_mouse, ImColor(1.f, 1.f, 1.f, 1.f));
 		DebugOverlay::AddText(str_g_mouse, ImColor(1.f, 1.f, 1.f, 1.f));
 		DebugOverlay::AddText(str_offset, ImColor(1.f, 1.f, 1.f, 1.f));
-
-		DebugOverlay::AddText("min_offset " + std::to_string(timelineTransformHorizontal->getMinOffset()), ImColor(1.f, 1.f, 1.f, 1.f));
-		DebugOverlay::AddText("max_offset " + std::to_string(timelineTransformHorizontal->getMaxOffset()), ImColor(1.f, 1.f, 1.f, 1.f));
-		DebugOverlay::AddText("length_offset " + std::to_string(timelineTransformHorizontal->getMaxOffset() - timelineTransformHorizontal->getMinOffset()), ImColor(1.f, 1.f, 1.f, 1.f));
 
 		DebugOverlay::AddText(
 			{
@@ -301,18 +300,20 @@ void TimelinePanel::Update() {
 
 	//timelineTransformHorizontal->centerize(timelineData->GetData().currentTime, false);
 
+	float delta_time = deltaTime->GetDeltaTime();
 
-	timelineTransformHorizontal->update(deltaTime->GetDeltaTime());
-	timelineTransformVertical->update(deltaTime->GetDeltaTime());
+	timelineTransformHorizontal->update(delta_time);
+	timelineTransformVertical->update(delta_time);
 
-	timelineTimeCursor->Update(deltaTime->GetDeltaTime());
+	timelineTimeCursor->Update(delta_time);
 
 	scrollHorizontal->Update();
 	scrollVertical->Update();
 
-	timelineRuler->Update(deltaTime->GetDeltaTime());
+	timelineRuler->Update(delta_time);
 	timelineRange->Update();
 	layersList->Update();
 	layersViewer->Update();
 	upperControls->Update();
+
 }

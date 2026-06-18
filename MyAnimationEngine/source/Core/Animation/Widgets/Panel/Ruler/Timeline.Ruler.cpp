@@ -273,13 +273,6 @@ void Timeline_Ruler::UpdateVars(const float& dt) {
 	time_left_bound.Update(dt * 8.f);
 	time_right_bound.Update(dt * 8.f);
 
-
-
-
-
-
-
-
 }
 void Timeline_Ruler::UpdateZoom() {
 	if (!isHovered) return;

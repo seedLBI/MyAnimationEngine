@@ -19,10 +19,23 @@ void TimelineTransformHorizontal::updateAvailableWidth(const double& availableWi
 }
 
 void TimelineTransformHorizontal::update(const float& dt) {
+	if (FirstCenterize){
+		if (width_available > 100.f) {
+			fitToRanges(0. - 0.1, providerData->GetData().totalTime + 0.1);
+			getOffset().SetAll(getOffset().GetReal());
+			getScale().SetAll(getScale().GetReal());
+			FirstCenterize = false;
+		}
+	}
+
+
 	clampZoomByTimeline();
+
 	scale.Update(dt * 22.f);
 	offset.Update(dt * 22.f);
 	reaction_to_over_scale.Update(dt * 8.f);
+
+
 }
 
 
@@ -205,6 +218,7 @@ void TimelineTransformHorizontal::centerize(const double& relative_point, const 
 
 	real_offset -= screen_point - screen_center;
 	real_offsetDelta = 0.0;
+	real_offset = clampOffsetByHalfWidth_screen(real_offset);
 
 	getOffset().Set(real_offset + real_offsetDelta);
 
@@ -220,6 +234,11 @@ void TimelineTransformHorizontal::addZoom(const double& value) {
 }
 void TimelineTransformHorizontal::scaleZoomBy(const double& value) {
 	zoomToPointByValue(width_available / 2.f, value);
+}
+
+void TimelineTransformHorizontal::setOffsetWithClamp(const double& value) {
+	real_offset = clampOffsetByHalfWidth_screen(value);
+	getOffset().Set(real_offset);
 }
 
 void TimelineTransformHorizontal::addOffset(const double& value) {
