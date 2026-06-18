@@ -28,16 +28,17 @@ public:
 	double getLengthTick_real();
 	double getLengthTick_lerped();
 
-
-
 	float getMinScale();
 	float getMaxScale();
 
 	float getMinOffset();
 	float getMaxOffset();
 
-	float getLeftBoundView_global();
-	float getRightBoundView_global();
+	float getLeftBoundView_global_real();
+	float getRightBoundView_global_real();
+
+	float getLeftBoundView_global_lerped();
+	float getRightBoundView_global_lerped();
 
 
 	void centerize(const double& relative_point, const bool& isScreen = false);

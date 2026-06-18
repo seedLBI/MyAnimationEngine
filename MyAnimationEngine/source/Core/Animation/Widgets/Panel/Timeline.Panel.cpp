@@ -90,8 +90,8 @@ void TimelinePanel::Draw() {
 		std::string str_g_mouse = "global: " + std::to_string(timelineRuler->getGlobalMouse());
 		std::string str_offset = "offset: " + std::to_string(timelineTransformHorizontal->getOffset().GetReal());
 
-		std::string str_left_range =  std::to_string(timelineTransformHorizontal->getLeftBoundView_global());
-		std::string str_right_range = std::to_string(timelineTransformHorizontal->getRightBoundView_global());
+		std::string str_left_range =  std::to_string(timelineTransformHorizontal->getLeftBoundView_global_real());
+		std::string str_right_range = std::to_string(timelineTransformHorizontal->getRightBoundView_global_real());
 
 		DebugOverlay::AddText(str_s_mouse, ImColor(1.f, 1.f, 1.f, 1.f));
 		DebugOverlay::AddText(str_g_mouse, ImColor(1.f, 1.f, 1.f, 1.f));

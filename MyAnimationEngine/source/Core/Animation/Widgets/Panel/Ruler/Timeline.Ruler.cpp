@@ -1,6 +1,8 @@
 ﻿#include "Timeline.Ruler.h"
 #include "CursorManager/CursorManger.h"
 
+#include "Utils/Text/Text.h"
+
 #include "Core/DebugOverlay/DebugOverlay.h"
 #include "Utils/Math/Math.Lerp.h"
 
@@ -74,30 +76,17 @@ void Timeline_Ruler::Draw() {
 	p_min.x += padding_x;
 	p_max.x -= padding_x;
 
-	float distance_between_Main_tick = timelineTransformHorizontal->getLengthTick_lerped();
-	int countMainTick_for_Render = region_max.x / distance_between_Main_tick + 1.f;
 
-	float height_main_tick = ImGui::GetTextLineHeight();
-	float height_sub_minor_tick = ImGui::GetTextLineHeight() / 3.f;
-	float height_sub_major_tick = ImGui::GetTextLineHeight() / 2.f;
-
-	float width_main_tick = 5.f;
 
 
 	ImVec2 block_min = cursor_pos;
 	ImVec2 block_max = { cursor_pos.x + timelineTransformHorizontal->getPostionScreen_lerped(0.f), cursor_pos.y + region_max.y };
-
-
-
-
 
 	ImColor color_left_bound_outOfBounds  = color_bounds;
 	ImColor color_right_bound_outOfBounds = color_bounds;
 
 	Lerp(color_left_bound_outOfBounds, color_bounds_offsetMax,  1.f - time_left_bound.GetLerped());
 	Lerp(color_right_bound_outOfBounds, color_bounds_offsetMax, 1.f - time_right_bound.GetLerped());
-
-
 
 	if (OutOfView(block_max) == false || block_max.x > p_max.x) {
 
@@ -134,93 +123,141 @@ void Timeline_Ruler::Draw() {
 			color_bounds, color_right_bound_outOfBounds, color_right_bound_outOfBounds, color_bounds
 		);
 
-
-
-
 	}
+
+
 
 
 	int count_tick_rendered = 0;
 
+	float height_main_tick = ImGui::GetTextLineHeight();
+	float height_sub_minor_tick = ImGui::GetTextLineHeight() / 3.f;
+	float height_sub_major_tick = ImGui::GetTextLineHeight() / 1.5f;
 
-	const float distance_between_ticks = timelineTransformHorizontal->getPostionScreen_lerped(1.f) - timelineTransformHorizontal->getPostionScreen_lerped(0.f);
 
-
-
+	float step_Main = 1.f;
+	float distance_between_main_ticks = timelineTransformHorizontal->getPostionScreen_lerped(step_Main) - timelineTransformHorizontal->getPostionScreen_lerped(0.f);
 	int count_main_tick = timelineData->GetData().totalTime;
-
-	int begin_index_tick = timelineTransformHorizontal->getLeftBoundView_global();
-	if (begin_index_tick < 0) begin_index_tick = 0;
+	float size_main_tick_text = 52.f;
 
 
+	if (distance_between_main_ticks < size_main_tick_text) {
+		float count = std::round(size_main_tick_text / distance_between_main_ticks);
+		float countTicks = std::floor(count_main_tick / count);
+		float stepTick = timelineData->GetData().totalTime / countTicks;
+		step_Main = stepTick;
+		count_main_tick = countTicks;
+		distance_between_main_ticks = timelineTransformHorizontal->getPostionScreen_lerped(stepTick) - timelineTransformHorizontal->getPostionScreen_lerped(0.f);
+	}
 
-	for (size_t i = begin_index_tick; i <= count_main_tick; i++) {
+	int begin_index_main_tick = timelineTransformHorizontal->getLeftBoundView_global_lerped() / step_Main;
+	if (begin_index_main_tick < 0) begin_index_main_tick = 0;
 
 
-		double tick_value = double(i);
+	float step_Sub = 1.f / (float)timelineData->GetData().framerate;
+	float distance_between_sub_ticks = timelineTransformHorizontal->getPostionScreen_lerped(step_Sub) - timelineTransformHorizontal->getPostionScreen_lerped(0.f);
+	int count_sub_tick = timelineData->GetData().framerate;
+	float size_sub_tick_text = 16.f;
+	bool draw_sub_ticks = true;
 
-		if (long double(tick_value) > timelineData->GetData().totalTime + 0.0001l)
+	if (distance_between_sub_ticks < size_sub_tick_text) {
+		float count = (std::max)(1.0f, std::round(size_sub_tick_text / distance_between_sub_ticks));
+		float countTicks = std::round((float)timelineData->GetData().framerate / count);
+
+		if (countTicks < 1.0f) {
+			draw_sub_ticks = false;
+		}
+		else {
+			float stepTick = 1.f / countTicks;
+			step_Sub = stepTick;
+			count_sub_tick = countTicks;
+			distance_between_sub_ticks = timelineTransformHorizontal->getPostionScreen_lerped(stepTick) - timelineTransformHorizontal->getPostionScreen_lerped(0.f);
+		}
+	}
+
+
+	int sub_text_step = 1;
+	if (draw_sub_ticks && distance_between_sub_ticks > 0.001f && distance_between_sub_ticks < 52.f) {
+		sub_text_step = std::ceil(52.f / distance_between_sub_ticks);
+	}
+
+	
+	for (size_t i = begin_index_main_tick; i <= count_main_tick; i++) {
+
+		double tick_main_value = std::round(double(i)*double(step_Main));
+
+		if (long double(tick_main_value) > timelineData->GetData().totalTime + 0.0001l)
 			break;
 
-		float pos_main_tick = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(tick_value);
-
-
+		float pos_main_tick = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(tick_main_value);
 
 		ImVec2 min_pos_main_tick = { pos_main_tick - width_main_tick / 2.f, p_max.y - height_main_tick };
 		ImVec2 max_pos_main_tick = { pos_main_tick + width_main_tick / 2.f, p_max.y };
 
-
-
 		char buf[32];
 		if (i == 0)
-			snprintf(buf, sizeof(buf), "0");
+			snprintf(buf, sizeof(buf), "0s");
 		else
-			snprintf(buf, sizeof(buf), "%.1f", tick_value);
+			snprintf(buf, sizeof(buf), "%.0fs", tick_main_value);
 
 		ImVec2 text_size = ImGui::CalcTextSize(buf, nullptr, true);
-		float text_x = pos_main_tick - text_size.x * 0.5f;
-		float text_y = min_pos_main_tick.y - text_size.y - 1.0f;
 
-		ImU32 text_col = ImGui::GetColorU32(ImGuiCol_Text);
-		drawlist->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, text_y), text_col, buf);
-
-
-
-
-		if (max_pos_main_tick.x + distance_between_ticks < p_min.x) continue;
+		if (max_pos_main_tick.x + distance_between_main_ticks < p_min.x) continue;
 		if (min_pos_main_tick.x - text_size.x * 0.5f > p_max.x) break;
 
 
+		float text_x = pos_main_tick - text_size.x * 0.5f;
+		float text_y = min_pos_main_tick.y - text_size.y - 1.0f;
+
+
+		drawlist->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, text_y), color_text_mainTick, buf);
 		drawlist->AddRectFilled(min_pos_main_tick, max_pos_main_tick, color_mainTick, 2.f, 0.f);
 		count_tick_rendered++;
 
+		if (draw_sub_ticks) {
 
-		for (size_t j = 1; j < timelineData->GetData().framerate; j++) {
+			int subs_per_main_step = std::round(step_Main / step_Sub);
 
-			double sub_tick_value = double(j) / double(timelineData->GetData().framerate);
-			double sum_tick_value = tick_value + sub_tick_value;
+			for (int j = 1; j <= subs_per_main_step; j++) {
 
-			if (long double(sum_tick_value) > timelineData->GetData().totalTime + 0.0001l)
-				break;
+				double tick_sub_value = tick_main_value + (double(j) * double(step_Sub));
 
-			float pos_sub_tick = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(sum_tick_value);
-
-			ImVec2 min_pos_sub_tick = { pos_sub_tick - width_main_tick / 3.f, p_max.y };
-			ImVec2 max_pos_sub_tick = { pos_sub_tick + width_main_tick / 3.f, p_max.y };
-
-			min_pos_sub_tick.y -= j % 2 == 0 ? height_sub_minor_tick : height_sub_major_tick;
-
-			if (max_pos_sub_tick.x < p_min.x) continue;
-			if (min_pos_sub_tick.x > p_max.x) break;
+				if (abs(tick_sub_value - tick_main_value) < 0.000001f || abs(tick_sub_value - tick_main_value - step_Main) < 0.000001f) continue;
 
 
-			drawlist->AddRectFilled(min_pos_sub_tick, max_pos_sub_tick, color_subTick, 2.f, 0.f);
-			count_tick_rendered++;
+				if (long double(tick_sub_value) > timelineData->GetData().totalTime + 0.0001l)
+					break;
 
+				float pos_sub_tick = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(tick_sub_value);
+
+
+				bool isMajorTick = (j % sub_text_step == 0) && (subs_per_main_step / sub_text_step > 1);
+
+				ImVec2 min_pos_sub_tick = { pos_sub_tick - width_sub_tick / 2.f, p_max.y - (isMajorTick ? height_sub_major_tick : height_sub_minor_tick) };
+				ImVec2 max_pos_sub_tick = { pos_sub_tick + width_sub_tick / 2.f, p_max.y };
+
+				if (max_pos_sub_tick.x < p_min.x || min_pos_sub_tick.x > p_max.x) continue;
+
+				if (isMajorTick) {
+					char buf[32];
+					snprintf(buf, sizeof(buf), "%if", j); 
+					ImVec2 sub_text_size = ImGui::CalcTextSize(buf, nullptr, true); 
+					float text_x = pos_sub_tick - sub_text_size.x * 0.5f; 
+					float text_y = min_pos_sub_tick.y - sub_text_size.y - 1.0f; 
+					drawlist->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(text_x, text_y), color_text_subTick, buf);
+				}
+
+
+				drawlist->AddRectFilled(min_pos_sub_tick, max_pos_sub_tick, color_subTick, 2.f, 0.f);
+				count_tick_rendered++;
+			}
 		}
 
-
 	}
+	
+
+
+
 
 
 
@@ -241,9 +278,6 @@ void Timeline_Ruler::Draw() {
 	timeCursor->Draw(p_min, p_max);
 
 }
-
-#include <iostream>
-
 
 void Timeline_Ruler::UpdateVars(const float& dt) {
 	timelineTransformHorizontal->updateAvailableWidth(region_max.x);
@@ -341,10 +375,6 @@ void Timeline_Ruler::Update(const float& dt) {
 		);
 
 		CursorManager::getInstance().SetCursor(TypeCursor::POINT);
-	}
-
-	if (ImGui::IsKeyPressed(ImGuiKey_A)) {
-		timelineTransformHorizontal->centerize(timelineData->GetData().totalTime/2.f);
 	}
 
 }

@@ -53,18 +53,25 @@ private:
 	bool OutOfView(const ImVec2& pos_min, const ImVec2& pos_max);
 
 
-	const float width_gradient_bound = 20.f;
-
 
 	LerpedValue_float time_left_bound;
 	LerpedValue_float time_right_bound;
 
-	ImColor color_background = { 0.f,0.f,0.f,1.f };
-	ImColor color_bounds = { 0.4f,0.4f,0.4f,1.f };
-	ImColor color_bounds_offsetMax = { 1.f,0.2f,0.4f,1.f };
-	ImColor color_mainTick = { 1.f,1.f,1.f,1.f };
-	ImColor color_subTick = { 1.f,0.8f,0.8f,0.4f };
-	ImColor color_reaction_overScale = { 1.f,0.4f,0.1f,1.f };
+
+
+	const float width_gradient_bound = 20.f;
+
+	const float width_main_tick = 5.f;
+	const float width_sub_tick = 2.5f;
+
+	ImColor color_background			= { 0.f,0.f,0.f,1.f };
+	ImColor color_bounds				= { 0.4f,0.4f,0.4f,1.f };
+	ImColor color_bounds_offsetMax		= { 1.f,0.2f,0.4f,1.f };
+	ImColor color_mainTick				= { 1.f,1.f,1.f,1.f };
+	ImColor color_subTick				= { 0.8f,0.8f,0.8f,0.4f };
+	ImColor color_text_mainTick			= ImGui::GetColorU32(ImGuiCol_Text);
+	ImColor color_text_subTick			= { 0.8f,0.8f,0.8f,0.4f };
+	ImColor color_reaction_overScale	= { 1.f,0.4f,0.1f,1.f };
 };
 
 

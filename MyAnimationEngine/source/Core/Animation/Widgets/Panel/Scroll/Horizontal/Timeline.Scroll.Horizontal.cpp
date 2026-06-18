@@ -113,7 +113,7 @@ void Timeline_Scroll_Horizontal::Draw() {
 
 
 
-		float center = 0.5f * (horizontalTransform->getLeftBoundView_global() + horizontalTransform->getRightBoundView_global());
+		float center = 0.5f * (horizontalTransform->getLeftBoundView_global_real() + horizontalTransform->getRightBoundView_global_real());
 
 		horizontalTransform->scaleZoomBy( new_scale / horizontalTransform->getScale().GetReal());
 		horizontalTransform->centerize(center);
@@ -176,7 +176,7 @@ void Timeline_Scroll_Horizontal::Draw() {
 	if (held_slider_offset || ImGui::IsMouseHoveringRect({ p.x, p.y + region_max.y / 2.f - max_radius }, { p.x + full_length_slider, p.y + region_max.y / 2.f + max_radius })) {
 		float scrol_zoom = ImGui::GetIO().MouseWheel;
 		if (scrol_zoom != 0.f) {
-			float center = 0.5f * (horizontalTransform->getLeftBoundView_global() + horizontalTransform->getRightBoundView_global());
+			float center = 0.5f * (horizontalTransform->getLeftBoundView_global_real() + horizontalTransform->getRightBoundView_global_real());
 
 			float mult = scrol_zoom > 0.f ? 1.5f : 0.75f;
 			horizontalTransform->zoomToPointByValue(center, mult, false);

@@ -269,12 +269,20 @@ void TimelineTransformHorizontal::applyOffsetDelta() {
 	getOffset().Set(real_offset);
 }
 
-float TimelineTransformHorizontal::getLeftBoundView_global() {
+float TimelineTransformHorizontal::getLeftBoundView_global_real() {
 	return getPostionGlobal_real(0.f);
 }
-float TimelineTransformHorizontal::getRightBoundView_global() {
+float TimelineTransformHorizontal::getRightBoundView_global_real() {
 	return getPostionGlobal_real(this->width_available);
 }
+
+float TimelineTransformHorizontal::getLeftBoundView_global_lerped() {
+	return getPostionGlobal_lerped(0.f);
+}
+float TimelineTransformHorizontal::getRightBoundView_global_lerped() {
+	return getPostionGlobal_lerped(this->width_available);
+}
+
 
 void TimelineTransformHorizontal::fitToRanges(const double& global_left, const double& global_right) {
 
