@@ -58,7 +58,7 @@ public:
 private:
 	std::array<T,N> default_value;
 	std::vector<Keyframe<T, N>> keyframes;
-	std::vector<KeyframeSample<T, N>> samples;
+	std::vector<LerpedSample<T, N>> samples;
 	std::vector<TypeKeyframe> type_restrictions;
 
 	std::optional<RangeValueKeyframe<T, N>> range;
@@ -66,7 +66,7 @@ private:
 	uint32_t default_sample_rate = 24;
 	bool is_dirty = true;
 
-	KeyframeSample<T, N> lerpCubicBezier(
+	LerpedSample<T, N> lerpCubicBezier(
 		const Keyframe<T, N>& a,
 		const Keyframe<T, N>& b,
 		float t
@@ -228,12 +228,12 @@ void KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
 }
 
 template<typename T, uint8_t N>
-KeyframeSample<T, N> KeyframeResolver<T, N>::lerpCubicBezier(
+LerpedSample<T, N> KeyframeResolver<T, N>::lerpCubicBezier(
 	const Keyframe<T, N>& a,
 	const Keyframe<T, N>& b,
 	float t)
 {
-	KeyframeSample<T, N> result;
+	LerpedSample<T, N> result;
 
 	const float t1 = (1.f - t) * (1.f - t) * (1.f - t);
 	const float t2 = 3.f * (1.f - t) * (1.f - t) * t;
@@ -246,15 +246,15 @@ KeyframeSample<T, N> KeyframeResolver<T, N>::lerpCubicBezier(
 		if (b.anchors.in.has_value())
 			anchor_key2 = b.anchors.in.value();
 		else {
-			anchor_key2.time  = b.sample.time;
+			anchor_key2.time.fill(b.sample.time);
 			anchor_key2.value = b.sample.value;
 		}
 
 		result.time[i] =
-			t1 * a.sample.time[i] +
+			t1 * a.sample.time +
 			t2 * a.anchors.out->time[i] +
 			t3 * anchor_key2.time[i] +
-			t4 * b.sample.time[i];
+			t4 * b.sample.time;
 
 		result.value[i] =
 			t1 * a.sample.value[i] +
@@ -372,10 +372,7 @@ std::array<T, N> KeyframeResolver<T, N>::evaluate(float time)
 
 	std::array<T, N> result;
 
-	for (size_t i = 0; i < N; i++)
-	{
-
-
+	for (size_t i = 0; i < N; i++) {
 		int64_t left = 0;
 		int64_t right = samples.size() - 1;
 

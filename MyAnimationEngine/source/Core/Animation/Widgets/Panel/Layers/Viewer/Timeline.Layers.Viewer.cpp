@@ -71,6 +71,23 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 }
 
 
+void Timeline_Layers_Viewer::DrawRomb(const ImVec2& pos_center, float size, ImColor color, bool isSelected, ImColor colorSelected) {
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+
+	ImVec2 vertexs[] = {
+		{pos_center.x - size, pos_center.y},
+		{pos_center.x, pos_center.y + size},
+		{pos_center.x + size, pos_center.y},
+		{pos_center.x, pos_center.y - size},
+		{pos_center.x - size, pos_center.y},
+	};
+
+	draw_list->AddConvexPolyFilled(vertexs, 4, color);
+
+}
+
+
 void Timeline_Layers_Viewer::Draw() {
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -203,6 +220,45 @@ void Timeline_Layers_Viewer::Draw() {
 
 
 		p.y += itemHeight;
+
+
+
+		if (layerInfo.isExpanded) {
+
+			auto& properties = layer->GetProperties();
+
+
+			properties.forEachUnwrapped([&](const std::string& name, auto& value) {
+
+				float textHeight = ImGui::GetTextLineHeight();
+				float offsetY = (itemHeight - textHeight) * 0.5f;
+
+				if (value.kr.getKeyframes().empty() == false) {
+					auto& keyframes = value.kr.getKeyframes();
+					for (size_t i = 0; i < keyframes.size(); i++) {
+						auto& keyframe = keyframes[i];
+						auto& sample = keyframe.sample;
+
+						DrawRomb(
+							{
+								p.x + horizontalTransform->getPostionScreen_lerped(time_begin + sample.time),
+								p.y + textHeight / 2.f
+							},
+							textHeight / 4.f,
+							ImColor(.37f, .37f, .37f, 1.f)
+						);
+
+					}
+				}
+
+
+				p.y += itemHeight;
+				draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
+
+				ImGui::SetCursorScreenPos(p);
+			});
+		}
+
 	}
 
 
@@ -219,6 +275,16 @@ void Timeline_Layers_Viewer::Draw() {
 		const auto& status = draging_status;
 
 		float delta = horizontalTransform->getPostionGlobal_lerped(ImGui::GetMousePos().x - cursor_pos.x) - drag_start_mouse_global;
+
+		float step_frame = 1.f / (float)timelineData->GetData().framerate;
+		float count = std::floor(delta / step_frame);
+		float time = count * step_frame;
+
+		if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+			time = delta;
+
+		delta = time;
+
 		LayerInfo& info = layers[index].get()->GetLayerInfo();
 
 		switch (status) {

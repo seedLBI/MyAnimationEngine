@@ -25,13 +25,22 @@ struct BezierAnchors {
 
 template<typename T, uint8_t N>
 struct KeyframeSample {
-	std::array<float, N> time;
+	float time;
 	std::array<T, N> value;
-	KeyframeSample() = default;
-	KeyframeSample(float time, const std::array<T, N>& value) {
+};
+
+template<typename T, uint8_t N>
+struct LerpedSample {
+	std::array<float, N> time;
+	std::array<T, N>	 value;
+	LerpedSample() = default;
+	LerpedSample(float time, const std::array<T, N>& value) {
 		for (uint8_t i = 0; i < N; i++)
 			this->time[i] = time;
 		this->value = value;
+	}
+	LerpedSample(const KeyframeSample<T,N>& keyframeSample) {
+		LerpedSample(keyframeSample.time, keyframeSample.value);
 	}
 };
 

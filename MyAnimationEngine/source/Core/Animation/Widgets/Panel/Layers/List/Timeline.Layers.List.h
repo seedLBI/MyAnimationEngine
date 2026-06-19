@@ -3,14 +3,19 @@
 
 #include "Core/Animation/Widgets/Panel/Transform/Vertical/Timeline.Transform.Vertical.h"
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
+#include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "IconDrawer/Timeline.Layers.Icon.Drawer.h"
+
 
 #include <vector>
 #include <string>
 
 class Timeline_Layers_List {
 public:
-	Timeline_Layers_List(LayersDataProvider* layersData, TimelineTransformVertical* verticalTransform);
+	Timeline_Layers_List(
+		LayersDataProvider* layersData, 
+		TimelineProviderData* timelineData,
+		TimelineTransformVertical* verticalTransform);
 	~Timeline_Layers_List();
 
 	void Draw();
@@ -23,6 +28,7 @@ public:
 
 private:
 	LayersDataProvider* layersData;
+	TimelineProviderData* timelineData;
 	TimelineTransformVertical* verticalTransform;
 
 	void DrawObject(std::shared_ptr<LayerObject>& object);

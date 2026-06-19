@@ -239,8 +239,10 @@ void Timeline_Ruler::Draw() {
 				if (max_pos_sub_tick.x < p_min.x || min_pos_sub_tick.x > p_max.x) continue;
 
 				if (isMajorTick) {
+					int actual_frame = std::round((tick_sub_value - tick_main_value) * timelineData->GetData().framerate);
+
 					char buf[32];
-					snprintf(buf, sizeof(buf), "%if", j); 
+					snprintf(buf, sizeof(buf), "%if", actual_frame);
 					ImVec2 sub_text_size = ImGui::CalcTextSize(buf, nullptr, true); 
 					float text_x = pos_sub_tick - sub_text_size.x * 0.5f; 
 					float text_y = min_pos_sub_tick.y - sub_text_size.y - 1.0f; 
@@ -369,8 +371,16 @@ void Timeline_Ruler::Update(const float& dt) {
 	}
 
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Right, false)) {
+
+		float step_frame = 1.f / (float)timelineData->GetData().framerate;
+		float count = std::floor(mouse_global / step_frame);
+		float time = count * step_frame + 0.000001f;
+
+		if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+			time = mouse_global;
+
 		timelineData->GetData().SetTime(
-			long double(mouse_global),
+			long double(time),
 			timelineController->GetState() == TimelineRunState::RUNNING_CYCLE
 		);
 

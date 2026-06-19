@@ -23,8 +23,6 @@ public:
 	const float& getGlobalMouse();
 	const float& getScreenMouse();
 
-
-
 private:
 	Timeline_TimeCursor* timeCursor = nullptr;
 
@@ -44,20 +42,13 @@ private:
 	void UpdateVars(const float& dt);
 	void UpdateZoom();
 
-
 	void FitAllTimeline();
 
-
 	bool OutOfView(const ImVec2& pos);
-
 	bool OutOfView(const ImVec2& pos_min, const ImVec2& pos_max);
-
-
 
 	LerpedValue_float time_left_bound;
 	LerpedValue_float time_right_bound;
-
-
 
 	const float width_gradient_bound = 20.f;
 

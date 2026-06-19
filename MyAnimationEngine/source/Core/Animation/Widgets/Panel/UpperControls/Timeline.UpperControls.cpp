@@ -110,6 +110,7 @@ void Timeline_UpperControls::DrawTimer() {
 		if (isDraging && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 			CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_HORIZONTAL);
 			int x_delta = int(ImGui::GetMousePos().x - StartDrag.x) / 2;
+
 			if (x_delta < 0 && abs(x_delta) > frameStartDrag)
 				timelineData->GetData().SetTime((uint64_t)0);
 			else

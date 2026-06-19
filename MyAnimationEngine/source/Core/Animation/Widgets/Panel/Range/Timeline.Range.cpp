@@ -103,7 +103,7 @@ void Timeline_Range::Draw() {
 				range_dragging = true;
 
 
-				 left_range_before_dragging =  timelineData->GetData().left_range_repeat;
+				 left_range_before_dragging = timelineData->GetData().left_range_repeat;
 				right_range_before_dragging = timelineData->GetData().right_range_repeat;
 
 				length_range_dragging = timelineData->GetData().right_range_repeat - timelineData->GetData().left_range_repeat;
@@ -120,14 +120,28 @@ void Timeline_Range::Draw() {
 	if (left_range_dragging) {
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 			color_left_button = color_button_down;
-			timelineData->GetData().SetLeftRange(global_pos_mouse_x);
+
+			float step_frame = 1.f / (float)timelineData->GetData().framerate;
+			float count = std::floor(global_pos_mouse_x / step_frame);
+			float time = count * step_frame;
+			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+				time = global_pos_mouse_x;
+
+			timelineData->GetData().SetLeftRange(time);
 		}
 		else left_range_dragging = false;
 	}
 	else if (right_range_dragging) {
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 			color_right_button = color_button_down;
-			timelineData->GetData().SetRightRange(global_pos_mouse_x);
+
+			float step_frame = 1.f / (float)timelineData->GetData().framerate;
+			float count = std::floor(global_pos_mouse_x / step_frame);
+			float time = count * step_frame;
+			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+				time = global_pos_mouse_x;
+
+			timelineData->GetData().SetRightRange(time);
 		}
 		else right_range_dragging = false;
 	}
@@ -136,6 +150,14 @@ void Timeline_Range::Draw() {
 			color_range_button = color_range_down;
 
 			float delta_mouse = global_pos_mouse_x - global_pos_begin_draging;
+
+			float step_frame = 1.f / (float)timelineData->GetData().framerate;
+			float count = std::floor(delta_mouse / step_frame);
+			float time = count * step_frame;
+			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+				time = delta_mouse;
+
+			delta_mouse = time;
 
 			float condidate_left = left_range_before_dragging + delta_mouse;
 			float condidate_right = right_range_before_dragging + delta_mouse;

@@ -18,7 +18,7 @@ public:
 
 
 	Timeline() : 
-		framerate(24), 
+		framerate(60), 
 		currentFrame(0), 
 		totalTime(50), 
 		currentTime(0),
@@ -101,7 +101,7 @@ public:
 	}
 
 	inline void UpdateCurrentTime() {
-		currentTime = (long double)currentFrame / (long double)framerate;
+		currentTime = (long double)currentFrame / (long double)framerate + 0.000001f;
 	}
 
 	inline void UpdateCurrentFrame() {

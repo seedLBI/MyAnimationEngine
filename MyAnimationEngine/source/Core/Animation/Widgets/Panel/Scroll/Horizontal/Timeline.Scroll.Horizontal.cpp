@@ -111,8 +111,6 @@ void Timeline_Scroll_Horizontal::Draw() {
 
 		float new_scale = minScale + t_linear * (maxScale - minScale);
 
-
-
 		float center = 0.5f * (horizontalTransform->getLeftBoundView_global_real() + horizontalTransform->getRightBoundView_global_real());
 
 		horizontalTransform->scaleZoomBy( new_scale / horizontalTransform->getScale().GetReal());
@@ -160,6 +158,9 @@ void Timeline_Scroll_Horizontal::Draw() {
 	ImGui::ItemAdd(bb_slider_offset, id_slider_offset);
 	ImGui::ButtonBehavior(bb_slider_offset, id_slider_offset, &hovered_slider_offset, &held_slider_offset);
 
+
+
+
 	ImColor slider_offset_current_color = default_color;
 
 	ImVec2 min_FullSlider = { p.x, p.y + region_max.y / 2.f - max_radius };
@@ -180,6 +181,9 @@ void Timeline_Scroll_Horizontal::Draw() {
 
 			float mult = scrol_zoom > 0.f ? 1.5f : 0.75f;
 			horizontalTransform->zoomToPointByValue(center, mult, false);
+		}
+		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left, false)) {
+			horizontalTransform->fitToRanges(-0.1, timelineData->GetData().totalTime + 0.1);
 		}
 	}
 

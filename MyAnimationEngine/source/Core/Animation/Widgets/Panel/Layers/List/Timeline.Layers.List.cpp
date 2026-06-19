@@ -8,8 +8,9 @@
 #include "Utils/Text/Encoding/UTF8/UTF8.h"
 #include <cstring>
 
-Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, TimelineTransformVertical* verticalTransform)
+Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, TimelineProviderData* timelineData, TimelineTransformVertical* verticalTransform)
 	: layersData(layersData),
+      timelineData (timelineData),
 	  verticalTransform(verticalTransform)
 {
 
@@ -254,6 +255,7 @@ bool Timeline_Layers_List::drawAnimationEnabler(bool& value, std::string index, 
 
 void Timeline_Layers_List::DrawObject(std::shared_ptr<LayerObject>& object)
 {
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
     std::string index = std::to_string(object.get()->GetLayerInfo().index);
     float height_object = verticalTransform->getScaledHeightOneObject();
 
@@ -709,7 +711,6 @@ void Timeline_Layers_List::DrawColumnsHeader() {
 }
 
 void Timeline_Layers_List::Draw() {
-
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     ImVec2 region_max = ImGui::GetContentRegionAvail();
@@ -772,7 +773,7 @@ void Timeline_Layers_List::Draw() {
 
                 if (drawAnimationEnabler(enable, ("##PROPERTIES_TRIGGER_" + std::to_string(layer.get()->GetLayerInfo().index) + "_" + name).c_str(), itemHeight)) {
                     if (value.kr.getKeyframes().empty())
-                        value.kr.addFromDefaultValue(0.f);
+                        value.kr.addFromDefaultValue(timelineData->GetData().currentTime - layer.get()->GetLayerInfo().time.Begin);
                     else
                         value.kr.clear();
                 }
@@ -783,6 +784,68 @@ void Timeline_Layers_List::Draw() {
 
                 draw_list->AddText({ p.x + offsetX + 22.f,p.y - offsetY + 1.f }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), name.c_str());
 
+
+                //draw_list->
+                offsetX = columns[TOGGLES].startCursorPos;
+                ImGui::SetCursorScreenPos(ImVec2(p.x + offsetX, p.y - offsetY + 1.f));
+                ImColor col_text(.25f, .59f, .95f, 1.f);
+                ImColor col_comma = ImGui::GetColorU32(ImGuiCol_Text);
+
+                float xxx = p.x;
+                float yyy = p.y;
+                p.y += offsetY + 1.f;
+                p.x += offsetX;
+
+                auto AddTextAndAdvance = [&](ImU32 color, const char* text) {
+                    draw_list->AddText(p, color, text);
+                    p.x += ImGui::CalcTextSize(text).x + ImGui::GetStyle().ItemSpacing.x;
+                    };
+
+                using ValueType = std::decay_t<decltype(value)>;
+
+                float eval_time = timelineData->GetData().currentTime - layerInfo.time.Begin;
+                char buf[32];
+
+                if constexpr (std::is_same_v<ValueType, TPFloat>) {
+                    std::array<float, 1> v = value.kr.evaluate(timelineData->GetData().currentTime - layerInfo.time.Begin);
+                    snprintf(buf, sizeof(buf), "%.3f", v[0]);
+                    AddTextAndAdvance(col_text, buf);
+                }
+                else if  constexpr (std::is_same_v<ValueType, TP2Float>) {
+                    std::array<float, 2> v = value.kr.evaluate(eval_time);
+                    snprintf(buf, sizeof(buf), "%.3f", v[0]);
+                    AddTextAndAdvance(col_text, buf);
+                    AddTextAndAdvance(col_comma, ", ");
+                    snprintf(buf, sizeof(buf), "%.3f", v[1]);
+                    AddTextAndAdvance(col_text, buf);
+                }
+                else if  constexpr (std::is_same_v<ValueType, TP3Float>) {
+                    std::array<float, 3> v = value.kr.evaluate(timelineData->GetData().currentTime - layerInfo.time.Begin);
+                    snprintf(buf, sizeof(buf), "%.3f", v[0]);
+                    AddTextAndAdvance(col_text, buf);
+                    AddTextAndAdvance(col_comma, ", ");
+                    snprintf(buf, sizeof(buf), "%.3f", v[1]);
+                    AddTextAndAdvance(col_text, buf);
+                    AddTextAndAdvance(col_comma, ", ");
+                    snprintf(buf, sizeof(buf), "%.3f", v[2]);
+                    AddTextAndAdvance(col_text, buf);
+                }
+                else if  constexpr (std::is_same_v<ValueType, TPColor>) {
+                    std::array<float, 4> v = value.kr.evaluate(timelineData->GetData().currentTime - layerInfo.time.Begin);
+                    snprintf(buf, sizeof(buf), "%.3f", v[0]);
+                    AddTextAndAdvance(col_text, buf);
+                    AddTextAndAdvance(col_comma, ", ");
+                    snprintf(buf, sizeof(buf), "%.3f", v[1]);
+                    AddTextAndAdvance(col_text, buf);
+                    AddTextAndAdvance(col_comma, ", ");
+                    snprintf(buf, sizeof(buf), "%.3f", v[2]);
+                    AddTextAndAdvance(col_text, buf);
+                    AddTextAndAdvance(col_comma, ", ");
+                    snprintf(buf, sizeof(buf), "%.3f", v[3]);
+                    AddTextAndAdvance(col_text, buf);
+                }
+                p.x = xxx;
+                p.y = yyy;
                 Pop_SmallFont();
 
 

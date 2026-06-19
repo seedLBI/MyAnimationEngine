@@ -31,7 +31,7 @@ TimelinePanel::TimelinePanel(
 
 	layersViewer = new Timeline_Layers_Viewer(timelineTimeCursor, layersData, timelineData, timelineTransformVertical, timelineTransformHorizontal);
 
-	layersList = new Timeline_Layers_List(layersData, timelineTransformVertical);
+	layersList = new Timeline_Layers_List(layersData, timelineData, timelineTransformVertical);
 
 
 	layerFactory->CreateSolid(0.f, 2.f);
