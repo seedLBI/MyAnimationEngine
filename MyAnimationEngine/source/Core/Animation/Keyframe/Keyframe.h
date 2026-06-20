@@ -34,13 +34,13 @@ struct LerpedSample {
 	std::array<float, N> time;
 	std::array<T, N>	 value;
 	LerpedSample() = default;
-	LerpedSample(float time, const std::array<T, N>& value) {
-		for (uint8_t i = 0; i < N; i++)
-			this->time[i] = time;
+	LerpedSample(float timee, const std::array<T, N>& value) {
+		time.fill(timee);
 		this->value = value;
 	}
 	LerpedSample(const KeyframeSample<T,N>& keyframeSample) {
-		LerpedSample(keyframeSample.time, keyframeSample.value);
+		time.fill(keyframeSample.time);
+		this->value = keyframeSample.value;
 	}
 };
 

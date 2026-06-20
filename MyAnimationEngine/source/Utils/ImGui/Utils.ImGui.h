@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 
 #include "ThirdParty/ImGui/imgui.h"
@@ -28,5 +28,6 @@ bool ButtonCenteredOnLine(const char* label, float alignment);
 
 void ButtonCheckBox(const char* label, const char* help, bool& state);
 
+bool MyButtonBehavior(const ImVec2& bb_min,const ImVec2& bb_max, const char* id, bool& hovered, bool& held);
 
 bool ButtonDelete(ImGuiWindow* imgui_window, ImDrawList* draw_list, const char* nameIndex, const ImU32& ColorText);

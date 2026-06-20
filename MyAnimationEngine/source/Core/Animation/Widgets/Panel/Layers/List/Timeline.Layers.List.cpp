@@ -6,6 +6,7 @@
 #include "ThirdParty/IconFontCppHeaders/IconsFontAwesome6.h"
 #include "Utils/Text/Text.h"
 #include "Utils/Text/Encoding/UTF8/UTF8.h"
+#include "Utils/ImGui/Utils.ImGui.h"
 #include <cstring>
 
 Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, TimelineProviderData* timelineData, TimelineTransformVertical* verticalTransform)
@@ -276,14 +277,10 @@ void Timeline_Layers_List::DrawObject(std::shared_ptr<LayerObject>& object)
         if (columns[current_col].isDisable)
             continue;
 
-
-
         if ((current_col == TypeColumn::MARKER || current_col == TypeColumn::INDEX || current_col == TypeColumn::NAME) && toggle_drawed == false) {
             toggle_drawed = true;
             ImGui::SetCursorScreenPos(ImVec2(columns[current_col].startCursorPos - 20.f, startY));
-
             DrawToggle(object);
-
         }
 
         ImGui::SetCursorScreenPos(ImVec2(columns[current_col].startCursorPos, startY));
@@ -471,7 +468,9 @@ void Timeline_Layers_List::DrawLayerIndex(std::shared_ptr<LayerObject>& object) 
     Pop_SmallFont();
 }
 bool Timeline_Layers_List::DrawLayerIconType(std::shared_ptr<LayerObject>& object) {
-    DrawIcon(object.get(), verticalTransform->getScaledHeightOneObject());
+
+    float eval_time = timelineData->GetData().currentTime - object.get()->GetLayerInfo().time.Begin;
+    DrawIcon(object.get(), verticalTransform->getScaledHeightOneObject(), eval_time);
     return false;
 }
 bool Timeline_Layers_List::DrawLayerName(std::shared_ptr<LayerObject>& object) {
@@ -641,11 +640,8 @@ void Timeline_Layers_List::DrawColumnsHeader() {
             float grab_padding = 4.0f;
 
             ImRect bb(separator_pos - grab_padding, p_min.y, separator_pos + grab_padding, p_max.y);
-
             ImGuiID id = ImGui::GetID((std::string("SEPARATOR_") + std::to_string(i)).c_str());
-
             bool hovered, held;
-
             ImGui::ItemAdd(bb, id);
             ImGui::ButtonBehavior(bb, id, &hovered, &held);
 
@@ -666,7 +662,7 @@ void Timeline_Layers_List::DrawColumnsHeader() {
 
 
         if (current_column.isDragable) {
-
+            // TODO:
 
         }
 
@@ -751,6 +747,8 @@ void Timeline_Layers_List::Draw() {
             
             properties.forEachUnwrapped([&](const std::string& name, auto& value) {
 
+                const auto& keyframes = value.kr.getKeyframes();
+
                 Push_SmallFont();
 
                 float textHeight = ImGui::GetTextLineHeight();
@@ -758,6 +756,168 @@ void Timeline_Layers_List::Draw() {
 
 
                 float offsetX = 0.f;
+                bool isHaveKeyframes = keyframes.empty() == false;
+                float eval_time = timelineData->GetData().currentTime - layerInfo.time.Begin;
+
+
+                if (isHaveKeyframes) {
+                    const float offset = 8.f;
+                    
+                    const float ht = itemHeight / 2.3f;
+                    const float wt = ht/2.f;
+
+                    ImColor color_disabled(.42f, .42f, .42f, 1.f);
+                    ImColor color_default(.69f, .69f, .69f, 1.f);
+                    ImColor color_hovered(.92f, .92f, .92f, 1.f);
+                    ImColor color_back_romb(.25f, .25f, .25f, 1.f);
+                    ImColor color_back_rect(.0f, .0f, .0f, 1.f);
+
+                    ImVec2 T_1 = { offset + p.x + wt, p.y + itemHeight / 2.f - ht / 2.f  };
+                    ImVec2 T_2 = { offset + p.x + wt, p.y + itemHeight / 2.f + ht / 2.f  };
+                    ImVec2 T_3 = { offset + p.x, p.y + itemHeight / 2.f  };
+                    ImVec2 T_4 = { offset + p.x + wt *2.f, p.y + itemHeight / 2.f  };
+
+
+
+
+                    ImVec2 TL[] = {T_1,T_2,T_3};
+                    ImVec2 TL_min = { T_1.x - wt - 5.f , T_1.y - 2.f };
+                    ImVec2 TL_max = { T_1.x + 5.f - 2.f, T_1.y + ht + 2.f };
+                    bool TL_hovered, TL_held;
+                    MyButtonBehavior(
+                        TL_min,
+                        TL_max,
+                        (std::string("TL_PROPERTIE_") + name + std::to_string(i)).c_str(),
+                        TL_hovered,
+                        TL_held
+                    );
+
+
+                    T_1.x += offset * 1.5f;
+                    T_2.x += offset * 1.5f;
+                    T_3.x += offset * 1.5f;
+                    T_4.x += offset * 1.5f;
+
+
+                    const float sc = -1.f;
+                    const float oo = 0.5f * 1.2f;
+                    const float qq = 1.f;
+                    ImVec2 ROMB[] = { 
+                        {T_4.x + sc, T_4.y - oo},
+                        {T_4.x + sc, T_4.y + oo},
+                        {T_2.x + oo, T_2.y + sc},
+                        {T_2.x - oo, T_2.y + sc},
+                        {T_3.x - sc, T_3.y + oo},
+                        {T_3.x - sc, T_3.y - oo},
+                        {T_1.x - oo, T_1.y - sc},
+                        {T_1.x + oo, T_1.y - sc}
+                    };
+                    ImVec2 ROMB_over[] = {
+                        {T_4.x + sc + qq, T_4.y - oo},
+                        {T_4.x + sc + qq, T_4.y + oo},
+                        {T_2.x + oo, T_2.y + sc + qq},
+                        {T_2.x - oo, T_2.y + sc + qq},
+                        {T_3.x - sc - qq, T_3.y + oo},
+                        {T_3.x - sc - qq, T_3.y - oo},
+                        {T_1.x - oo, T_1.y - sc - qq},
+                        {T_1.x + oo, T_1.y - sc - qq}
+                    };
+                    ImVec2 ROMB_min = { T_3.x - 2.f, T_1.y - 2.f };
+                    ImVec2 ROMB_max = { T_4.x + 2.f, T_2.y + 2.f };
+                    bool ROMB_hovered, ROMB_held;
+                    MyButtonBehavior(
+                        ROMB_min,
+                        ROMB_max,
+                        (std::string("ROMB_PROPERTIE_") + name + std::to_string(i)).c_str(),
+                        ROMB_hovered,
+                        ROMB_held
+                    );
+
+
+
+                    T_1.x += offset * 1.5f;
+                    T_2.x += offset * 1.5f;
+                    T_4.x += offset * 1.5f;
+
+
+
+                    ImVec2 TR[] = { T_4,T_2,T_1 };
+                    ImVec2 TR_min = { T_1.x - 2.f , T_1.y - 2.f };
+                    ImVec2 TR_max = { T_1.x + wt + 5.f, T_1.y + ht + 2.f };
+                    bool TR_hovered, TR_held;
+                    MyButtonBehavior(
+                        TR_min,
+                        TR_max,
+                        (std::string("TR_PROPERTIE_") + name + std::to_string(i)).c_str(),
+                        TR_hovered,
+                        TR_held
+                    );
+
+
+
+                    bool tl_disabled = eval_time <= keyframes.front().sample.time;
+                    ImColor color_tl = color_default;
+                    ImColor color_rect = color_hovered;
+                    if (tl_disabled)
+                        color_tl = color_disabled;
+                    if (TL_hovered && !tl_disabled)
+                        color_tl = color_hovered;
+
+
+                    bool tr_disabled = eval_time >= keyframes.back().sample.time;
+                    ImColor color_tr = color_default;
+                    if (tr_disabled)
+                        color_tr = color_disabled;
+                    if (TR_hovered && !tr_disabled)
+                        color_tr = color_hovered;
+
+
+                    ImColor color_romb = color_default;
+                    ImColor color_romb_back = color_back_romb;
+                    ImColor color_romb_bound = color_disabled;
+
+                    bool isEqual = false;
+                    for (size_t i = 0; i < keyframes.size(); i++) {
+                        if (keyframes[i].sample.time == eval_time) {
+                            isEqual = true;
+                            break;
+                        }
+                    }
+                    if (isEqual){
+                        color_romb = ImColor(.25f, .59f, .95f, 1.f);
+                        color_romb_back = color_romb;
+                    }
+                    if (ROMB_hovered)
+                        color_romb_bound = color_hovered;
+
+
+
+
+                    if (tl_disabled == false && TL_hovered) {
+                        draw_list->AddRectFilled({ TL_min.x - 0.5f, TL_min.y - 0.5f }, { TL_max.x + 0.5f, TL_max.y + 0.5f }, color_hovered, 2.5f);
+                        draw_list->AddRectFilled(TL_min, TL_max, color_back_rect, 2.5f);
+                    }
+                    draw_list->AddConvexPolyFilled(TL, 3, color_tl);
+
+                    if (ROMB_hovered || isEqual) {
+                        draw_list->AddRectFilled({ ROMB_min.x - 0.5f, ROMB_min.y - 0.5f }, { ROMB_max.x + 0.5f, ROMB_max.y + 0.5f }, color_romb_bound, 2.5f);
+                        draw_list->AddRectFilled(ROMB_min, ROMB_max, color_back_rect, 2.5f);
+                    }
+
+                    draw_list->AddConvexPolyFilled(ROMB_over, 8, color_romb);
+                    draw_list->AddConvexPolyFilled(ROMB, 8, color_romb_back);
+
+                    if (tr_disabled == false && TR_hovered) {
+                        draw_list->AddRectFilled({ TR_min.x - 0.5f, TR_min.y - 0.5f }, { TR_max.x + 0.5f, TR_max.y + 0.5f }, color_hovered, 2.5f);
+                        draw_list->AddRectFilled(TR_min, TR_max, color_back_rect, 2.5f);
+                    }
+                    draw_list->AddConvexPolyFilled(TR, 3, color_tr);
+
+                }
+
+
+
+
 
                 if (columns[MARKER].isDisable == false)
                     offsetX = columns[MARKER].startCursorPos;
@@ -768,12 +928,12 @@ void Timeline_Layers_List::Draw() {
 
                 ImGui::SetCursorScreenPos(ImVec2(p.x + offsetX, p.y - offsetY - 1.f));
 
-                bool enable = value.kr.getKeyframes().empty() == false;
+                
 
 
-                if (drawAnimationEnabler(enable, ("##PROPERTIES_TRIGGER_" + std::to_string(layer.get()->GetLayerInfo().index) + "_" + name).c_str(), itemHeight)) {
-                    if (value.kr.getKeyframes().empty())
-                        value.kr.addFromDefaultValue(timelineData->GetData().currentTime - layer.get()->GetLayerInfo().time.Begin);
+                if (drawAnimationEnabler(isHaveKeyframes, ("##PROPERTIES_TRIGGER_" + std::to_string(layer.get()->GetLayerInfo().index) + "_" + name).c_str(), itemHeight)) {
+                    if (keyframes.empty())
+                        value.kr.addFromDefaultValue(eval_time);
                     else
                         value.kr.clear();
                 }
@@ -789,6 +949,7 @@ void Timeline_Layers_List::Draw() {
                 offsetX = columns[TOGGLES].startCursorPos;
                 ImGui::SetCursorScreenPos(ImVec2(p.x + offsetX, p.y - offsetY + 1.f));
                 ImColor col_text(.25f, .59f, .95f, 1.f);
+                ImColor col_text_hovered(.36f, .64f, .93f, 1.f);
                 ImColor col_comma = ImGui::GetColorU32(ImGuiCol_Text);
 
                 float xxx = p.x;
@@ -796,54 +957,138 @@ void Timeline_Layers_List::Draw() {
                 p.y += offsetY + 1.f;
                 p.x += offsetX;
 
-                auto AddTextAndAdvance = [&](ImU32 color, const char* text) {
-                    draw_list->AddText(p, color, text);
-                    p.x += ImGui::CalcTextSize(text).x + ImGui::GetStyle().ItemSpacing.x;
-                    };
+
+
+                char text[32];
+
+                auto v = value.kr.evaluate(eval_time);
+
+                auto AddButtonAndAdvance = [&]() {
+
+                    for (size_t j = 0; j < v.size(); j++) {
+                        snprintf(text, sizeof(text), "%.3f", v[j]);
+
+                        ImVec2 sizeText = ImGui::CalcTextSize(text);
+
+                        bool hovered, held;
+                        MyButtonBehavior(
+                            p,
+                            { p.x + sizeText.x, p.y + sizeText.y },
+                            (std::to_string(j) + std::string("PROPERTIE_") + name + std::to_string(i)).c_str(),
+                            hovered,
+                            held
+                        );
+
+                        ImColor color = col_text;
+
+                        if (hovered || held) {
+                            color = col_text_hovered;
+                            CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_HORIZONTAL);
+                        }
+
+                        if (held) {
+                            float delta = ImGui::GetIO().MouseDelta.x * 0.01;
+
+                            auto def_val = value.kr.getDefaultValue();
+                            def_val[j] += delta;
+                            value.kr.setDefaultValue(def_val);
+
+                            if (value.kr.getKeyframes().empty() == false) {
+                                value.kr.add(eval_time, def_val, TypeKeyframe::LINEAR);
+                            }
+
+
+                        }
+
+                        draw_list->AddText(p, color, text);
+
+                        p.x += ImGui::CalcTextSize(text).x + ImGui::GetStyle().ItemSpacing.x;
+
+                        if (j != v.size() - 1) {
+                            draw_list->AddText(p, col_comma, ", ");
+                            p.x += ImGui::CalcTextSize(", ").x + ImGui::GetStyle().ItemSpacing.x;
+                        }
+                    }
+
+                };
+
+
+
 
                 using ValueType = std::decay_t<decltype(value)>;
 
-                float eval_time = timelineData->GetData().currentTime - layerInfo.time.Begin;
-                char buf[32];
 
-                if constexpr (std::is_same_v<ValueType, TPFloat>) {
-                    std::array<float, 1> v = value.kr.evaluate(timelineData->GetData().currentTime - layerInfo.time.Begin);
-                    snprintf(buf, sizeof(buf), "%.3f", v[0]);
-                    AddTextAndAdvance(col_text, buf);
+                static int choosed_index_for_color_picking = -1;
+
+                if  constexpr (std::is_same_v<ValueType, TPColor>) {
+
+
+
+                    float size_rect_color = itemHeight / 2.f;
+                    p.x -= size_rect_color + 5.f;
+
+                    ImVec2 p_rect_min = { p.x,-1.f + p.y + itemHeight / 2.f - size_rect_color / 2.f };
+                    ImVec2 p_rect_max = { p.x + size_rect_color,-1.f + p.y + itemHeight / 2.f + size_rect_color / 2.f };
+
+
+
+
+                    ImRect bb(p_rect_min, p_rect_max);
+                    ImGuiID id = ImGui::GetID((std::to_string(0) + std::string("COLOR_BUTTON_PROPERTIE_") + name + std::to_string(i)).c_str());
+                    bool hovered, held;
+                    ImGui::ItemAdd(bb, id);
+                    if (ImGui::ButtonBehavior(bb, id, &hovered, &held)) {
+                        ImGui::OpenPopup(("POPUP_COLOR_SELECTOR_FOR_PROPERTIE" + std::to_string(i)).c_str());
+                        choosed_index_for_color_picking = i;
+                    }
+
+
+                    ImColor color_show(v[0], v[1], v[2], v[3]);
+                    ImColor color_border(0.f, 0.f, 0.f, 1.f);
+
+                    if (hovered) {
+                        color_border = { .39f,.39f ,.39f ,1.f };
+                        CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
+                    }
+
+                    draw_list->AddRectFilled(p_rect_min, p_rect_max, color_show, 1.f);
+                    p_rect_min.x -= 0.5f;
+                    p_rect_min.y -= 0.5f;
+                    p_rect_max.x += 0.5f;
+                    p_rect_max.y += 0.5f;
+
+                    draw_list->AddRect(p_rect_min, p_rect_max, color_border, 1.f, 0, 1.f);
+
+                    
+                    p.x += size_rect_color + 5.f;
                 }
-                else if  constexpr (std::is_same_v<ValueType, TP2Float>) {
-                    std::array<float, 2> v = value.kr.evaluate(eval_time);
-                    snprintf(buf, sizeof(buf), "%.3f", v[0]);
-                    AddTextAndAdvance(col_text, buf);
-                    AddTextAndAdvance(col_comma, ", ");
-                    snprintf(buf, sizeof(buf), "%.3f", v[1]);
-                    AddTextAndAdvance(col_text, buf);
+
+                AddButtonAndAdvance();
+
+
+                if (choosed_index_for_color_picking == i) {
+                    if (ImGui::BeginPopupContextItem(("POPUP_COLOR_SELECTOR_FOR_PROPERTIE" + std::to_string(i)).c_str())) {
+
+                        if (ImGui::ColorPicker4(("##picker_color_for_propertie##" + std::to_string(i)).c_str(),
+                            (float*)v.data(),
+                            ImGuiColorEditFlags_NoSidePreview |
+                            ImGuiColorEditFlags_NoSmallPreview|
+                            ImGuiColorEditFlags_AlphaBar)) {
+
+
+                            value.kr.setDefaultValue(v);
+
+                            if (value.kr.getKeyframes().empty() == false) {
+                                value.kr.add(eval_time, v, TypeKeyframe::LINEAR);
+                            }
+                        }
+
+
+                        ImGui::EndPopup();
+                    }
                 }
-                else if  constexpr (std::is_same_v<ValueType, TP3Float>) {
-                    std::array<float, 3> v = value.kr.evaluate(timelineData->GetData().currentTime - layerInfo.time.Begin);
-                    snprintf(buf, sizeof(buf), "%.3f", v[0]);
-                    AddTextAndAdvance(col_text, buf);
-                    AddTextAndAdvance(col_comma, ", ");
-                    snprintf(buf, sizeof(buf), "%.3f", v[1]);
-                    AddTextAndAdvance(col_text, buf);
-                    AddTextAndAdvance(col_comma, ", ");
-                    snprintf(buf, sizeof(buf), "%.3f", v[2]);
-                    AddTextAndAdvance(col_text, buf);
-                }
-                else if  constexpr (std::is_same_v<ValueType, TPColor>) {
-                    std::array<float, 4> v = value.kr.evaluate(timelineData->GetData().currentTime - layerInfo.time.Begin);
-                    snprintf(buf, sizeof(buf), "%.3f", v[0]);
-                    AddTextAndAdvance(col_text, buf);
-                    AddTextAndAdvance(col_comma, ", ");
-                    snprintf(buf, sizeof(buf), "%.3f", v[1]);
-                    AddTextAndAdvance(col_text, buf);
-                    AddTextAndAdvance(col_comma, ", ");
-                    snprintf(buf, sizeof(buf), "%.3f", v[2]);
-                    AddTextAndAdvance(col_text, buf);
-                    AddTextAndAdvance(col_comma, ", ");
-                    snprintf(buf, sizeof(buf), "%.3f", v[3]);
-                    AddTextAndAdvance(col_text, buf);
-                }
+
+
                 p.x = xxx;
                 p.y = yyy;
                 Pop_SmallFont();

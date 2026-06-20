@@ -22,8 +22,12 @@ LayerObject_Solid::LayerObject_Solid(const LayerInfo& info) : LayerObject(info)
 	properties.set("anchor",	TP2Float());
 	properties.set("rotation",	TP3Float());
 
-	properties.get<TPColor>("color").kr.getDefaultValue()[0] = float(rand()) / float(RAND_MAX);
-	properties.get<TPColor>("color").kr.getDefaultValue()[1] = float(rand()) / float(RAND_MAX);
-	properties.get<TPColor>("color").kr.getDefaultValue()[2] = float(rand()) / float(RAND_MAX);
-	properties.get<TPColor>("color").kr.getDefaultValue()[3] = 1.f;
+	auto color = properties.get<TPColor>("color").kr.getDefaultValue();
+
+	color[0] = float(rand()) / float(RAND_MAX);
+	color[1] = float(rand()) / float(RAND_MAX);
+	color[2] = float(rand()) / float(RAND_MAX);
+	color[3] = 1.f;
+
+	properties.get<TPColor>("color").kr.setDefaultValue(color);
 }

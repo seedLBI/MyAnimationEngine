@@ -42,13 +42,17 @@ public:
 	void precompute();
 
 	std::array<T, N>  evaluate(float time);
-	std::array<T, N>& getDefaultValue();
+	const std::array<T, N>& getDefaultValue();
 	const std::optional<RangeValueKeyframe<T,N>>& getRange();
 	const std::vector<Keyframe<T, N>>& getKeyframes();
 	const std::vector<TypeKeyframe>& getTypeRestrictions();
 
+	void setDefaultValue(std::array<T, N>& value);
+
+
 	void addFromDefaultValue(float time);
 	void add(const Keyframe<T, N>& keyframe);
+	void add(float time, std::array<T,N>& value, TypeKeyframe type = TypeKeyframe::BINARY);
 	void changeKeyframe(uint64_t index, const Keyframe<T, N>& keyframe);
 	void changeType(uint64_t index, TypeKeyframe type);
 	void erase(uint64_t index);
@@ -87,8 +91,11 @@ KeyframeResolver<T, N>::KeyframeResolver(
 	type_restrictions(type_restrictions),
 	default_value({})
 {
-
+	this->is_dirty = true;
 }
+
+
+
 template<typename T, uint8_t N>
 KeyframeResolver<T, N>::KeyframeResolver(
 	const std::array<T, N>& min,
@@ -102,7 +109,7 @@ KeyframeResolver<T, N>::KeyframeResolver(
 	type_restrictions(type_restrictions),
 	default_value({})
 {
-
+	this->is_dirty = true;
 }
 
 
@@ -118,7 +125,7 @@ KeyframeResolver<T, N>::KeyframeResolver(
 	range(RangeValueKeyframe<T,N>{ min, max }),
 	default_value({})
 {
-
+	this->is_dirty = true;
 }
 
 template<typename T, uint8_t N>
@@ -128,7 +135,7 @@ KeyframeResolver<T, N>::KeyframeResolver(uint32_t default_sample_rate)
 	range(std::nullopt),
 	default_value({})
 {
-
+	this->is_dirty = true;
 }
 
 template<typename T, uint8_t N>
@@ -143,7 +150,21 @@ const std::optional<RangeValueKeyframe<T,N>>& KeyframeResolver<T, N>::getRange()
 }
 
 template<typename T, uint8_t N>
-std::array<T, N>& KeyframeResolver<T, N>::getDefaultValue() {
+void KeyframeResolver<T, N>::setDefaultValue(std::array<T, N>& value) {
+	if (range.has_value()) {
+		for (size_t i = 0; i < N; i++) {
+			const auto& r = range.value();
+			this->default_value[i] = std::clamp(value[i], r.Min[i], r.Max[i]);
+		}
+	}
+	else
+		this->default_value = value;
+
+	this->is_dirty = true;
+}
+
+template<typename T, uint8_t N>
+const std::array<T, N>& KeyframeResolver<T, N>::getDefaultValue() {
 	return default_value;
 }
 
@@ -168,7 +189,7 @@ void KeyframeResolver<T, N>::changeKeyframe(uint64_t index, const Keyframe<T, N>
 		return;
 
 	keyframes[index] = keyframe;
-	is_dirty = true;
+	this->is_dirty = true;
 }
 
 template<typename T, uint8_t N>
@@ -177,7 +198,7 @@ void KeyframeResolver<T, N>::changeType(uint64_t index, TypeKeyframe type) {
 		return;
 
 	keyframes[index].type = type;
-	is_dirty = true;
+	this->is_dirty = true;
 }
 
 template<typename T, uint8_t N>
@@ -186,13 +207,13 @@ void KeyframeResolver<T, N>::erase(uint64_t index) {
 		return;
 
 	keyframes.erase(keyframes.begin() + index);
-	is_dirty = true;
+	this->is_dirty = true;
 }
 
 template<typename T, uint8_t N>
 void KeyframeResolver<T, N>::clear() {
 	keyframes.clear();
-	is_dirty = true;
+	this->is_dirty = true;
 }
 
 template<typename T, uint8_t N>
@@ -205,27 +226,54 @@ void KeyframeResolver<T, N>::addFromDefaultValue(float time) {
 
 template<typename T, uint8_t N>
 void KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
-	is_dirty = true;
+	this->is_dirty = true;
+
+	auto keyframe_add = keyframe;
+
+	if (range.has_value()) {
+		for (size_t i = 0; i < N; i++) {
+			const auto& r = range.value();
+			keyframe_add.sample.value[i] = std::clamp(keyframe.sample.value[i], r.Min[i], r.Max[i]);
+		}
+	}
+
+
 
 	if (keyframes.empty()) {
-		keyframes.push_back(keyframe);
+		keyframes.push_back(keyframe_add);
 		return;
 	}
 
 	for (size_t i = 0; i < keyframes.size(); i++) {
 
+		float eps = 0.00001f;
+		float diff = std::abs(keyframe.sample.time - keyframes[i].sample.time);
+
 		if (keyframe.sample.time < keyframes[i].sample.time) {
-			keyframes.insert(keyframes.begin() + i, keyframe);
+			keyframes.insert(keyframes.begin() + i, keyframe_add);
 			return;
 		}
-		else if (keyframe.sample.time == keyframes[i].sample.time) {
-			keyframes[i] = keyframe;
+		else if (keyframe.sample.time == keyframes[i].sample.time || diff < eps) {
+			keyframes[i] = keyframe_add;
 			return;
 		}
 	}
 
 	keyframes.push_back(keyframe);
 }
+
+
+template<typename T, uint8_t N>
+void KeyframeResolver<T, N>::add(float time, std::array<T, N>& value, TypeKeyframe type) {
+
+	Keyframe<T, N> keyframe;
+	keyframe.sample.time = time;
+	keyframe.sample.value = value;
+	keyframe.type = type;
+
+	add(keyframe);
+}
+
 
 template<typename T, uint8_t N>
 LerpedSample<T, N> KeyframeResolver<T, N>::lerpCubicBezier(
@@ -242,7 +290,7 @@ LerpedSample<T, N> KeyframeResolver<T, N>::lerpCubicBezier(
 
 	for (uint8_t i = 0; i < N; i++) {
 
-		BezierAnchor<T, N> anchor_key2;
+		BezierAnchor<T, N> anchor_key2{};
 		if (b.anchors.in.has_value())
 			anchor_key2 = b.anchors.in.value();
 		else {
@@ -298,7 +346,7 @@ uint64_t KeyframeResolver<T, N>::getCountForReserve() {
 template<typename T, uint8_t N>
 void KeyframeResolver<T, N>::precompute()
 {
-	is_dirty = false;
+	this->is_dirty = false;
 	samples.clear();
 	if (keyframes.empty()) return;
 
@@ -318,12 +366,12 @@ void KeyframeResolver<T, N>::precompute()
 		switch (key1.type) {
 		case TypeKeyframe::BINARY: {
 			if (i == 0)
-				samples.push_back(key1.sample);
+				samples.push_back(LerpedSample<T,N>(key1.sample));
 			KeyframeSample<T, N> temp;
 			temp.time = key2.sample.time;
 			temp.value = key1.sample.value;
-			samples.push_back(temp);
-			samples.push_back(key2.sample);
+			samples.push_back(LerpedSample<T, N>(temp));
+			samples.push_back(LerpedSample<T, N>(key2.sample));
 			break;
 		}
 		case TypeKeyframe::LINEAR: {

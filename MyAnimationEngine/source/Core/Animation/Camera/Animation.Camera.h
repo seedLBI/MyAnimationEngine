@@ -37,12 +37,36 @@ AnimationCamera::AnimationCamera() {
 	properties.set("mode",		TPBool());
 
 
-	properties.get<TP3Float>("position").kr.getDefaultValue() = {0.f,0.f,0.f};
-	properties.get<TPFloat>("yaw").kr.getDefaultValue()[0] = -90.f;
-	properties.get<TPFloat>("pitch").kr.getDefaultValue()[0] = 0.f;
-	properties.get<TPFloat>("roll").kr.getDefaultValue()[0] = 0.f;
-	properties.get<TPFloat>("fov").kr.getDefaultValue()[0] = 90.f;
-	properties.get<TPBool>("mode").kr.getDefaultValue()[0] = 0;
+	auto position = properties.get<TP3Float>("position").kr.getDefaultValue();
+	position = { 0.f,0.f,0.f };
+	properties.get<TP3Float>("position").kr.setDefaultValue(position);
+
+	auto yaw = properties.get<TPFloat>("yaw").kr.getDefaultValue();
+	yaw = { -90.f };
+	properties.get<TPFloat>("yaw").kr.setDefaultValue(yaw);
+
+
+	auto pitch = properties.get<TPFloat>("pitch").kr.getDefaultValue();
+	pitch = { 0.f };
+	properties.get<TPFloat>("pitch").kr.setDefaultValue(pitch);
+
+
+	auto roll = properties.get<TPFloat>("roll").kr.getDefaultValue();
+	roll = { 0.f };
+	properties.get<TPFloat>("roll").kr.setDefaultValue(roll);
+
+
+
+	auto fov = properties.get<TPFloat>("fov").kr.getDefaultValue();
+	fov = { 90.f };
+	properties.get<TPFloat>("fov").kr.setDefaultValue(fov);
+
+
+	auto mode = properties.get<TPBool>("mode").kr.getDefaultValue();
+	mode = { 0 };
+	properties.get<TPBool>("mode").kr.setDefaultValue(mode);
+
+
 }
 AnimationCamera::~AnimationCamera() {
 

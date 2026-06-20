@@ -10,8 +10,8 @@
 #include <Core/Animation/Layer/Objects/Solid/Layer.Object.Solid.h>
 
 
-void DrawIcon_Solid(LayerObject_Solid* layer, float height);
-void DrawIcon(LayerObject* layer, float height);
+void DrawIcon_Solid(LayerObject_Solid* layer, float height, float time_eval = 0.f);
+void DrawIcon(LayerObject* layer, float height, float time_eval = 0.f);
 
 
 #endif

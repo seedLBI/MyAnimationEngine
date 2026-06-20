@@ -1,4 +1,4 @@
-#include "Utils.ImGui.h"
+ï»¿#include "Utils.ImGui.h"
 
 
 void RenderTextWrapped(const char* text, bool bIndentToHere = false) {
@@ -67,17 +67,17 @@ void DrawTextWithBackground(const char* text, ImVec4 bgColor) {
 	ImVec2 position = ImGui::GetCursorScreenPos();
 	ImVec2 textSize = ImGui::CalcTextSize(text);
 
-	// Ïîëó÷àåì òåêóùèé draw list
+	// ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ Ñ‚ÐµÐºÑƒÑ‰Ð¸Ð¹ draw list
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-	// Êîîðäèíàòû ïðÿìîóãîëüíèêà
+	// ÐšÐ¾Ð¾Ñ€Ð´Ð¸Ð½Ð°Ñ‚Ñ‹ Ð¿Ñ€ÑÐ¼Ð¾ÑƒÐ³Ð¾Ð»ÑŒÐ½Ð¸ÐºÐ°
 	ImVec2 rectMin = position;
 	ImVec2 rectMax = ImVec2(position.x + textSize.x, position.y + textSize.y);
 
-	// Ðèñóåì ïðÿìîóãîëüíèê
+	// Ð Ð¸ÑÑƒÐµÐ¼ Ð¿Ñ€ÑÐ¼Ð¾ÑƒÐ³Ð¾Ð»ÑŒÐ½Ð¸Ðº
 	draw_list->AddRectFilled(rectMin, rectMax, ImColor(bgColor));
 
-	// Ðèñóåì òåêñò ïîâåðõ
+	// Ð Ð¸ÑÑƒÐµÐ¼ Ñ‚ÐµÐºÑÑ‚ Ð¿Ð¾Ð²ÐµÑ€Ñ…
 	ImGui::SetCursorScreenPos(position);
 	ImGui::TextUnformatted(text);
 }
@@ -153,23 +153,23 @@ void HelpMarker(const char* desc)
 
 void RenderCharacterInRect(ImFont* font, ImDrawList* draw_list, const ImVec2& pos, const ImVec2& size,const char* text, ImU32 color) {
 
-	// Ïîçèöèÿ òåêñòà âíóòðè ïðÿìîóãîëüíèêà
+	// ÐŸÐ¾Ð·Ð¸Ñ†Ð¸Ñ Ñ‚ÐµÐºÑÑ‚Ð° Ð²Ð½ÑƒÑ‚Ñ€Ð¸ Ð¿Ñ€ÑÐ¼Ð¾ÑƒÐ³Ð¾Ð»ÑŒÐ½Ð¸ÐºÐ°
 	ImVec2 text_pos = ImVec2(pos.x, pos.y);
 
-	// Ïðÿìîóãîëüíèê äëÿ îáðåçêè òåêñòà
+	// ÐŸÑ€ÑÐ¼Ð¾ÑƒÐ³Ð¾Ð»ÑŒÐ½Ð¸Ðº Ð´Ð»Ñ Ð¾Ð±Ñ€ÐµÐ·ÐºÐ¸ Ñ‚ÐµÐºÑÑ‚Ð°
 	ImVec4 clip_rect = ImVec4(pos.x, pos.y, pos.x + size.x, pos.y + size.y);
 
-	// Ðåíäåðèíã òåêñòà
+	// Ð ÐµÐ½Ð´ÐµÑ€Ð¸Ð½Ð³ Ñ‚ÐµÐºÑÑ‚Ð°
 	font->RenderText(draw_list, size.y, text_pos, color, clip_rect, text, nullptr, 0.0f, false);
 }
 
 ImVec2 GetCharacterSize(ImFont* font, char character) {
-	// Ïîëó÷åíèå ãëèôà ñèìâîëà
+	// ÐŸÐ¾Ð»ÑƒÑ‡ÐµÐ½Ð¸Ðµ Ð³Ð»Ð¸Ñ„Ð° ÑÐ¸Ð¼Ð²Ð¾Ð»Ð°
 	const ImFontGlyph* glyph = font->FindGlyph(character);
 	if (glyph) {
-		// Øèðèíà ñèìâîëà
+		// Ð¨Ð¸Ñ€Ð¸Ð½Ð° ÑÐ¸Ð¼Ð²Ð¾Ð»Ð°
 		float width = glyph->AdvanceX;
-		// Âûñîòà ñèìâîëà
+		// Ð’Ñ‹ÑÐ¾Ñ‚Ð° ÑÐ¸Ð¼Ð²Ð¾Ð»Ð°
 		float height = glyph->Y1 - glyph->Y0;
 		return ImVec2(width, height);
 	}
@@ -241,4 +241,11 @@ bool ButtonDelete(ImGuiWindow* imgui_window, ImDrawList* draw_list, const char* 
 	ImGui::SetCursorScreenPos(p);
 
 	return pressed_Delete;
+}
+
+bool MyButtonBehavior(const ImVec2& bb_min, const ImVec2& bb_max, const char* id_str, bool& hovered, bool& held) {
+	ImRect bb(bb_min, bb_max);
+	ImGuiID id = ImGui::GetID(id_str);
+	ImGui::ItemAdd(bb, id);
+	return ImGui::ButtonBehavior(bb, id, &hovered, &held);
 }

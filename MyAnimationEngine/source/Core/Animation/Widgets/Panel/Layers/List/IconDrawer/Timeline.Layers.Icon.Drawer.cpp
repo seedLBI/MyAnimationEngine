@@ -1,7 +1,7 @@
 ﻿#include "Timeline.Layers.Icon.Drawer.h"
 
 
-void DrawIcon_Solid(LayerObject_Solid* layer, float height) {
+void DrawIcon_Solid(LayerObject_Solid* layer, float height, float time_eval) {
 	auto drawList = ImGui::GetWindowDrawList();
 	ImVec2 CursosPos = ImGui::GetCursorScreenPos();
 
@@ -30,19 +30,21 @@ void DrawIcon_Solid(LayerObject_Solid* layer, float height) {
 
 	auto& color_object = layer->GetProperties().get<TPColor>("color");
 
+	std::array<float, 4> color_array = color_object.kr.evaluate(time_eval);
+
 	ImColor color;
-	color.Value.x = color_object.kr.evaluate(0.f)[0];
-	color.Value.y = color_object.kr.evaluate(0.f)[1];
-	color.Value.z = color_object.kr.evaluate(0.f)[2];
-	color.Value.w = color_object.kr.evaluate(0.f)[3];
+	color.Value.x = color_array[0];
+	color.Value.y = color_array[1];
+	color.Value.z = color_array[2];
+	color.Value.w = color_array[3];
 
 	drawList->AddRectFilled(p_min, p_max, color);
 	drawList->AddRect(p_min, p_max, ImColor(1.f, 1.f, 1.f, 1.f), 0.f, 0, 1.f);
 }
 
-void DrawIcon(LayerObject* layer, float height) {
+void DrawIcon(LayerObject* layer, float height, float time_eval) {
 
 	if (typeid(*layer) == typeid(LayerObject_Solid))
-		DrawIcon_Solid(static_cast<LayerObject_Solid*>(layer), height);
+		DrawIcon_Solid(static_cast<LayerObject_Solid*>(layer), height, time_eval);
 
 }
