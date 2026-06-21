@@ -9,9 +9,10 @@
 #include "Utils/ImGui/Utils.ImGui.h"
 #include <cstring>
 
-Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, TimelineProviderData* timelineData, TimelineTransformVertical* verticalTransform)
+Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, TimelineProviderData* timelineData, TimelineTransformHorizontal* horizontalTransform, TimelineTransformVertical* verticalTransform)
 	: layersData(layersData),
       timelineData (timelineData),
+      horizontalTransform(horizontalTransform),
 	  verticalTransform(verticalTransform)
 {
 
@@ -758,7 +759,7 @@ void Timeline_Layers_List::Draw() {
                 float offsetX = 0.f;
                 bool isHaveKeyframes = keyframes.empty() == false;
                 float eval_time = timelineData->GetData().currentTime - layerInfo.time.Begin;
-
+                auto evaluated_value = value.kr.evaluate(eval_time);
 
                 if (isHaveKeyframes) {
                     const float offset = 8.f;
@@ -784,13 +785,33 @@ void Timeline_Layers_List::Draw() {
                     ImVec2 TL_min = { T_1.x - wt - 5.f , T_1.y - 2.f };
                     ImVec2 TL_max = { T_1.x + 5.f - 2.f, T_1.y + ht + 2.f };
                     bool TL_hovered, TL_held;
-                    MyButtonBehavior(
+                    bool TL_pressed = MyButtonBehavior(
                         TL_min,
                         TL_max,
                         (std::string("TL_PROPERTIE_") + name + std::to_string(i)).c_str(),
                         TL_hovered,
                         TL_held
                     );
+                    bool TL_disabled = eval_time <= keyframes.front().sample.time;
+
+                    if (TL_pressed && TL_disabled == false) {
+
+                        for (size_t i = keyframes.size() - 1; i >= 0 ; i--) {
+                            if (eval_time > keyframes[i].sample.time  ) {
+                                timelineData->GetData().currentTime = keyframes[i].sample.time + layerInfo.time.Begin;
+                                float left_border = horizontalTransform->getPostionScreen_real(horizontalTransform->getLeftBoundView_global_real());
+                                float need_border = horizontalTransform->getPostionScreen_real(timelineData->GetData().currentTime);
+
+                                if (need_border < left_border) {
+                                    float dif = left_border - need_border;
+                                    horizontalTransform->addOffset((dif + 100.f));
+                                }
+                                break;
+                            }
+                        }
+
+                    }
+
 
 
                     T_1.x += offset * 1.5f;
@@ -825,13 +846,28 @@ void Timeline_Layers_List::Draw() {
                     ImVec2 ROMB_min = { T_3.x - 2.f, T_1.y - 2.f };
                     ImVec2 ROMB_max = { T_4.x + 2.f, T_2.y + 2.f };
                     bool ROMB_hovered, ROMB_held;
-                    MyButtonBehavior(
+                    bool ROMB_pressed = MyButtonBehavior(
                         ROMB_min,
                         ROMB_max,
                         (std::string("ROMB_PROPERTIE_") + name + std::to_string(i)).c_str(),
                         ROMB_hovered,
                         ROMB_held
                     );
+                    bool isEqual = false;
+                    uint64_t indexEqual = 0;
+                    for (size_t i = 0; i < keyframes.size(); i++) {
+                        if (keyframes[i].sample.time == eval_time) {
+                            isEqual = true;
+                            indexEqual = i;
+                            break;
+                        }
+                    }
+                    if (ROMB_pressed) {
+                        if (isEqual)
+                            value.kr.erase(indexEqual);
+                        else
+                            value.kr.add(eval_time, evaluated_value);
+                    }
 
 
 
@@ -845,30 +881,48 @@ void Timeline_Layers_List::Draw() {
                     ImVec2 TR_min = { T_1.x - 2.f , T_1.y - 2.f };
                     ImVec2 TR_max = { T_1.x + wt + 5.f, T_1.y + ht + 2.f };
                     bool TR_hovered, TR_held;
-                    MyButtonBehavior(
+                    bool TR_pressed = MyButtonBehavior(
                         TR_min,
                         TR_max,
                         (std::string("TR_PROPERTIE_") + name + std::to_string(i)).c_str(),
                         TR_hovered,
                         TR_held
                     );
+                    bool TR_disabled = eval_time >= keyframes.back().sample.time;
+                    if (TR_pressed && TR_disabled == false) {
+
+                        for (size_t i = 0; i < keyframes.size(); i++) {
+                            if (eval_time < keyframes[i].sample.time) {
+                                timelineData->GetData().currentTime = keyframes[i].sample.time + layerInfo.time.Begin;
+
+                                float right_border = horizontalTransform->getPostionScreen_real(horizontalTransform->getRightBoundView_global_real());
+                                float need_border = horizontalTransform->getPostionScreen_real(timelineData->GetData().currentTime);
+
+                                if (need_border > right_border) {
+                                    float dif = need_border - right_border;
+                                    horizontalTransform->addOffset(-(dif + 100.f));
+                                }
+
+                                break;
+                            }
+                        }
+
+                    }
 
 
-
-                    bool tl_disabled = eval_time <= keyframes.front().sample.time;
                     ImColor color_tl = color_default;
                     ImColor color_rect = color_hovered;
-                    if (tl_disabled)
+                    if (TL_disabled)
                         color_tl = color_disabled;
-                    if (TL_hovered && !tl_disabled)
+                    if (TL_hovered && !TL_disabled)
                         color_tl = color_hovered;
 
 
-                    bool tr_disabled = eval_time >= keyframes.back().sample.time;
+
                     ImColor color_tr = color_default;
-                    if (tr_disabled)
+                    if (TR_disabled)
                         color_tr = color_disabled;
-                    if (TR_hovered && !tr_disabled)
+                    if (TR_hovered && !TR_disabled)
                         color_tr = color_hovered;
 
 
@@ -876,13 +930,7 @@ void Timeline_Layers_List::Draw() {
                     ImColor color_romb_back = color_back_romb;
                     ImColor color_romb_bound = color_disabled;
 
-                    bool isEqual = false;
-                    for (size_t i = 0; i < keyframes.size(); i++) {
-                        if (keyframes[i].sample.time == eval_time) {
-                            isEqual = true;
-                            break;
-                        }
-                    }
+
                     if (isEqual){
                         color_romb = ImColor(.25f, .59f, .95f, 1.f);
                         color_romb_back = color_romb;
@@ -893,7 +941,7 @@ void Timeline_Layers_List::Draw() {
 
 
 
-                    if (tl_disabled == false && TL_hovered) {
+                    if (TL_disabled == false && TL_hovered) {
                         draw_list->AddRectFilled({ TL_min.x - 0.5f, TL_min.y - 0.5f }, { TL_max.x + 0.5f, TL_max.y + 0.5f }, color_hovered, 2.5f);
                         draw_list->AddRectFilled(TL_min, TL_max, color_back_rect, 2.5f);
                     }
@@ -907,7 +955,7 @@ void Timeline_Layers_List::Draw() {
                     draw_list->AddConvexPolyFilled(ROMB_over, 8, color_romb);
                     draw_list->AddConvexPolyFilled(ROMB, 8, color_romb_back);
 
-                    if (tr_disabled == false && TR_hovered) {
+                    if (TR_disabled == false && TR_hovered) {
                         draw_list->AddRectFilled({ TR_min.x - 0.5f, TR_min.y - 0.5f }, { TR_max.x + 0.5f, TR_max.y + 0.5f }, color_hovered, 2.5f);
                         draw_list->AddRectFilled(TR_min, TR_max, color_back_rect, 2.5f);
                     }
@@ -961,12 +1009,12 @@ void Timeline_Layers_List::Draw() {
 
                 char text[32];
 
-                auto v = value.kr.evaluate(eval_time);
+                
 
                 auto AddButtonAndAdvance = [&]() {
 
-                    for (size_t j = 0; j < v.size(); j++) {
-                        snprintf(text, sizeof(text), "%.3f", v[j]);
+                    for (size_t j = 0; j < evaluated_value.size(); j++) {
+                        snprintf(text, sizeof(text), "%.3f", evaluated_value[j]);
 
                         ImVec2 sizeText = ImGui::CalcTextSize(text);
 
@@ -1004,7 +1052,7 @@ void Timeline_Layers_List::Draw() {
 
                         p.x += ImGui::CalcTextSize(text).x + ImGui::GetStyle().ItemSpacing.x;
 
-                        if (j != v.size() - 1) {
+                        if (j != evaluated_value.size() - 1) {
                             draw_list->AddText(p, col_comma, ", ");
                             p.x += ImGui::CalcTextSize(", ").x + ImGui::GetStyle().ItemSpacing.x;
                         }
@@ -1043,7 +1091,7 @@ void Timeline_Layers_List::Draw() {
                     }
 
 
-                    ImColor color_show(v[0], v[1], v[2], v[3]);
+                    ImColor color_show(evaluated_value[0], evaluated_value[1], evaluated_value[2], evaluated_value[3]);
                     ImColor color_border(0.f, 0.f, 0.f, 1.f);
 
                     if (hovered) {
@@ -1070,16 +1118,16 @@ void Timeline_Layers_List::Draw() {
                     if (ImGui::BeginPopupContextItem(("POPUP_COLOR_SELECTOR_FOR_PROPERTIE" + std::to_string(i)).c_str())) {
 
                         if (ImGui::ColorPicker4(("##picker_color_for_propertie##" + std::to_string(i)).c_str(),
-                            (float*)v.data(),
+                            (float*)evaluated_value.data(),
                             ImGuiColorEditFlags_NoSidePreview |
                             ImGuiColorEditFlags_NoSmallPreview|
                             ImGuiColorEditFlags_AlphaBar)) {
 
 
-                            value.kr.setDefaultValue(v);
+                            value.kr.setDefaultValue(evaluated_value);
 
                             if (value.kr.getKeyframes().empty() == false) {
-                                value.kr.add(eval_time, v, TypeKeyframe::LINEAR);
+                                value.kr.add(eval_time, evaluated_value, TypeKeyframe::LINEAR);
                             }
                         }
 
