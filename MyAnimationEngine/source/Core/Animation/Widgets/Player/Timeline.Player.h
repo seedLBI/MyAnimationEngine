@@ -1,8 +1,7 @@
 ﻿#pragma once
 #include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
 
-class Timeline_Player
-{
+class Timeline_Player {
 public:
 	Timeline_Player(TimelineController* controller);
 	~Timeline_Player();

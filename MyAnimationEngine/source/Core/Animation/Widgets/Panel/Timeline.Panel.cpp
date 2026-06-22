@@ -243,7 +243,9 @@ void TimelinePanel::DrawLayerSide_3Level(const float& height) {
 void TimelinePanel::DrawTimelineSide_3Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_TimelineSide_3Level", ImVec2(ImGui::GetContentRegionAvail().x - 20, height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-	layersViewer->Draw();
+	if (!upperControls->isGraphMode())
+		layersViewer->Draw();
+		
 
 	ImGui::EndChild();
 }
@@ -313,7 +315,11 @@ void TimelinePanel::Update() {
 	timelineRuler->Update(delta_time);
 	timelineRange->Update();
 	layersList->Update();
-	layersViewer->Update();
+
+	if (!upperControls->isGraphMode())
+		layersViewer->Update();
+
 	upperControls->Update();
+
 
 }

@@ -22,11 +22,17 @@ Timeline_UpperControls::~Timeline_UpperControls()
 {
 
 }
+const bool& Timeline_UpperControls::isGraphMode() {
+	return GraphMode;
+}
+
 
 void Timeline_UpperControls::Draw() {
 	ImGui::SetCursorPosX(4.f);
 
 	DrawTimer();
+	DrawFinder();
+	DrawButtons();
 
 }
 
@@ -76,20 +82,25 @@ void Timeline_UpperControls::DrawTimer() {
 
 
 	ImGui::SetWindowFontScale(scale_upper);
-		Push_BoldFont();
-			ImVec2 size_up_text = ImGui::CalcTextSize(getTimer().c_str());
-		Pop_BoldFont();
+	Push_BoldFont();
+	ImVec2 size_up_text = ImGui::CalcTextSize(getTimer().c_str());
+	Pop_BoldFont();
 
 	ImGui::SetWindowFontScale(scale_bottom);
-		ImVec2 size_down_text = ImGui::CalcTextSize(getFrame().c_str());
+	ImVec2 size_down_text = ImGui::CalcTextSize(getFrame().c_str());
 	ImGui::SetWindowFontScale(1.f);
 
 	float TextHeight = size_up_text.y + size_down_text.y;
 
 
 
-	ImGui::BeginChild("##TIMER_UPPER_CONTROL",ImVec2(size_down_text.x,0),0,0); {
-		ImVec2 p = ImGui::GetCursorScreenPos();
+
+	ImVec2 p = ImGui::GetCursorScreenPos();
+	ImGui::SetCursorScreenPos({ p.x + 5.f, p.y });
+	p = ImGui::GetCursorScreenPos();
+
+	ImGui::BeginChild("##TIMER_UPPER_CONTROL", ImVec2(size_down_text.x, 0), 0, 0); {
+
 		ImVec2 size = ImGui::GetContentRegionAvail();
 
 		bool isHovered = ImGui::IsMouseHoveringRect(p, { p.x + size.x, p.y + size.y });
@@ -98,7 +109,7 @@ void Timeline_UpperControls::DrawTimer() {
 		static uint64_t frameStartDrag = 0;
 
 		if (isHovered) {
-			color_upper  = COLOR_CHANGEBLE_HOVERED;
+			color_upper = COLOR_CHANGEBLE_HOVERED;
 			color_bottom = COLOR_CHANGEBLE_DARK_HOVERED;
 		}
 		if (isDraging) {
@@ -140,4 +151,15 @@ void Timeline_UpperControls::DrawTimer() {
 		ImGui::SetWindowFontScale(1.f);
 	}
 	ImGui::EndChild();
+
+	ImGui::SetCursorScreenPos({ p.x + size_down_text.x, p.y });
+}
+
+void Timeline_UpperControls::DrawFinder() {
+
+	ImVec2 size = ImGui::GetContentRegionAvail();
+
+}
+void Timeline_UpperControls::DrawButtons() {
+
 }

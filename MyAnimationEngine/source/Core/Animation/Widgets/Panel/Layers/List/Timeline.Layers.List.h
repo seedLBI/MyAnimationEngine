@@ -34,13 +34,13 @@ private:
 	TimelineTransformHorizontal*	horizontalTransform;
 	TimelineTransformVertical*		verticalTransform;
 
-	void DrawObject(std::shared_ptr<LayerObject>& object);
+	void DrawObject(LayerObject* object);
 
-	bool DrawToggle(std::shared_ptr<LayerObject>& object);
-	void DrawLayerColor(std::shared_ptr<LayerObject>& object);
-	void DrawLayerIndex(std::shared_ptr<LayerObject>& object);
-	bool DrawLayerIconType(std::shared_ptr<LayerObject>& object);
-	bool DrawLayerName(std::shared_ptr<LayerObject>& object);
+	bool DrawToggle(LayerObject* object);
+	void DrawLayerColor(LayerObject* object);
+	void DrawLayerIndex(LayerObject* object);
+	bool DrawLayerIconType(LayerObject* object);
+	bool DrawLayerName(LayerObject* object);
 
 	void drawTriggerButton(bool& value, std::string index ,const char* symbol, float availableHeight);
 	bool drawAnimationEnabler(bool& value, std::string index, float availableHeight);

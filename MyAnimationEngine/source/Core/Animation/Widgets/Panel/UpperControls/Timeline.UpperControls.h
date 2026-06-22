@@ -15,10 +15,17 @@ public:
 	void Draw();
 	void Update();
 
+	const bool& isGraphMode();
+
+
 private:
 	TimelineProviderData* timelineData;
 
+	bool GraphMode = false;
+
 	void DrawTimer();
+	void DrawFinder();
+	void DrawButtons();
 
 	std::string getTimer();
 	std::string getFrame();

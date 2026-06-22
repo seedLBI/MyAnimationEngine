@@ -248,10 +248,10 @@ bool Timeline_Layers_List::drawAnimationEnabler(bool& value, std::string index, 
 }
 
 
-void Timeline_Layers_List::DrawObject(std::shared_ptr<LayerObject>& object)
+void Timeline_Layers_List::DrawObject(LayerObject* object)
 {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    std::string index = std::to_string(object.get()->GetLayerInfo().index);
+    std::string index = std::to_string(object->GetLayerInfo().index);
     float height_object = verticalTransform->getScaledHeightOneObject();
 
     ImGui::BeginChild(("##Layer##" + index).c_str(), ImVec2(ImGui::GetContentRegionAvail().x, height_object), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
@@ -285,7 +285,7 @@ void Timeline_Layers_List::DrawObject(std::shared_ptr<LayerObject>& object)
 
             ImGui::SetCursorScreenPos(ImVec2(av_symbols_cursor_pos[AV_SYMBOLS::VISIBLE], startY));
             drawTriggerButton(
-                object.get()->GetLayerInfo().isVisible,
+                object->GetLayerInfo().isVisible,
                 ("##LAYER_VISIBLE_TRIGGER" + index).c_str(),
                 ICON_FA_EYE,
                 height_object
@@ -294,7 +294,7 @@ void Timeline_Layers_List::DrawObject(std::shared_ptr<LayerObject>& object)
 
             ImGui::SetCursorScreenPos(ImVec2(av_symbols_cursor_pos[AV_SYMBOLS::LOCK], startY));
             drawTriggerButton(
-                object.get()->GetLayerInfo().isLocked,
+                object->GetLayerInfo().isLocked,
                 ("##LAYER_LOCKED_TRIGGER" + index).c_str(),
                 ICON_FA_LOCK,
                 height_object
@@ -303,7 +303,7 @@ void Timeline_Layers_List::DrawObject(std::shared_ptr<LayerObject>& object)
 
             ImGui::SetCursorScreenPos(ImVec2(av_symbols_cursor_pos[AV_SYMBOLS::ONLY], startY));
             drawTriggerButton(
-                object.get()->GetLayerInfo().isOnly,
+                object->GetLayerInfo().isOnly,
                 ("##LAYER_ONLY_VISIBLE_TRIGGER" + index).c_str(),
                 "CIRCLE",
                 height_object
@@ -345,8 +345,8 @@ void Timeline_Layers_List::DrawObject(std::shared_ptr<LayerObject>& object)
     ImGui::EndChild();
 }
 
-bool Timeline_Layers_List::DrawToggle(std::shared_ptr<LayerObject>& object) {
-    std::string index = std::to_string(object.get()->GetLayerInfo().index);
+bool Timeline_Layers_List::DrawToggle(LayerObject* object) {
+    std::string index = std::to_string(object->GetLayerInfo().index);
     std::string label = "toggle_btn##" + index;
 
     ImGui::PushID(label.c_str());
@@ -365,7 +365,7 @@ bool Timeline_Layers_List::DrawToggle(std::shared_ptr<LayerObject>& object) {
     bool changed = false;
     if (ImGui::IsItemClicked())
     {
-        object.get()->GetLayerInfo().isExpanded = !object.get()->GetLayerInfo().isExpanded;
+        object->GetLayerInfo().isExpanded = !object->GetLayerInfo().isExpanded;
         changed = true;
     }
 
@@ -374,7 +374,7 @@ bool Timeline_Layers_List::DrawToggle(std::shared_ptr<LayerObject>& object) {
 
     ImU32 text_col = ImGui::GetColorU32(hovered ? ImGuiCol_Text : ImGuiCol_TextDisabled);
 
-    bool isExpanded = object.get()->GetLayerInfo().isExpanded;
+    bool isExpanded = object->GetLayerInfo().isExpanded;
 
     const char* icon = isExpanded ? ICON_FA_CHEVRON_DOWN : ICON_FA_CHEVRON_RIGHT;
 
@@ -390,13 +390,13 @@ bool Timeline_Layers_List::DrawToggle(std::shared_ptr<LayerObject>& object) {
     ImGui::PopID();
     return changed;
 }
-void Timeline_Layers_List::DrawLayerColor(std::shared_ptr<LayerObject>& object) {
-    std::string index = std::to_string(object.get()->GetLayerInfo().index);
+void Timeline_Layers_List::DrawLayerColor(LayerObject* object) {
+    std::string index = std::to_string(object->GetLayerInfo().index);
 
     float c[3] = { 
-        object.get()->GetLayerInfo().color.r, 
-        object.get()->GetLayerInfo().color.g, 
-        object.get()->GetLayerInfo().color.b 
+        object->GetLayerInfo().color.r, 
+        object->GetLayerInfo().color.g, 
+        object->GetLayerInfo().color.b 
     };
 
     std::string button_id = "##color_picker_layer##" + index;
@@ -444,29 +444,29 @@ void Timeline_Layers_List::DrawLayerColor(std::shared_ptr<LayerObject>& object) 
         ImGui::EndPopup();
     }
 
-    object.get()->GetLayerInfo().color = { c[0], c[1], c[2] };
+    object->GetLayerInfo().color = { c[0], c[1], c[2] };
 }
-void Timeline_Layers_List::DrawLayerIndex(std::shared_ptr<LayerObject>& object) {
+void Timeline_Layers_List::DrawLayerIndex(LayerObject* object) {
 
     float itemHeight = verticalTransform->getScaledHeightOneObject();
     float textHeight = ImGui::GetTextLineHeight();
     float offsetY = (itemHeight - textHeight) * 0.5f - 1.f;
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - offsetY);
 
-    std::string str_index = std::to_string(object.get()->GetLayerInfo().index);
+    std::string str_index = std::to_string(object->GetLayerInfo().index);
     //PadLeft(str_index, '0', 3);
 
     Push_SmallFont();
     ImGui::TextColored(COLOR_DEFAULT, str_index.c_str());
     Pop_SmallFont();
 }
-bool Timeline_Layers_List::DrawLayerIconType(std::shared_ptr<LayerObject>& object) {
+bool Timeline_Layers_List::DrawLayerIconType(LayerObject* object) {
 
-    float eval_time = timelineData->GetData().currentTime - object.get()->GetLayerInfo().time.Begin;
-    DrawIcon(object.get(), verticalTransform->getScaledHeightOneObject(), eval_time);
+    float eval_time = timelineData->GetData().currentTime - object->GetLayerInfo().time.Begin;
+    DrawIcon(object, verticalTransform->getScaledHeightOneObject(), eval_time);
     return false;
 }
-bool Timeline_Layers_List::DrawLayerName(std::shared_ptr<LayerObject>& object) {
+bool Timeline_Layers_List::DrawLayerName(LayerObject* object) {
     float itemHeight = verticalTransform->getScaledHeightOneObject();
     float textHeight = ImGui::GetTextLineHeight();
     float offsetY = (itemHeight - textHeight) * 0.5f - 1.f;
@@ -475,7 +475,7 @@ bool Timeline_Layers_List::DrawLayerName(std::shared_ptr<LayerObject>& object) {
     
 
     Push_SmallFont();
-    ImGui::TextColored(COLOR_DEFAULT, object.get()->GetLayerInfo().name.c_str());
+    ImGui::TextColored(COLOR_DEFAULT, object->GetLayerInfo().name.c_str());
     Pop_SmallFont();
     return false;
 }
@@ -729,29 +729,25 @@ void Timeline_Layers_List::Draw() {
 
     float heightContent = 0.f;
 
-    auto layers = layersData->GetData().layers;
-	for (size_t i = 0; i < layers.size(); i++) {
 
+
+    layersData->forEach([&](LayerObject* layer, uint64_t index) {
         ImGui::SetCursorScreenPos(p);
+        auto& layerInfo = layer->GetLayerInfo();
 
-        auto layer = layers[i];
-        auto& layerInfo = layer.get()->GetLayerInfo();
+        draw_list->AddRectFilled({ p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) }, COLOR_BG_LAYER);
 
-        ImColor color_background_layer = COLOR_BG_LAYER;
-        draw_list->AddRectFilled({ p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight ) }, color_background_layer);
-        
-        if (i==0) ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 1.f);
-		DrawObject(layer);
+        if (index == 0) ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 1.f);
 
+        DrawObject(layer);
 
         p.y += itemHeight;
         heightContent += itemHeight;
         draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
 
-
         if (layerInfo.isExpanded) {
 
-            auto& properties = layer.get()->GetProperties();
+            auto& properties = layer->GetProperties();
             properties.forEachUnwrapped([&](const std::string& name, auto& value) {
 
                 const auto& keyframes = value.kr.getKeyframes();
@@ -768,28 +764,28 @@ void Timeline_Layers_List::Draw() {
 
                 if (isHaveKeyframes) {
                     const float offset = 8.f;
-                    
+
                     const float ht = itemHeight / 2.3f;
-                    const float wt = ht/2.f;
+                    const float wt = ht / 2.f;
 
 
 
-                    ImVec2 T_1 = { offset + p.x + wt, p.y + itemHeight / 2.f - ht / 2.f  };
-                    ImVec2 T_2 = { offset + p.x + wt, p.y + itemHeight / 2.f + ht / 2.f  };
-                    ImVec2 T_3 = { offset + p.x, p.y + itemHeight / 2.f  };
-                    ImVec2 T_4 = { offset + p.x + wt *2.f, p.y + itemHeight / 2.f  };
+                    ImVec2 T_1 = { offset + p.x + wt, p.y + itemHeight / 2.f - ht / 2.f };
+                    ImVec2 T_2 = { offset + p.x + wt, p.y + itemHeight / 2.f + ht / 2.f };
+                    ImVec2 T_3 = { offset + p.x, p.y + itemHeight / 2.f };
+                    ImVec2 T_4 = { offset + p.x + wt * 2.f, p.y + itemHeight / 2.f };
 
 
 
 
-                    ImVec2 TL[] = {T_1,T_2,T_3};
+                    ImVec2 TL[] = { T_1,T_2,T_3 };
                     ImVec2 TL_min = { T_1.x - wt - 5.f , T_1.y - 2.f };
                     ImVec2 TL_max = { T_1.x + 5.f - 2.f, T_1.y + ht + 2.f };
                     bool TL_hovered, TL_held;
                     bool TL_pressed = MyButtonBehavior(
                         TL_min,
                         TL_max,
-                        (std::string("TL_PROPERTIE_") + name + std::to_string(i)).c_str(),
+                        (std::string("TL_PROPERTIE_") + name + std::to_string(index)).c_str(),
                         TL_hovered,
                         TL_held
                     );
@@ -807,7 +803,7 @@ void Timeline_Layers_List::Draw() {
                     const float sc = -1.f;
                     const float oo = 0.5f * 1.2f;
                     const float qq = 1.f;
-                    ImVec2 ROMB[] = { 
+                    ImVec2 ROMB[] = {
                         {T_4.x + sc, T_4.y - oo},
                         {T_4.x + sc, T_4.y + oo},
                         {T_2.x + oo, T_2.y + sc},
@@ -833,7 +829,7 @@ void Timeline_Layers_List::Draw() {
                     bool ROMB_pressed = MyButtonBehavior(
                         ROMB_min,
                         ROMB_max,
-                        (std::string("ROMB_PROPERTIE_") + name + std::to_string(i)).c_str(),
+                        (std::string("ROMB_PROPERTIE_") + name + std::to_string(index)).c_str(),
                         ROMB_hovered,
                         ROMB_held
                     );
@@ -851,15 +847,11 @@ void Timeline_Layers_List::Draw() {
                     bool TR_pressed = MyButtonBehavior(
                         TR_min,
                         TR_max,
-                        (std::string("TR_PROPERTIE_") + name + std::to_string(i)).c_str(),
+                        (std::string("TR_PROPERTIE_") + name + std::to_string(index)).c_str(),
                         TR_hovered,
                         TR_held
                     );
                     bool TR_disabled = eval_time >= keyframes.back().sample.time;
-
-
-
-
 
                     if (TL_pressed && TL_disabled == false) {
 
@@ -932,15 +924,15 @@ void Timeline_Layers_List::Draw() {
                         color_tr = COLOR_DEFAULT_HOVERED;
 
 
-                    ImColor color_romb          = COLOR_DEFAULT;
-                    ImColor color_romb_back     = COLOR_BG_BUTTONS_HOVERED;
-                    ImColor color_romb_bound    = COLOR_DISABLED;
+                    ImColor color_romb = COLOR_DEFAULT;
+                    ImColor color_romb_back = COLOR_BG_BUTTONS_HOVERED;
+                    ImColor color_romb_bound = COLOR_DISABLED;
 
 
                     if (ROMB_hovered)
                         color_romb_bound = COLOR_DEFAULT_HOVERED;
 
-                    if (isEqual){
+                    if (isEqual) {
                         if (ROMB_hovered)
                             color_romb = COLOR_CHANGEBLE_HOVERED;
                         else
@@ -988,10 +980,10 @@ void Timeline_Layers_List::Draw() {
 
                 ImGui::SetCursorScreenPos(ImVec2(p.x + offsetX, p.y - offsetY - 1.f));
 
-                
 
 
-                if (drawAnimationEnabler(isHaveKeyframes, ("##PROPERTIES_TRIGGER_" + std::to_string(layer.get()->GetLayerInfo().index) + "_" + name).c_str(), itemHeight)) {
+
+                if (drawAnimationEnabler(isHaveKeyframes, ("##PROPERTIES_TRIGGER_" + std::to_string(layer->GetLayerInfo().index) + "_" + name).c_str(), itemHeight)) {
                     if (keyframes.empty())
                         value.kr.addFromDefaultValue(eval_time);
                     else
@@ -1029,7 +1021,7 @@ void Timeline_Layers_List::Draw() {
                         MyButtonBehavior(
                             p,
                             { p.x + sizeText.x, p.y + sizeText.y },
-                            (std::to_string(j) + std::string("PROPERTIE_") + name + std::to_string(i)).c_str(),
+                            (std::to_string(j) + std::string("PROPERTIE_") + name + std::to_string(index)).c_str(),
                             hovered,
                             held
                         );
@@ -1067,7 +1059,7 @@ void Timeline_Layers_List::Draw() {
                         }
                     }
 
-                };
+                    };
 
 
 
@@ -1086,12 +1078,12 @@ void Timeline_Layers_List::Draw() {
                     ImVec2 p_rect_max = { p.x + size_rect_color,-1.f + p.y + itemHeight / 2.f + size_rect_color / 2.f };
 
                     ImRect bb(p_rect_min, p_rect_max);
-                    ImGuiID id = ImGui::GetID((std::to_string(0) + std::string("COLOR_BUTTON_PROPERTIE_") + name + std::to_string(i)).c_str());
+                    ImGuiID id = ImGui::GetID((std::to_string(0) + std::string("COLOR_BUTTON_PROPERTIE_") + name + std::to_string(index)).c_str());
                     bool hovered, held;
                     ImGui::ItemAdd(bb, id);
                     if (ImGui::ButtonBehavior(bb, id, &hovered, &held)) {
-                        ImGui::OpenPopup(("POPUP_COLOR_SELECTOR_FOR_PROPERTIE" + std::to_string(i)).c_str());
-                        choosed_index_for_color_picking = i;
+                        ImGui::OpenPopup(("POPUP_COLOR_SELECTOR_FOR_PROPERTIE" + std::to_string(index)).c_str());
+                        choosed_index_for_color_picking = index;
                     }
 
 
@@ -1111,20 +1103,20 @@ void Timeline_Layers_List::Draw() {
 
                     draw_list->AddRect(p_rect_min, p_rect_max, color_border, 1.f, 0, 1.f);
 
-                    
+
                     p.x += size_rect_color + 5.f;
                 }
 
                 AddButtonAndAdvance();
 
 
-                if (choosed_index_for_color_picking == i) {
-                    if (ImGui::BeginPopupContextItem(("POPUP_COLOR_SELECTOR_FOR_PROPERTIE" + std::to_string(i)).c_str())) {
+                if (choosed_index_for_color_picking == index) {
+                    if (ImGui::BeginPopupContextItem(("POPUP_COLOR_SELECTOR_FOR_PROPERTIE" + std::to_string(index)).c_str())) {
 
-                        if (ImGui::ColorPicker4(("##picker_color_for_propertie##" + std::to_string(i)).c_str(),
+                        if (ImGui::ColorPicker4(("##picker_color_for_propertie##" + std::to_string(index)).c_str(),
                             (float*)evaluated_value.data(),
                             ImGuiColorEditFlags_NoSidePreview |
-                            ImGuiColorEditFlags_NoSmallPreview|
+                            ImGuiColorEditFlags_NoSmallPreview |
                             ImGuiColorEditFlags_AlphaBar)) {
 
 
@@ -1151,14 +1143,11 @@ void Timeline_Layers_List::Draw() {
                 draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
 
                 ImGui::SetCursorScreenPos(p);
-             });
-
-
+                });
 
         }
 
-	}
-
+    });
 
     verticalTransform->updateContentHeight(heightContent);
 }

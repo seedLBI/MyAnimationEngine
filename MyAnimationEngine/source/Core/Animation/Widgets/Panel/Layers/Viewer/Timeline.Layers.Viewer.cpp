@@ -128,18 +128,16 @@ void Timeline_Layers_Viewer::Draw() {
 	ImVec2 p = p_min;
 	p.y += verticalTransform->getOffset_lerped();
 
-	for (size_t i = 0; i < layers.size(); i++) {
-		
-		//if(i==0) p.y += 1.f;
 
-		auto layer = layers[i].get();
+	layersData->forEach([&](LayerObject* layer, uint64_t index) {
+
 		auto& layerInfo = layer->GetLayerInfo();
 
-		float time_begin	= layerInfo.time.Begin;
-		float time_end		= layerInfo.time.End;
+		float time_begin = layerInfo.time.Begin;
+		float time_end = layerInfo.time.End;
 
 		float screen_time_begin = horizontalTransform->getPostionScreen_lerped(time_begin);
-		float screen_time_end	= horizontalTransform->getPostionScreen_lerped(time_end);
+		float screen_time_end = horizontalTransform->getPostionScreen_lerped(time_end);
 
 		ImVec2 rect_min = { p.x + screen_time_begin, p.y };
 		ImVec2 rect_max = { p.x + screen_time_end,	 p.y + itemHeight };
@@ -151,10 +149,10 @@ void Timeline_Layers_Viewer::Draw() {
 
 
 
-		ImGui::SetCursorScreenPos({ rect_min.x - width_hover,rect_min.y});
+		ImGui::SetCursorScreenPos({ rect_min.x - width_hover,rect_min.y });
 
 
-		ImGui::InvisibleButton(("Rect_LAYER##" + std::to_string(i)).c_str(), { rect.GetWidth() + width_hover * 2.f, rect.GetHeight()});
+		ImGui::InvisibleButton(("Rect_LAYER##" + std::to_string(index)).c_str(), { rect.GetWidth() + width_hover * 2.f, rect.GetHeight() });
 
 		bool hovered = ImGui::IsItemHovered();
 		bool active = ImGui::IsItemActive();
@@ -191,7 +189,7 @@ void Timeline_Layers_Viewer::Draw() {
 			pressed_status = isHovered;
 
 			if (pressed_status != ObjectStatus::NOTHING) {
-				index_drag = i;
+				index_drag = index;
 				drag_start_time_begin = time_begin;
 				length_drag = time_end - time_begin;
 				drag_start_mouse_global = horizontalTransform->getPostionGlobal_lerped(ImGui::GetMousePos().x - cursor_pos.x);
@@ -199,7 +197,7 @@ void Timeline_Layers_Viewer::Draw() {
 		}
 
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-			if (pressed_status != ObjectStatus::NOTHING){
+			if (pressed_status != ObjectStatus::NOTHING) {
 				draging_status = pressed_status;
 			}
 
@@ -209,7 +207,7 @@ void Timeline_Layers_Viewer::Draw() {
 			draging_status = ObjectStatus::NOTHING;
 			index_drag = UINT64_MAX;
 		}
-		
+
 
 		if (layerInfo.isVisible == false) {
 			draw_list->AddRectFilled({ p_min.x,rect_min.y }, { p_max.x,rect_max.y }, ImColor(0.f, 0.f, 0.f, 0.7f), 0.f, 0);
@@ -257,10 +255,9 @@ void Timeline_Layers_Viewer::Draw() {
 				draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
 
 				ImGui::SetCursorScreenPos(p);
-			});
+				});
 		}
-
-	}
+	});
 
 
 

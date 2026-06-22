@@ -2,6 +2,7 @@
 
 #include "Utils/ImGui/Utils.ImGui.h"
 #include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
+#include "CursorManager/CursorManger.h"
 
 Timeline_Scroll_Vertical::Timeline_Scroll_Vertical(
 	LayersDataProvider* layersData,
@@ -54,6 +55,11 @@ void Timeline_Scroll_Vertical::Draw() {
 	);
 
 	ImColor color_slider = COLOR_DEFAULT;
+	if (hovered_user_slider)
+		CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
+	if (held_user_slider)
+		CursorManager::getInstance().SetCursor(TypeCursor::HAND_CLOSED);
+
 	if (hovered_user_slider || held_user_slider)
 		color_slider = COLOR_DEFAULT_HOVERED;
 
