@@ -1,5 +1,6 @@
 ﻿#include "Timeline.Range.h"
 #include "CursorManager/CursorManger.h"
+#include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
 #include <algorithm>
 
 Timeline_Range::Timeline_Range(
@@ -60,9 +61,9 @@ void Timeline_Range::Draw() {
 	float range_hitbox_max_x = range_box_max.x - hitbox_width / 2.f;
 
 
-	ImColor color_left_button = color_button;
-	ImColor color_right_button = color_button;
-	ImColor color_range_button = color_range;
+	ImColor color_left_button	= COLOR_CHANGEBLE;
+	ImColor color_right_button	= COLOR_CHANGEBLE;
+	ImColor color_range_button	= COLOR_BODY_RANGE;
 
 
 
@@ -78,7 +79,7 @@ void Timeline_Range::Draw() {
 
 
 		if (mouse_x_in_left_button) {
-			color_left_button = color_button_hovered;
+			color_left_button = COLOR_CHANGEBLE_HOVERED;
 
 			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
 				left_range_dragging = true;
@@ -86,14 +87,14 @@ void Timeline_Range::Draw() {
 
 		}
 		else if (mouse_x_in_right_button) {
-			color_right_button = color_button_hovered;
+			color_right_button = COLOR_CHANGEBLE_HOVERED;
 
 			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
 				right_range_dragging = true;
 			}
 		}
 		else if (mouse_x_in_range_button) {
-			color_range_button = color_range_hovered;
+			color_range_button = COLOR_BODY_RANGE_HOVERED;
 
 			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
 				timelineData->GetData().left_range_repeat = 0.f;
@@ -119,7 +120,7 @@ void Timeline_Range::Draw() {
 
 	if (left_range_dragging) {
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-			color_left_button = color_button_down;
+			color_left_button = COLOR_CHANGEBLE_HELD;
 
 			float step_frame = 1.f / (float)timelineData->GetData().framerate;
 			float count = std::floor(global_pos_mouse_x / step_frame);
@@ -133,7 +134,7 @@ void Timeline_Range::Draw() {
 	}
 	else if (right_range_dragging) {
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-			color_right_button = color_button_down;
+			color_right_button = COLOR_CHANGEBLE_HELD;
 
 			float step_frame = 1.f / (float)timelineData->GetData().framerate;
 			float count = std::floor(global_pos_mouse_x / step_frame);
@@ -147,7 +148,7 @@ void Timeline_Range::Draw() {
 	}
 	else if (range_dragging) {
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-			color_range_button = color_range_down;
+			color_range_button = COLOR_BODY_RANGE_HELD;
 
 			float delta_mouse = global_pos_mouse_x - global_pos_begin_draging;
 

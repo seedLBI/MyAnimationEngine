@@ -569,6 +569,9 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\List\IconDrawer\Timeline.Layers.Icon.Drawer.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Colors\Panel.Colors.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

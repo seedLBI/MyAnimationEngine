@@ -1,5 +1,5 @@
 ﻿#include "Timeline.Panel.h"
-
+#include "Colors/Panel.Colors.h"
 
 TimelinePanel::TimelinePanel(
 	FPS_Timer* deltaTime, 
@@ -66,13 +66,13 @@ TimelinePanel::~TimelinePanel() {
 
 void TimelinePanel::Draw() {
 
-	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(.11f, .11f, .11f, 1.f));
-	ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.f, 0.f, 0.f, 1.f));
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, COLOR_BG_LIST.Value);
+	ImGui::PushStyleColor(ImGuiCol_Separator, COLOR_SEPARATOR.Value);
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
-	ImGui::Begin(u8"Временная шкала");
+	ImGui::Begin(u8"Временная шкала", nullptr, ImGuiWindowFlags_NoScrollWithMouse);
 	
 		const float thickness_separator = 1.f;
 

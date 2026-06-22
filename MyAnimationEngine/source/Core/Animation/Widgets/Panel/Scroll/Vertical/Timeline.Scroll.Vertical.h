@@ -13,10 +13,14 @@ public:
 	);
 	~Timeline_Scroll_Vertical();
 
+
+
+
 	void Draw();
 	void Update();
 
 private:
+
 	LayersDataProvider* layersData;
 
 	TimelineTransformVertical* verticalTransform;

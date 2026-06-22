@@ -1,5 +1,6 @@
 ﻿#include "Timeline.UpperControls.h"
 
+#include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
 
 #include "ThirdParty/ImGui/imgui.h"
 #include "ThirdParty/ImGui/imgui_internal.h"
@@ -69,8 +70,8 @@ std::string Timeline_UpperControls::getFrame() {
 void Timeline_UpperControls::DrawTimer() {
 	float scale_upper = 1.2f;
 	float scale_bottom = 0.9f;
-	colorRGB color_upper = { 30.f/255.f, 149.f/255.f, 255.f/255.f };
-	colorRGB color_bottom = { 0.f/255.f, 98.f/255.f,  209.f/255.f };
+	colorRGB color_upper(COLOR_CHANGEBLE);
+	colorRGB color_bottom(COLOR_CHANGEBLE_DARK);
 
 
 
@@ -96,9 +97,13 @@ void Timeline_UpperControls::DrawTimer() {
 		static ImVec2 StartDrag = { 0,0 };
 		static uint64_t frameStartDrag = 0;
 
-		if (isHovered || isDraging) {
-			color_upper = lerp(color_upper, { 1.f,1.f,1.f }, 0.3f);
-			color_bottom = lerp(color_bottom, { 1.f,1.f,1.f }, 0.3f);
+		if (isHovered) {
+			color_upper  = COLOR_CHANGEBLE_HOVERED;
+			color_bottom = COLOR_CHANGEBLE_DARK_HOVERED;
+		}
+		if (isDraging) {
+			color_upper = COLOR_CHANGEBLE_HELD;
+			color_bottom = COLOR_CHANGEBLE_DARK_HELD;
 		}
 
 		if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {

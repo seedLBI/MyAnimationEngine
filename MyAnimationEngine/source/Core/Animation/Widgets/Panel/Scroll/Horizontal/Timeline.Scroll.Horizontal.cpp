@@ -1,12 +1,16 @@
 ﻿#include "Timeline.Scroll.Horizontal.h"
 
+
+#include "Utils/ImGui/Utils.ImGui.h"
 #include "ThirdParty/ImGui/imgui.h"
 #include "ThirdParty/ImGui/imgui_internal.h"
 #include "CursorManager/CursorManger.h"
+
+#include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
+#include "Core/DebugOverlay/DebugOverlay.h"
+
 #include <iostream>
 #include <algorithm>
-
-#include "Core/DebugOverlay/DebugOverlay.h"
 
 Timeline_Scroll_Horizontal::Timeline_Scroll_Horizontal(
 	TimelineProviderData* timelineData,
@@ -32,6 +36,7 @@ void Timeline_Scroll_Horizontal::Draw() {
 	ImVec2 p_min = cursor_pos;
 	ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
 
+	float center = 0.5f * (horizontalTransform->getLeftBoundView_global_real() + horizontalTransform->getRightBoundView_global_real());
 
 	ImVec2 p = p_min;
 
@@ -44,8 +49,40 @@ void Timeline_Scroll_Horizontal::Draw() {
 	float min_radius = region_max.y / 7.f;
 	float max_radius = region_max.y / 3.5f;
 
+
 	p.x += min_radius;
-	draw_list->AddCircleFilled({ p.x, p.y + region_max.y / 2.f }, min_radius, ImColor(0.69f, 0.69f, 0.69f, 1.f));
+
+	ImVec2 p_min_minus_zoom = { p.x - max_radius * 2.f, p.y + 2.f };
+	ImVec2 p_max_minus_zoom = { p.x + max_radius * 2.f,  p.y + region_max.y - 2.f };
+
+	bool hovered_minus_zoom, held_minus_zoom;
+	bool pressed_minus_zoom  = MyButtonBehavior(
+		p_min_minus_zoom,
+		p_max_minus_zoom,
+		"BUTTON_MINUS_ZOOM",
+		hovered_minus_zoom, held_minus_zoom);
+
+	if (pressed_minus_zoom) {
+		horizontalTransform->zoomToPointByValue(center, 0.75f, false);
+	}
+
+	ImColor color_minus_zoom = COLOR_DEFAULT;
+	ImColor color_bg_minus_zoom = COLOR_BG_BUTTONS;
+
+	if (hovered_minus_zoom) {
+		color_minus_zoom = COLOR_DEFAULT_HOVERED;
+		color_bg_minus_zoom = COLOR_BG_BUTTONS_HOVERED;
+	}
+	if (held_minus_zoom)
+		color_bg_minus_zoom = COLOR_BG_BUTTONS_HELD;
+
+	if (hovered_minus_zoom || held_minus_zoom)
+		draw_list->AddRectFilled(p_min_minus_zoom, p_max_minus_zoom, color_bg_minus_zoom, 2.f);
+
+	draw_list->AddCircleFilled({ p.x, p.y + region_max.y / 2.f }, min_radius, color_minus_zoom);
+
+
+
 	p.x += min_radius ;
 
 
@@ -78,24 +115,23 @@ void Timeline_Scroll_Horizontal::Draw() {
 
 	draw_list->AddLine({ p.x, p.y + region_max.y / 2.f }, { p.x + length_line,  p.y + region_max.y / 2.f }, ImColor(.29f, .29f, .29f, 1.f),2.5f);
 
-
-	ImRect bb_slider_zoom({ pos_x_current_scale - radius_drag * 1.7f, p.y }, { pos_x_current_scale + radius_drag * 1.7f,  p.y + region_max.y });
-	ImGuiID id_slider_zoom = ImGui::GetID("GRAB_SLIDER_ZOOM");
 	bool hovered_slider_zoom, held_slider_zoom;
-	ImGui::ItemAdd(bb_slider_zoom, id_slider_zoom);
-	ImGui::ButtonBehavior(bb_slider_zoom, id_slider_zoom, &hovered_slider_zoom, &held_slider_zoom);
+
+	MyButtonBehavior(
+		{ pos_x_current_scale - radius_drag * 1.7f, p.y },
+		{ pos_x_current_scale + radius_drag * 1.7f,  p.y + region_max.y },
+		"GRAB_SLIDER_ZOOM",
+		hovered_slider_zoom, held_slider_zoom);
 
 	float value_thinkness = 1.6f;
 
-	ImColor hovered_color = ImColor(0.89f, 0.89f, 0.89f, 1.f);
-	ImColor default_color = ImColor(0.69f, 0.69f, 0.69f, 1.f);
 
-	ImColor current_color =  default_color;
+	ImColor current_color = COLOR_DEFAULT;
 
 	if (hovered_slider_zoom || held_slider_zoom) {
 		CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
 		value_thinkness = 2.f;
-		current_color = hovered_color;
+		current_color = COLOR_DEFAULT_HOVERED;
 	}
 
 	if (held_slider_zoom) {
@@ -111,8 +147,6 @@ void Timeline_Scroll_Horizontal::Draw() {
 
 		float new_scale = minScale + t_linear * (maxScale - minScale);
 
-		float center = 0.5f * (horizontalTransform->getLeftBoundView_global_real() + horizontalTransform->getRightBoundView_global_real());
-
 		horizontalTransform->scaleZoomBy( new_scale / horizontalTransform->getScale().GetReal());
 		horizontalTransform->centerize(center);
 
@@ -125,6 +159,36 @@ void Timeline_Scroll_Horizontal::Draw() {
 	p.x += padding;
 
 	p.x += max_radius ;
+
+
+
+	ImVec2 p_min_plus_zoom = { p.x - max_radius * 2.f,  p.y + 2.f };
+	ImVec2 p_max_plus_zoom = { p.x + max_radius * 2.f,  p.y + region_max.y - 2.f };
+
+	bool hovered_plus_zoom, held_plus_zoom;
+	bool pressed_plus_zoom = MyButtonBehavior(
+		p_min_plus_zoom,
+		p_max_plus_zoom,
+		"BUTTON_PLUS_ZOOM",
+		hovered_plus_zoom, held_plus_zoom);
+
+	if (pressed_plus_zoom)
+		horizontalTransform->zoomToPointByValue(center, 1.5f, false);
+
+	ImColor color_plus_zoom = COLOR_DEFAULT;
+	ImColor color_bg_plus_zoom = COLOR_BG_BUTTONS;
+
+	if (hovered_plus_zoom) {
+		color_plus_zoom = COLOR_DEFAULT_HOVERED;
+		color_bg_plus_zoom = COLOR_BG_BUTTONS_HOVERED;
+	}
+	if (held_plus_zoom)
+		color_bg_plus_zoom = COLOR_BG_BUTTONS_HELD;
+
+	if (hovered_plus_zoom || held_plus_zoom)
+		draw_list->AddRectFilled(p_min_plus_zoom, p_max_plus_zoom, color_bg_plus_zoom, 2.f);
+
+
 	draw_list->AddCircleFilled({ p.x, p.y + region_max.y / 2.f }, max_radius, ImColor(.69f, .69f, .69f, 1.f));
 	p.x += max_radius;
 
@@ -152,16 +216,17 @@ void Timeline_Scroll_Horizontal::Draw() {
 	float curr_pos = (offset_lerped - min_offset)/(max_offset - min_offset);
 	float offset_slider_x = curr_pos * (full_length_slider - width_slider);
 
-	ImRect bb_slider_offset({ p.x + offset_slider_x, p.y + region_max.y / 2.f - max_radius }, { p.x + width_slider + offset_slider_x, p.y + region_max.y / 2.f + max_radius });
-	ImGuiID id_slider_offset = ImGui::GetID("GRAB_SLIDER_OFFSET");
+
 	bool hovered_slider_offset, held_slider_offset;
-	ImGui::ItemAdd(bb_slider_offset, id_slider_offset);
-	ImGui::ButtonBehavior(bb_slider_offset, id_slider_offset, &hovered_slider_offset, &held_slider_offset);
+	bool pressed_slider_offset = MyButtonBehavior(
+		{ p.x + offset_slider_x, p.y + region_max.y / 2.f - max_radius },
+		{ p.x + width_slider + offset_slider_x, p.y + region_max.y / 2.f + max_radius },
+		"GRAB_HORIZONTAL_SLIDER_OFFSET",
+		hovered_slider_offset, held_slider_offset
+	);
 
 
-
-
-	ImColor slider_offset_current_color = default_color;
+	ImColor slider_offset_current_color = COLOR_DEFAULT;
 
 	ImVec2 min_FullSlider = { p.x, p.y + region_max.y / 2.f - max_radius };
 	ImVec2 max_FullSlider = { p.x + full_length_slider, p.y + region_max.y / 2.f + max_radius };
@@ -171,7 +236,7 @@ void Timeline_Scroll_Horizontal::Draw() {
 
 	if (hovered_slider_offset || held_slider_offset) {
 		CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
-		slider_offset_current_color = hovered_color;
+		slider_offset_current_color = COLOR_DEFAULT_HOVERED;
 	}
 
 	if (held_slider_offset || ImGui::IsMouseHoveringRect({ p.x, p.y + region_max.y / 2.f - max_radius }, { p.x + full_length_slider, p.y + region_max.y / 2.f + max_radius })) {
@@ -201,7 +266,7 @@ void Timeline_Scroll_Horizontal::Draw() {
 		horizontalTransform->setOffsetWithClamp(newOffset);
 	}
 
-	draw_list->AddRectFilled(min_FullSlider,max_FullSlider,ImColor(.19f, .19f, .19f, 1.f), max_radius);
+	draw_list->AddRectFilled(min_FullSlider,max_FullSlider, COLOR_BG_BUTTONS_HOVERED, max_radius);
 	draw_list->AddRectFilled(min_UserSlider,max_UserSlider,slider_offset_current_color,max_radius);
 
 }

@@ -126,6 +126,7 @@ void Timeline_Layers_Viewer::Draw() {
 
 
 	ImVec2 p = p_min;
+	p.y += verticalTransform->getOffset_lerped();
 
 	for (size_t i = 0; i < layers.size(); i++) {
 		

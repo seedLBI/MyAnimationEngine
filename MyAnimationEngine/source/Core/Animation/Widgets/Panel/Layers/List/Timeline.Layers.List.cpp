@@ -1,6 +1,6 @@
 ﻿#include "Timeline.Layers.List.h"
 
-
+#include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
 #include "CursorManager/CursorManger.h"
 #include "FontManager/FontManager.h"
 #include "ThirdParty/IconFontCppHeaders/IconsFontAwesome6.h"
@@ -54,7 +54,6 @@ Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, Timel
         MARKER,
         NAME
     };
-
     columns[TypeColumn::NAME] = {
         u8"Имя источника",
         110.f,
@@ -139,7 +138,6 @@ float Timeline_Layers_List::getLengthColumn() {
             result += columns[i].width;
     return result + 10.f * getCountEnabledColumns() + 30.f;
 }
-
 int Timeline_Layers_List::getCountEnabledColumns() {
     int count = 0;
     for (size_t i = 0; i < columns.size(); i++)
@@ -172,19 +170,13 @@ void Timeline_Layers_List::drawTriggerButton(bool& value, std::string index, con
 
     bool isHovered = ImGui::IsItemHovered();
 
-    draw_list->AddRectFilled(p_min, p_max, ImColor(0.f, 0.f, 0.f, 1.f), 3.f);
+    draw_list->AddRectFilled(p_min, p_max, COLOR_BG_BUTTONS, 3.f);
 
-    const ImColor default_color = ImColor(.69f, .69f, .69f, 1.f);
-    const ImColor hovered_color = ImColor(1.f, 1.f, 1.f, 1.f);
-    const ImColor hidden_color  = ImColor(.42f, .42f, .42f, 1.f);
-    const ImColor disable_color = ImColor(0.f, 0.f, 0.f, 1.f);
-
-    ImColor result_color = default_color;
-
+    ImColor result_color = COLOR_DEFAULT;
     if (value)
-        result_color = isHovered ? hovered_color : default_color;
+        result_color = isHovered ? COLOR_DEFAULT_HOVERED : COLOR_DEFAULT;
     else
-        result_color = isHovered ? hidden_color : disable_color;
+        result_color = isHovered ? COLOR_DISABLED : COLOR_BG_BUTTONS;
 
     if (strcmp(symbol,"CIRCLE") == 0) {
         draw_list->AddCircleFilled({p_min.x + size/2.f, p_min.y + size / 2.f }, 3.5f, result_color);
@@ -196,7 +188,6 @@ void Timeline_Layers_List::drawTriggerButton(bool& value, std::string index, con
         Pop_SmallestFont();
     }
 }
-
 bool Timeline_Layers_List::drawAnimationEnabler(bool& value, std::string index, float availableHeight) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -212,7 +203,7 @@ bool Timeline_Layers_List::drawAnimationEnabler(bool& value, std::string index, 
 
 
     bool result = ImGui::InvisibleButton(std::string(index).c_str(), ImVec2(size, size));
-
+    
 
     ImGui::SetCursorScreenPos(save_pos);
     ImGui::Dummy(ImVec2(size, availableHeight));
@@ -229,12 +220,14 @@ bool Timeline_Layers_List::drawAnimationEnabler(bool& value, std::string index, 
     const ImColor enabled_color = ImColor(.25f, .59f, .95f, 1.f);
     const ImColor enabled_hovered_color = ImColor(.37f, .67f, .97f, 1.f);
 
+
     if (value || isHovered) {
-        draw_list->AddRectFilled(p_min, p_max, disable_color, 3.f);
+        draw_list->AddRectFilled(p_min, p_max, COLOR_BG_BUTTONS, 3.f);
+
         if (isHovered == false && value)
-            draw_list->AddRect(p_min, p_max, hidden_color, 3.f, 0, 1.f);
+            draw_list->AddRect(p_min, p_max, COLOR_DISABLED, 3.f, 0, 1.f);
         else
-            draw_list->AddRect(p_min, p_max, default_color, 3.f, 0, 1.f);
+            draw_list->AddRect(p_min, p_max, COLOR_DEFAULT, 3.f, 0, 1.f);
     }
 
 
@@ -242,9 +235,9 @@ bool Timeline_Layers_List::drawAnimationEnabler(bool& value, std::string index, 
     ImColor result_color = default_color;
 
     if (value)
-        result_color = isHovered ? enabled_hovered_color : enabled_color;
+        result_color = isHovered ? COLOR_CHANGEBLE_HOVERED : COLOR_CHANGEBLE;
     else
-        result_color = isHovered ? hovered_color : default_color;
+        result_color = isHovered ? COLOR_DEFAULT_HOVERED : COLOR_DEFAULT;
 
     Push_SmallestFont();
     ImVec2 icon_size = ImGui::CalcTextSize(ICON_FA_STOPWATCH);
@@ -428,8 +421,7 @@ void Timeline_Layers_List::DrawLayerColor(std::shared_ptr<LayerObject>& object) 
         ImGui::EndDragDropSource();
     }
 
-    if (ImGui::BeginDragDropTarget())
-    {
+    if (ImGui::BeginDragDropTarget()) {
         const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COLOR_LAYER_PAYLOAD");
         if (payload) {
             float* color_payload = static_cast<float*>(payload->Data);
@@ -465,7 +457,7 @@ void Timeline_Layers_List::DrawLayerIndex(std::shared_ptr<LayerObject>& object) 
     //PadLeft(str_index, '0', 3);
 
     Push_SmallFont();
-    ImGui::Text(str_index.c_str());
+    ImGui::TextColored(COLOR_DEFAULT, str_index.c_str());
     Pop_SmallFont();
 }
 bool Timeline_Layers_List::DrawLayerIconType(std::shared_ptr<LayerObject>& object) {
@@ -480,13 +472,13 @@ bool Timeline_Layers_List::DrawLayerName(std::shared_ptr<LayerObject>& object) {
     float offsetY = (itemHeight - textHeight) * 0.5f - 1.f;
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - offsetY);
 
+    
+
     Push_SmallFont();
-    ImGui::Text(object.get()->GetLayerInfo().name.c_str());
+    ImGui::TextColored(COLOR_DEFAULT, object.get()->GetLayerInfo().name.c_str());
     Pop_SmallFont();
     return false;
 }
-
-
 
 void Timeline_Layers_List::DrawColumnsHeader() {
 
@@ -502,7 +494,7 @@ void Timeline_Layers_List::DrawColumnsHeader() {
     float itemHeight = verticalTransform->getScaledHeightOneObject();
 
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.69f, .69f, .69f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Text, COLOR_DEFAULT.Value);
 
     Push_SmallestFont();
 
@@ -713,14 +705,29 @@ void Timeline_Layers_List::Draw() {
     ImVec2 region_max = ImGui::GetContentRegionAvail();
     ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
 
+    verticalTransform->updateAvailableHeight(region_max.y);
+
     ImVec2 mouse_pos = { ImGui::GetMousePos().x - cursor_pos.x,ImGui::GetMousePos().y - cursor_pos.y };
+
 
     ImVec2 p_min = cursor_pos;
     ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
-
     float itemHeight = verticalTransform->getScaledHeightOneObject();
 
+    if (ImGui::IsMouseHoveringRect(p_min, p_max)) {
+        float scrol_zoom = ImGui::GetIO().MouseWheel;
+        verticalTransform->addOffset(scrol_zoom * itemHeight);
+    }
+
+
+
+
+
     ImVec2 p = ImGui::GetCursorScreenPos();
+
+    p.y += verticalTransform->getOffset_lerped();
+
+    float heightContent = 0.f;
 
     auto layers = layersData->GetData().layers;
 	for (size_t i = 0; i < layers.size(); i++) {
@@ -730,22 +737,21 @@ void Timeline_Layers_List::Draw() {
         auto layer = layers[i];
         auto& layerInfo = layer.get()->GetLayerInfo();
 
-
-        draw_list->AddRectFilled({ p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight ) }, ImColor(.19f, .19f, .19f, 1.f));
+        ImColor color_background_layer = COLOR_BG_LAYER;
+        draw_list->AddRectFilled({ p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight ) }, color_background_layer);
         
         if (i==0) ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 1.f);
 		DrawObject(layer);
 
 
         p.y += itemHeight;
+        heightContent += itemHeight;
         draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
 
 
         if (layerInfo.isExpanded) {
 
             auto& properties = layer.get()->GetProperties();
-            
-            
             properties.forEachUnwrapped([&](const std::string& name, auto& value) {
 
                 const auto& keyframes = value.kr.getKeyframes();
@@ -754,7 +760,6 @@ void Timeline_Layers_List::Draw() {
 
                 float textHeight = ImGui::GetTextLineHeight();
                 float offsetY = (itemHeight - textHeight) * 0.5f;
-
 
                 float offsetX = 0.f;
                 bool isHaveKeyframes = keyframes.empty() == false;
@@ -767,11 +772,7 @@ void Timeline_Layers_List::Draw() {
                     const float ht = itemHeight / 2.3f;
                     const float wt = ht/2.f;
 
-                    ImColor color_disabled(.42f, .42f, .42f, 1.f);
-                    ImColor color_default(.69f, .69f, .69f, 1.f);
-                    ImColor color_hovered(.92f, .92f, .92f, 1.f);
-                    ImColor color_back_romb(.25f, .25f, .25f, 1.f);
-                    ImColor color_back_rect(.0f, .0f, .0f, 1.f);
+
 
                     ImVec2 T_1 = { offset + p.x + wt, p.y + itemHeight / 2.f - ht / 2.f  };
                     ImVec2 T_2 = { offset + p.x + wt, p.y + itemHeight / 2.f + ht / 2.f  };
@@ -794,23 +795,6 @@ void Timeline_Layers_List::Draw() {
                     );
                     bool TL_disabled = eval_time <= keyframes.front().sample.time;
 
-                    if (TL_pressed && TL_disabled == false) {
-
-                        for (size_t i = keyframes.size() - 1; i >= 0 ; i--) {
-                            if (eval_time > keyframes[i].sample.time  ) {
-                                timelineData->GetData().currentTime = keyframes[i].sample.time + layerInfo.time.Begin;
-                                float left_border = horizontalTransform->getPostionScreen_real(horizontalTransform->getLeftBoundView_global_real());
-                                float need_border = horizontalTransform->getPostionScreen_real(timelineData->GetData().currentTime);
-
-                                if (need_border < left_border) {
-                                    float dif = left_border - need_border;
-                                    horizontalTransform->addOffset((dif + 100.f));
-                                }
-                                break;
-                            }
-                        }
-
-                    }
 
 
 
@@ -853,23 +837,6 @@ void Timeline_Layers_List::Draw() {
                         ROMB_hovered,
                         ROMB_held
                     );
-                    bool isEqual = false;
-                    uint64_t indexEqual = 0;
-                    for (size_t i = 0; i < keyframes.size(); i++) {
-                        if (keyframes[i].sample.time == eval_time) {
-                            isEqual = true;
-                            indexEqual = i;
-                            break;
-                        }
-                    }
-                    if (ROMB_pressed) {
-                        if (isEqual)
-                            value.kr.erase(indexEqual);
-                        else
-                            value.kr.add(eval_time, evaluated_value);
-                    }
-
-
 
                     T_1.x += offset * 1.5f;
                     T_2.x += offset * 1.5f;
@@ -889,11 +856,34 @@ void Timeline_Layers_List::Draw() {
                         TR_held
                     );
                     bool TR_disabled = eval_time >= keyframes.back().sample.time;
+
+
+
+
+
+                    if (TL_pressed && TL_disabled == false) {
+
+                        for (size_t j = keyframes.size() - 1; j >= 0; j--) {
+                            if (eval_time > keyframes[j].sample.time) {
+                                timelineData->GetData().currentTime = keyframes[j].sample.time + layerInfo.time.Begin;
+                                float left_border = horizontalTransform->getPostionScreen_real(horizontalTransform->getLeftBoundView_global_real());
+                                float need_border = horizontalTransform->getPostionScreen_real(timelineData->GetData().currentTime);
+
+                                if (need_border < left_border) {
+                                    float dif = left_border - need_border;
+                                    horizontalTransform->addOffset((dif + 100.f));
+                                }
+                                break;
+                            }
+                        }
+
+                    }
+
                     if (TR_pressed && TR_disabled == false) {
 
-                        for (size_t i = 0; i < keyframes.size(); i++) {
-                            if (eval_time < keyframes[i].sample.time) {
-                                timelineData->GetData().currentTime = keyframes[i].sample.time + layerInfo.time.Begin;
+                        for (size_t j = 0; j < keyframes.size(); j++) {
+                            if (eval_time < keyframes[j].sample.time) {
+                                timelineData->GetData().currentTime = keyframes[j].sample.time + layerInfo.time.Begin;
 
                                 float right_border = horizontalTransform->getPostionScreen_real(horizontalTransform->getRightBoundView_global_real());
                                 float need_border = horizontalTransform->getPostionScreen_real(timelineData->GetData().currentTime);
@@ -909,55 +899,77 @@ void Timeline_Layers_List::Draw() {
 
                     }
 
+                    bool isEqual = false;
+                    uint64_t indexEqual = 0;
+                    for (size_t j = 0; j < keyframes.size(); j++) {
+                        if (keyframes[j].sample.time == eval_time) {
+                            isEqual = true;
+                            indexEqual = j;
+                            break;
+                        }
+                    }
+                    if (ROMB_pressed) {
+                        if (isEqual)
+                            value.kr.erase(indexEqual);
+                        else
+                            value.kr.add(eval_time, evaluated_value);
+                    }
 
-                    ImColor color_tl = color_default;
-                    ImColor color_rect = color_hovered;
+
+
+                    ImColor color_tl = COLOR_DEFAULT;
                     if (TL_disabled)
-                        color_tl = color_disabled;
+                        color_tl = COLOR_DISABLED;
                     if (TL_hovered && !TL_disabled)
-                        color_tl = color_hovered;
+                        color_tl = COLOR_DEFAULT_HOVERED;
 
 
 
-                    ImColor color_tr = color_default;
+                    ImColor color_tr = COLOR_DEFAULT;
                     if (TR_disabled)
-                        color_tr = color_disabled;
+                        color_tr = COLOR_DISABLED;
                     if (TR_hovered && !TR_disabled)
-                        color_tr = color_hovered;
+                        color_tr = COLOR_DEFAULT_HOVERED;
 
 
-                    ImColor color_romb = color_default;
-                    ImColor color_romb_back = color_back_romb;
-                    ImColor color_romb_bound = color_disabled;
+                    ImColor color_romb          = COLOR_DEFAULT;
+                    ImColor color_romb_back     = COLOR_BG_BUTTONS_HOVERED;
+                    ImColor color_romb_bound    = COLOR_DISABLED;
 
+
+                    if (ROMB_hovered)
+                        color_romb_bound = COLOR_DEFAULT_HOVERED;
 
                     if (isEqual){
-                        color_romb = ImColor(.25f, .59f, .95f, 1.f);
+                        if (ROMB_hovered)
+                            color_romb = COLOR_CHANGEBLE_HOVERED;
+                        else
+                            color_romb = COLOR_CHANGEBLE;
+
                         color_romb_back = color_romb;
                     }
-                    if (ROMB_hovered)
-                        color_romb_bound = color_hovered;
+
 
 
 
 
                     if (TL_disabled == false && TL_hovered) {
-                        draw_list->AddRectFilled({ TL_min.x - 0.5f, TL_min.y - 0.5f }, { TL_max.x + 0.5f, TL_max.y + 0.5f }, color_hovered, 2.5f);
-                        draw_list->AddRectFilled(TL_min, TL_max, color_back_rect, 2.5f);
+                        draw_list->AddRectFilled({ TL_min.x - 0.5f, TL_min.y - 0.5f }, { TL_max.x + 0.5f, TL_max.y + 0.5f }, COLOR_DISABLED, 2.5f);
+                        draw_list->AddRectFilled(TL_min, TL_max, COLOR_BG_BUTTONS, 2.5f);
                     }
                     draw_list->AddConvexPolyFilled(TL, 3, color_tl);
 
                     if (ROMB_hovered || isEqual) {
                         draw_list->AddRectFilled({ ROMB_min.x - 0.5f, ROMB_min.y - 0.5f }, { ROMB_max.x + 0.5f, ROMB_max.y + 0.5f }, color_romb_bound, 2.5f);
-                        draw_list->AddRectFilled(ROMB_min, ROMB_max, color_back_rect, 2.5f);
+                        draw_list->AddRectFilled(ROMB_min, ROMB_max, COLOR_BG_BUTTONS, 2.5f);
                     }
 
                     draw_list->AddConvexPolyFilled(ROMB_over, 8, color_romb);
                     draw_list->AddConvexPolyFilled(ROMB, 8, color_romb_back);
 
                     if (TR_disabled == false && TR_hovered) {
-                        draw_list->AddRectFilled({ TR_min.x - 0.5f, TR_min.y - 0.5f }, { TR_max.x + 0.5f, TR_max.y + 0.5f }, color_hovered, 2.5f);
-                        draw_list->AddRectFilled(TR_min, TR_max, color_back_rect, 2.5f);
+                        draw_list->AddRectFilled({ TR_min.x - 0.5f, TR_min.y - 0.5f }, { TR_max.x + 0.5f, TR_max.y + 0.5f }, COLOR_DISABLED, 2.5f);
+                        draw_list->AddRectFilled(TR_min, TR_max, COLOR_BG_BUTTONS, 2.5f);
                     }
                     draw_list->AddConvexPolyFilled(TR, 3, color_tr);
 
@@ -990,15 +1002,13 @@ void Timeline_Layers_List::Draw() {
                 ImGui::SameLine(0.f, 10.f);
 
 
-                draw_list->AddText({ p.x + offsetX + 22.f,p.y - offsetY + 1.f }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), name.c_str());
+                draw_list->AddText({ p.x + offsetX + 22.f,p.y - offsetY + 1.f }, COLOR_DEFAULT, name.c_str());
 
 
                 //draw_list->
                 offsetX = columns[TOGGLES].startCursorPos;
                 ImGui::SetCursorScreenPos(ImVec2(p.x + offsetX, p.y - offsetY + 1.f));
-                ImColor col_text(.25f, .59f, .95f, 1.f);
-                ImColor col_text_hovered(.36f, .64f, .93f, 1.f);
-                ImColor col_comma = ImGui::GetColorU32(ImGuiCol_Text);
+
 
                 float xxx = p.x;
                 float yyy = p.y;
@@ -1008,9 +1018,6 @@ void Timeline_Layers_List::Draw() {
 
 
                 char text[32];
-
-                
-
                 auto AddButtonAndAdvance = [&]() {
 
                     for (size_t j = 0; j < evaluated_value.size(); j++) {
@@ -1027,17 +1034,19 @@ void Timeline_Layers_List::Draw() {
                             held
                         );
 
-                        ImColor color = col_text;
+                        ImColor color = COLOR_CHANGEBLE;
 
                         if (hovered || held) {
-                            color = col_text_hovered;
+                            color = COLOR_CHANGEBLE_HOVERED;
                             CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_HORIZONTAL);
                         }
+                        if (held)
+                            color = COLOR_CHANGEBLE_HELD;
 
                         if (held) {
                             float delta = ImGui::GetIO().MouseDelta.x * 0.01;
 
-                            auto def_val = value.kr.getDefaultValue();
+                            auto def_val = evaluated_value;
                             def_val[j] += delta;
                             value.kr.setDefaultValue(def_val);
 
@@ -1053,7 +1062,7 @@ void Timeline_Layers_List::Draw() {
                         p.x += ImGui::CalcTextSize(text).x + ImGui::GetStyle().ItemSpacing.x;
 
                         if (j != evaluated_value.size() - 1) {
-                            draw_list->AddText(p, col_comma, ", ");
+                            draw_list->AddText(p, COLOR_DEFAULT, ", ");
                             p.x += ImGui::CalcTextSize(", ").x + ImGui::GetStyle().ItemSpacing.x;
                         }
                     }
@@ -1070,16 +1079,11 @@ void Timeline_Layers_List::Draw() {
 
                 if  constexpr (std::is_same_v<ValueType, TPColor>) {
 
-
-
                     float size_rect_color = itemHeight / 2.f;
                     p.x -= size_rect_color + 5.f;
 
                     ImVec2 p_rect_min = { p.x,-1.f + p.y + itemHeight / 2.f - size_rect_color / 2.f };
                     ImVec2 p_rect_max = { p.x + size_rect_color,-1.f + p.y + itemHeight / 2.f + size_rect_color / 2.f };
-
-
-
 
                     ImRect bb(p_rect_min, p_rect_max);
                     ImGuiID id = ImGui::GetID((std::to_string(0) + std::string("COLOR_BUTTON_PROPERTIE_") + name + std::to_string(i)).c_str());
@@ -1092,10 +1096,10 @@ void Timeline_Layers_List::Draw() {
 
 
                     ImColor color_show(evaluated_value[0], evaluated_value[1], evaluated_value[2], evaluated_value[3]);
-                    ImColor color_border(0.f, 0.f, 0.f, 1.f);
+                    ImColor color_border = COLOR_BG_BUTTONS;
 
                     if (hovered) {
-                        color_border = { .39f,.39f ,.39f ,1.f };
+                        color_border = COLOR_DISABLED;
                         CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
                     }
 
@@ -1143,6 +1147,7 @@ void Timeline_Layers_List::Draw() {
 
 
                 p.y += itemHeight;
+                heightContent += itemHeight;
                 draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
 
                 ImGui::SetCursorScreenPos(p);
@@ -1155,6 +1160,7 @@ void Timeline_Layers_List::Draw() {
 	}
 
 
+    verticalTransform->updateContentHeight(heightContent);
 }
 
 

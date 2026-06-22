@@ -1,7 +1,8 @@
 ﻿#ifndef UTILS_COLOR_H
 #define UTILS_COLOR_H
 
-
+#include "ThirdParty/ImGui/imgui.h"
+#include "ThirdParty/ImGui/imgui_internal.h"
 #include <glm/glm.hpp>
 
 /// <summary>
@@ -11,6 +12,25 @@
 /// </summary>
 struct colorRGB {
 	float r, g, b;
+	colorRGB() = default;
+	colorRGB(const ImColor& color) {
+		r = color.Value.x;
+		g = color.Value.y;
+		b = color.Value.z;
+	}
+
+	colorRGB(float red, float green, float blue) {
+		this->r = red;
+		this->g = green;
+		this->b = blue;
+	}
+
+	colorRGB(const colorRGB& color) {
+		this->r = color.r;
+		this->g = color.g;
+		this->b = color.b;
+	}
+
 };
 
 /// <summary>
@@ -22,9 +42,7 @@ struct colorHSV {
 	float h, s, v;
 };
 
-
 uint32_t get32uint(const colorRGB& color);
-
 
 colorHSV rgb2hsv(const colorRGB& color);
 colorRGB hsv2rgb(const colorHSV& color);
