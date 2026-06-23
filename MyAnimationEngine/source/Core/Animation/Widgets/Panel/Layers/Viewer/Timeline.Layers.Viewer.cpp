@@ -1,6 +1,8 @@
 ﻿#include "Timeline.Layers.Viewer.h"
 #include "CursorManager/CursorManger.h"
 #include "Core/DebugOverlay/DebugOverlay.h"
+#include "Core/Animation/Widgets/Panel/Textures/Noise/Texture.Noise.h"
+
 
 Timeline_Layers_Viewer::Timeline_Layers_Viewer(
 	Timeline_TimeCursor* timeCursor,
@@ -68,6 +70,13 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 	draw_list->AddRect({ rect.Min.x - 0.5f,rect.Min.y + 2.f }, { rect.Max.x + 0.5f, round(rect.Max.y) }, ImColor(outline.r, outline.g, outline.b, 1.f), 0.f, 0, 1.f);
 	if (!hovered)
 		draw_list->AddRect({ rect.Min.x-1.2f, rect.Max.y-2.f }, { rect.Max.x + 1.2f, round(rect.Max.y) }, ImColor(underline.r, underline.g, underline.b, 1.f), 1.f);
+
+	
+	float width		= rect.Max.x - rect.Min.x;
+	float height	= rect.Max.y - rect.Min.y;
+
+	draw_list->AddImage(NoiseTexture::getInstance().getID(), rect.Min, rect.Max, { rect.Min.x / 512.f,rect.Min.y/512.f }, { rect.Max.x / 512.f,rect.Max.y / 512.f }, ImColor(1.f,1.f,1.f,0.3f));
+
 }
 
 
@@ -192,7 +201,8 @@ void Timeline_Layers_Viewer::Draw() {
 				index_drag = index;
 				drag_start_time_begin = time_begin;
 				length_drag = time_end - time_begin;
-				drag_start_mouse_global = horizontalTransform->getPostionGlobal_lerped(ImGui::GetMousePos().x - cursor_pos.x);
+				drag_start_mouse_global = horizontalTransform->getPostionGlobal_real(ImGui::GetMousePos().x - cursor_pos.x);
+				offset_from_begin_time_layer = drag_start_mouse_global - time_begin;
 			}
 		}
 
@@ -208,6 +218,26 @@ void Timeline_Layers_Viewer::Draw() {
 			index_drag = UINT64_MAX;
 		}
 
+
+		if (draging_status == ObjectStatus::BODY_MOVE && index_drag == index) {
+			float screen_pos_x = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + offset_from_begin_time_layer);
+			const int count = 4;
+			const float gap = 3.f;
+			const float offset = -gap * float(count) / 2.f;
+			for (size_t index_line = 0; index_line < count; index_line++) {
+				float g = gap * (float)index_line;
+				draw_list->AddLine(
+					{ std::round(screen_pos_x + offset + g), rect_min.y + 4.f},
+					{ std::round(screen_pos_x + offset + g), rect_max.y - 4.f },
+					ImColor(1.f, 1.f, 1.f, 0.5f)
+				);
+				draw_list->AddLine(
+					{ std::round(screen_pos_x + 1.f + offset + g), rect_min.y + 4.f },
+					{ std::round(screen_pos_x + 1.f + offset + g), rect_max.y - 4.f },
+					ImColor(0.f, 0.f, 0.f, 0.35f)
+				);
+			}
+		}
 
 		if (layerInfo.isVisible == false) {
 			draw_list->AddRectFilled({ p_min.x,rect_min.y }, { p_max.x,rect_max.y }, ImColor(0.f, 0.f, 0.f, 0.7f), 0.f, 0);

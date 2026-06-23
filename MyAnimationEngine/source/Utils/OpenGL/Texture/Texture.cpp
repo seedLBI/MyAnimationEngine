@@ -1,4 +1,4 @@
-#include "Texture.h"
+﻿#include "Texture.h"
 
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -26,6 +26,23 @@ Texture::~Texture() {
 #endif
 }
 
+
+Texture& Texture::operator=(Texture&& other) noexcept {
+	if (this != &other) {
+		if (dataImage) stbi_image_free(dataImage);
+		glDeleteTextures(1, &ID);
+
+		ID = other.ID;
+		info = other.info;
+		setting = other.setting;
+
+		other.ID = 0;
+		other.dataImage = nullptr;
+	}
+	return *this;
+}
+
+
 Texture::Texture(const TextureSetting& setting, const std::string& Path2Image, const int& desiredCount_channels) : Texture() {
 	SetSetting(setting);
 	LoadTexture(Path2Image, desiredCount_channels);
@@ -48,10 +65,10 @@ Texture::Texture(
 
 	glBindTexture(GL_TEXTURE_2D, ID);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, setting.WrapX);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, setting.WrapY);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, setting.Min);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, setting.Max);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,		setting.WrapX);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,		setting.WrapY);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,	setting.Min);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,	setting.Max);
 
 	glTexImage2D(GL_TEXTURE_2D, MipMapLevel, internalFormat, info.width, info.height, 0, format, type, data);
 }
@@ -64,7 +81,7 @@ int Texture::GetHeight() {
 	return info.height;
 }
 
-int Texture::GetID() {
+GLuint Texture::GetID() {
 	return ID;
 }
 

@@ -44,7 +44,7 @@ TimelinePanel::TimelinePanel(
 	layerFactory->CreateSolid(7.f, 2.f);
 	layerFactory->CreateSolid(8.f, 2.f);
 
-
+	NoiseTexture::getInstance();
 
 
 }

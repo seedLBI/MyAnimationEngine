@@ -27,6 +27,8 @@
 
 #include "Core/DebugOverlay/DebugOverlay.h"
 
+#include "Textures/Noise/Texture.Noise.h"
+
 
 
 

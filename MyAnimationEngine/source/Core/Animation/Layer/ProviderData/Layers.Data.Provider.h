@@ -23,13 +23,15 @@ public:
 	/// <param name="func(LayerObject* layer, uint64_t index)"></param>
 	template<typename Func>
 	void forEach(Func&& func) const {
-		uint64_t index = 0;
+		//uint64_t index = 0;
+		uint64_t true_index = UINT64_MAX;
 		for (auto& layerObject_ptr : data.layers) {
+			true_index++;
 			if ( text_find.empty() == false && layerObject_ptr.get()->GetLayerInfo().name.find(text_find) == std::string::npos)
 				continue;
 			
-			func(layerObject_ptr.get(), index);
-			index++;
+			func(layerObject_ptr.get(), true_index);
+			//index++;
 		}
 	}
 

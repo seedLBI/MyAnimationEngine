@@ -248,13 +248,13 @@ bool Timeline_Layers_List::drawAnimationEnabler(bool& value, std::string index, 
 }
 
 
-void Timeline_Layers_List::DrawObject(LayerObject* object)
+void Timeline_Layers_List::DrawObject(LayerObject* object, uint64_t index)
 {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    std::string index = std::to_string(object->GetLayerInfo().index);
+    std::string str_index = std::to_string(index);
     float height_object = verticalTransform->getScaledHeightOneObject();
 
-    ImGui::BeginChild(("##Layer##" + index).c_str(), ImVec2(ImGui::GetContentRegionAvail().x, height_object), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::BeginChild(("##Layer##" + str_index).c_str(), ImVec2(ImGui::GetContentRegionAvail().x, height_object), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
     const float margin = 5.f;
 
@@ -274,7 +274,7 @@ void Timeline_Layers_List::DrawObject(LayerObject* object)
         if ((current_col == TypeColumn::MARKER || current_col == TypeColumn::INDEX || current_col == TypeColumn::NAME) && toggle_drawed == false) {
             toggle_drawed = true;
             ImGui::SetCursorScreenPos(ImVec2(columns[current_col].startCursorPos - 20.f, startY));
-            DrawToggle(object);
+            DrawToggle(object, index);
         }
 
         ImGui::SetCursorScreenPos(ImVec2(columns[current_col].startCursorPos, startY));
@@ -286,7 +286,7 @@ void Timeline_Layers_List::DrawObject(LayerObject* object)
             ImGui::SetCursorScreenPos(ImVec2(av_symbols_cursor_pos[AV_SYMBOLS::VISIBLE], startY));
             drawTriggerButton(
                 object->GetLayerInfo().isVisible,
-                ("##LAYER_VISIBLE_TRIGGER" + index).c_str(),
+                ("##LAYER_VISIBLE_TRIGGER" + str_index).c_str(),
                 ICON_FA_EYE,
                 height_object
             );
@@ -295,7 +295,7 @@ void Timeline_Layers_List::DrawObject(LayerObject* object)
             ImGui::SetCursorScreenPos(ImVec2(av_symbols_cursor_pos[AV_SYMBOLS::LOCK], startY));
             drawTriggerButton(
                 object->GetLayerInfo().isLocked,
-                ("##LAYER_LOCKED_TRIGGER" + index).c_str(),
+                ("##LAYER_LOCKED_TRIGGER" + str_index).c_str(),
                 ICON_FA_LOCK,
                 height_object
             );
@@ -304,24 +304,24 @@ void Timeline_Layers_List::DrawObject(LayerObject* object)
             ImGui::SetCursorScreenPos(ImVec2(av_symbols_cursor_pos[AV_SYMBOLS::ONLY], startY));
             drawTriggerButton(
                 object->GetLayerInfo().isOnly,
-                ("##LAYER_ONLY_VISIBLE_TRIGGER" + index).c_str(),
+                ("##LAYER_ONLY_VISIBLE_TRIGGER" + str_index).c_str(),
                 "CIRCLE",
                 height_object
             );
             break;
         }
         case TypeColumn::MARKER: {
-            DrawLayerColor(object);
+            DrawLayerColor(object, index);
             break;
         }
         case TypeColumn::INDEX: {
-            DrawLayerIndex(object);
+            DrawLayerIndex(object, index);
             break;
         }
         case TypeColumn::NAME: {
-            DrawLayerIconType(object);
+            DrawLayerIconType(object, index);
             ImGui::SameLine(0.f, margin);
-            DrawLayerName(object);
+            DrawLayerName(object, index);
             break;
         }
         case TypeColumn::TOGGLES: {
@@ -345,9 +345,9 @@ void Timeline_Layers_List::DrawObject(LayerObject* object)
     ImGui::EndChild();
 }
 
-bool Timeline_Layers_List::DrawToggle(LayerObject* object) {
-    std::string index = std::to_string(object->GetLayerInfo().index);
-    std::string label = "toggle_btn##" + index;
+bool Timeline_Layers_List::DrawToggle(LayerObject* object, uint64_t index) {
+    std::string str_index = std::to_string(index);
+    std::string label = "toggle_btn##" + str_index;
 
     ImGui::PushID(label.c_str());
 
@@ -360,7 +360,7 @@ bool Timeline_Layers_List::DrawToggle(LayerObject* object) {
     float offsetY = (itemHeight - textHeight) * 0.5f;
     pos.y -= offsetY + 1.f;
 
-    ImGui::InvisibleButton(("##icon_toggle##" + index).c_str(), size);
+    ImGui::InvisibleButton(("##icon_toggle##" + str_index).c_str(), size);
 
     bool changed = false;
     if (ImGui::IsItemClicked())
@@ -390,8 +390,8 @@ bool Timeline_Layers_List::DrawToggle(LayerObject* object) {
     ImGui::PopID();
     return changed;
 }
-void Timeline_Layers_List::DrawLayerColor(LayerObject* object) {
-    std::string index = std::to_string(object->GetLayerInfo().index);
+void Timeline_Layers_List::DrawLayerColor(LayerObject* object, uint64_t index) {
+    std::string str_index = std::to_string(index);
 
     float c[3] = { 
         object->GetLayerInfo().color.r, 
@@ -399,8 +399,8 @@ void Timeline_Layers_List::DrawLayerColor(LayerObject* object) {
         object->GetLayerInfo().color.b 
     };
 
-    std::string button_id = "##color_picker_layer##" + index;
-    std::string popup_id = "##color_picker_popup##" + index;
+    std::string button_id = "##color_picker_layer##" + str_index;
+    std::string popup_id = "##color_picker_popup##" + str_index;
 
     ImVec4 col = ImVec4(c[0], c[1], c[2], 1.0f);
 
@@ -436,7 +436,7 @@ void Timeline_Layers_List::DrawLayerColor(LayerObject* object) {
 
 
     if (ImGui::BeginPopup(popup_id.c_str())) {
-        ImGui::ColorPicker3(("##picker##" + index).c_str(), c,
+        ImGui::ColorPicker3(("##picker##" + str_index).c_str(), c,
             ImGuiColorEditFlags_NoAlpha |
             ImGuiColorEditFlags_NoSidePreview |
             ImGuiColorEditFlags_NoSmallPreview);
@@ -446,27 +446,27 @@ void Timeline_Layers_List::DrawLayerColor(LayerObject* object) {
 
     object->GetLayerInfo().color = { c[0], c[1], c[2] };
 }
-void Timeline_Layers_List::DrawLayerIndex(LayerObject* object) {
+void Timeline_Layers_List::DrawLayerIndex(LayerObject* object, uint64_t index) {
 
     float itemHeight = verticalTransform->getScaledHeightOneObject();
     float textHeight = ImGui::GetTextLineHeight();
     float offsetY = (itemHeight - textHeight) * 0.5f - 1.f;
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - offsetY);
 
-    std::string str_index = std::to_string(object->GetLayerInfo().index);
+    std::string str_index = std::to_string(index);
     //PadLeft(str_index, '0', 3);
 
     Push_SmallFont();
     ImGui::TextColored(COLOR_DEFAULT, str_index.c_str());
     Pop_SmallFont();
 }
-bool Timeline_Layers_List::DrawLayerIconType(LayerObject* object) {
+bool Timeline_Layers_List::DrawLayerIconType(LayerObject* object, uint64_t index) {
 
     float eval_time = timelineData->GetData().currentTime - object->GetLayerInfo().time.Begin;
     DrawIcon(object, verticalTransform->getScaledHeightOneObject(), eval_time);
     return false;
 }
-bool Timeline_Layers_List::DrawLayerName(LayerObject* object) {
+bool Timeline_Layers_List::DrawLayerName(LayerObject* object, uint64_t index) {
     float itemHeight = verticalTransform->getScaledHeightOneObject();
     float textHeight = ImGui::GetTextLineHeight();
     float offsetY = (itemHeight - textHeight) * 0.5f - 1.f;
@@ -739,7 +739,7 @@ void Timeline_Layers_List::Draw() {
 
         if (index == 0) ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 1.f);
 
-        DrawObject(layer);
+        DrawObject(layer, index);
 
         p.y += itemHeight;
         heightContent += itemHeight;
@@ -983,7 +983,7 @@ void Timeline_Layers_List::Draw() {
 
 
 
-                if (drawAnimationEnabler(isHaveKeyframes, ("##PROPERTIES_TRIGGER_" + std::to_string(layer->GetLayerInfo().index) + "_" + name).c_str(), itemHeight)) {
+                if (drawAnimationEnabler(isHaveKeyframes, ("##PROPERTIES_TRIGGER_" + std::to_string(index) + "_" + name).c_str(), itemHeight)) {
                     if (keyframes.empty())
                         value.kr.addFromDefaultValue(eval_time);
                     else

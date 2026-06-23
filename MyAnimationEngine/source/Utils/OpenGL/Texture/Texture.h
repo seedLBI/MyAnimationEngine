@@ -1,4 +1,4 @@
-#ifndef TEXTURE_H
+﻿#ifndef TEXTURE_H
 #define TEXTURE_H
 
 
@@ -34,6 +34,8 @@ struct TextureInfo {
 
 class Texture {
 public:
+	Texture(Texture&& other) noexcept;
+	Texture& operator=(Texture&& other) noexcept;
 	Texture();
 	Texture(TextureSetting setting,
 		const int& MipMapLevel,
@@ -54,7 +56,7 @@ public:
 	int GetWidth();
 	int GetHeight();
 
-	int GetID();
+	GLuint GetID();
 private:
 	GLuint ID;
 	TextureSetting setting;

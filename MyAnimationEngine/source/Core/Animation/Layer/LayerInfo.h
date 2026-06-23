@@ -13,7 +13,6 @@ struct TimeSector {
 
 struct LayerInfo {
 	std::string name;
-	uint64_t index;
 	colorRGB color;
 	TimeSector time;
 	bool isVisible;
