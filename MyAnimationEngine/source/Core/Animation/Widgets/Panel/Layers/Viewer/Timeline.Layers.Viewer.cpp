@@ -47,6 +47,9 @@ bool Timeline_Layers_Viewer::IsHovered_BodyMove(const ImRect& rect) {
 void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered) {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
+	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+
+	ImVec2 mouse_pos = { ImGui::GetMousePos().x - cursor_pos.x,ImGui::GetMousePos().y - cursor_pos.y };
 	
 	colorRGB outline;
 	colorRGB body = info.color;
@@ -66,16 +69,36 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 	colorRGB underline = lerp(body, colorRGB{ 0,0,0 }, 0.55f);
 
 
+	float width = rect.Max.x - rect.Min.x;
+	float height = rect.Max.y - rect.Min.y;
+
+	const float SIZE_TEX = 512.f;
+
+	float fraction_x = rect.Min.x - std::floor(rect.Min.x);
+	float fraction_y = rect.Min.y - std::floor(rect.Min.y);
+
+	
+	ImVec2 uv_min = { (float)info.time.Begin / SIZE_TEX, rect.Min.y / SIZE_TEX };
+	ImVec2 uv_max = { (float)info.time.Begin / SIZE_TEX + (width) / SIZE_TEX, rect.Max.y / SIZE_TEX};
+	
+
 	draw_list->AddRectFilled({ rect.Min.x,  rect.Min.y + 2.f }, { rect.Max.x, round(rect.Max.y) }, ImColor(body.r, body.g, body.b, 1.f), 0.f, 0);
+
+	draw_list->AddImage(
+		NoiseTexture::getInstance().getID(),
+		{ rect.Min.x,  rect.Min.y + 2.f },
+		{ rect.Max.x, round(rect.Max.y) },
+		uv_min,
+		uv_max,
+		ImColor(1.f, 1.f, 1.f, 0.35f));
+
+
 	draw_list->AddRect({ rect.Min.x - 0.5f,rect.Min.y + 2.f }, { rect.Max.x + 0.5f, round(rect.Max.y) }, ImColor(outline.r, outline.g, outline.b, 1.f), 0.f, 0, 1.f);
 	if (!hovered)
 		draw_list->AddRect({ rect.Min.x-1.2f, rect.Max.y-2.f }, { rect.Max.x + 1.2f, round(rect.Max.y) }, ImColor(underline.r, underline.g, underline.b, 1.f), 1.f);
 
 	
-	float width		= rect.Max.x - rect.Min.x;
-	float height	= rect.Max.y - rect.Min.y;
 
-	draw_list->AddImage(NoiseTexture::getInstance().getID(), rect.Min, rect.Max, { rect.Min.x / 512.f,rect.Min.y/512.f }, { rect.Max.x / 512.f,rect.Max.y / 512.f }, ImColor(1.f,1.f,1.f,0.3f));
 
 }
 
@@ -163,8 +186,8 @@ void Timeline_Layers_Viewer::Draw() {
 
 		ImGui::InvisibleButton(("Rect_LAYER##" + std::to_string(index)).c_str(), { rect.GetWidth() + width_hover * 2.f, rect.GetHeight() });
 
-		bool hovered = ImGui::IsItemHovered();
-		bool active = ImGui::IsItemActive();
+		bool hovered	= ImGui::IsItemHovered();
+		bool active		= ImGui::IsItemActive();
 
 		DrawLayerBox(rect, layerInfo, hovered || active);
 

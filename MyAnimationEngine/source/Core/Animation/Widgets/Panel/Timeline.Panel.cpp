@@ -24,7 +24,7 @@ TimelinePanel::TimelinePanel(
 	scrollHorizontal = new Timeline_Scroll_Horizontal(timelineData, timelineTransformHorizontal);
 	scrollVertical = new Timeline_Scroll_Vertical(layersData, timelineTransformVertical);
 
-	upperControls = new Timeline_UpperControls(timelineData);
+	upperControls = new Timeline_UpperControls(layersData, timelineData);
 
 	timelineRuler = new Timeline_Ruler(timelineTimeCursor, timelineController, timelineData, timelineTransformHorizontal);
 	timelineRange = new Timeline_Range(timelineTimeCursor, timelineData, timelineTransformHorizontal);

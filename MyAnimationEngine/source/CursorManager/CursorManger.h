@@ -29,6 +29,7 @@ enum class TypeCursor {
 	HAND_CLOSED,
 	RESIZE_HORIZONTAL,
 	RESIZE_VERTICAL,
+	TEXT,
 };
 
 class CursorManager {

@@ -2,8 +2,8 @@
 
 TextureSetting NoiseTexture::getSetting() {
 	TextureSetting settings;
-	settings.Min = TextureFilter::NEAREST;
-	settings.Max = TextureFilter::NEAREST;
+	settings.Min = TextureFilter::LINEAR;
+	settings.Max = TextureFilter::LINEAR;
 	settings.WrapX = TextureWrap::MIRRORED_REPEAT;
 	settings.WrapY = TextureWrap::MIRRORED_REPEAT;
 	return settings;
@@ -71,7 +71,8 @@ float noise(vec2 x) {
 out vec4 fragColor;
 
 void main() {
-	vec3 color = vec3(round(noise(gl_FragCoord.xy + vec2(475.31) )));
+	float value = noise(gl_FragCoord.xy * 2.f + vec2(475.31) );
+	vec3 color = vec3((value));
     fragColor = vec4(color, 1.f - color.x);
 }
 

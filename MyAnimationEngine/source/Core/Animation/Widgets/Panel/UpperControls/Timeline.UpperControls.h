@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
+#include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 
 #include "ThirdParty/ImGui/imgui.h"
 #include <string>
@@ -9,23 +10,25 @@
 
 class Timeline_UpperControls {
 public:
-	Timeline_UpperControls(TimelineProviderData* timelineData);
+	Timeline_UpperControls(LayersDataProvider* layersData, TimelineProviderData* timelineData);
 	~Timeline_UpperControls();
 
 	void Draw();
 	void Update();
 
 	const bool& isGraphMode();
-
+	const bool& isMotionBlurMode();
 
 private:
+	LayersDataProvider* layersData;
 	TimelineProviderData* timelineData;
 
-	bool GraphMode = false;
+	bool GraphMode		= false;
+	bool MotionBlueMode = false;
 
-	void DrawTimer();
-	void DrawFinder();
-	void DrawButtons();
+	float DrawTimer();
+	float DrawFinder(float availableWidth);
+	float DrawButtons();
 
 	std::string getTimer();
 	std::string getFrame();
