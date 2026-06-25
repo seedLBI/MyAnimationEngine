@@ -40,6 +40,4 @@
 #define COLOR_KEYFRAME_OUTLINE			ImColor(.25f, .57f, .92f, 1.f)
 
 
-
-
 #endif

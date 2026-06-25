@@ -18,6 +18,9 @@ TimelinePanel::TimelinePanel(
 	timelineTransformHorizontal = new TimelineTransformHorizontal(timelineData);
 	timelineTransformVertical	= new TimelineTransformVertical();
 
+	
+	horizontalTickRenderer = new HorizontalTickRenderer(timelineTransformHorizontal, timelineData);
+
 
 	timelineTimeCursor = new Timeline_TimeCursor(timelineData, timelineTransformHorizontal);
 
@@ -26,13 +29,14 @@ TimelinePanel::TimelinePanel(
 
 	upperControls = new Timeline_UpperControls(layersData, timelineData);
 
-	timelineRuler = new Timeline_Ruler(timelineTimeCursor, timelineController, timelineData, timelineTransformHorizontal);
+	timelineRuler = new Timeline_Ruler(timelineTimeCursor, timelineController, timelineData, timelineTransformHorizontal, horizontalTickRenderer);
 	timelineRange = new Timeline_Range(timelineTimeCursor, timelineData, timelineTransformHorizontal);
 
 	layersViewer = new Timeline_Layers_Viewer(timelineTimeCursor, layersData, timelineData, timelineTransformVertical, timelineTransformHorizontal);
 
-	layersList = new Timeline_Layers_List(layersData, timelineData, timelineTransformHorizontal, timelineTransformVertical);
+	layersList = new Timeline_Layers_List(layersData, timelineData, timelineController, timelineTransformHorizontal, timelineTransformVertical);
 
+	graph = new Timeline_Graph(layersData, timelineData, timelineController, timelineTransformHorizontal, horizontalTickRenderer);
 
 	layerFactory->CreateSolid(0.f, 2.f);
 	layerFactory->CreateSolid(1.f, 2.f);
@@ -243,7 +247,9 @@ void TimelinePanel::DrawLayerSide_3Level(const float& height) {
 void TimelinePanel::DrawTimelineSide_3Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_TimelineSide_3Level", ImVec2(ImGui::GetContentRegionAvail().x - 20, height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-	if (!upperControls->isGraphMode())
+	if (upperControls->isGraphMode())
+		graph->Draw();
+	else
 		layersViewer->Draw();
 		
 
@@ -316,7 +322,9 @@ void TimelinePanel::Update() {
 	timelineRange->Update();
 	layersList->Update();
 
-	if (!upperControls->isGraphMode())
+	if (upperControls->isGraphMode())
+		graph->Update();
+	else
 		layersViewer->Update();
 
 	upperControls->Update();

@@ -354,6 +354,18 @@
     <ClCompile Include="source\Utils\OpenGL\Shaders\Shader.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Graph\Timeline.Graph.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Graph\VerticalTransform\Timeline.Graph.Transform.Vertical.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Application\Application.h">
@@ -582,6 +594,18 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Utils\OpenGL\Shaders\Shader.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Graph\Timeline.Graph.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Graph\VerticalTransform\Timeline.Graph.Transform.Vertical.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

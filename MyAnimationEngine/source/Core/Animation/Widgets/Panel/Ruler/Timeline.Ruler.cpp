@@ -10,11 +10,14 @@ Timeline_Ruler::Timeline_Ruler(
 	Timeline_TimeCursor* timeCursor,
 	TimelineController* timelineController,
 	TimelineProviderData* timelineData, 
-	TimelineTransformHorizontal* timelineTransformHorizontal) 
+	TimelineTransformHorizontal* timelineTransformHorizontal,
+	HorizontalTickRenderer* horizontalTickRenderer
+)
 	: timeCursor(timeCursor),
 	  timelineController(timelineController),
 	  timelineData(timelineData),
-	  timelineTransformHorizontal(timelineTransformHorizontal)
+	  timelineTransformHorizontal(timelineTransformHorizontal),
+	  horizontalTickRenderer(horizontalTickRenderer)
 {
 
 }
@@ -127,10 +130,19 @@ void Timeline_Ruler::Draw() {
 
 
 
+	horizontalTickRenderer->DrawTicks(
+		p_min,
+		p_max,
+		color_mainTick, color_subTick,
+		width_main_tick, width_sub_tick,
+		ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight() / 3.f, ImGui::GetTextLineHeight() / 1.5f,
+		true
+	);
 
+	/*
 	int count_tick_rendered = 0;
 
-	float height_main_tick = ImGui::GetTextLineHeight();
+	float height_main_tick		= ImGui::GetTextLineHeight();
 	float height_sub_minor_tick = ImGui::GetTextLineHeight() / 3.f;
 	float height_sub_major_tick = ImGui::GetTextLineHeight() / 1.5f;
 
@@ -152,6 +164,8 @@ void Timeline_Ruler::Draw() {
 
 	int begin_index_main_tick = timelineTransformHorizontal->getLeftBoundView_global_lerped() / step_Main;
 	if (begin_index_main_tick < 0) begin_index_main_tick = 0;
+
+
 
 
 	float step_Sub = 1.f / (float)timelineData->GetData().framerate;
@@ -256,7 +270,7 @@ void Timeline_Ruler::Draw() {
 		}
 
 	}
-	
+	*/
 
 
 
@@ -275,7 +289,7 @@ void Timeline_Ruler::Draw() {
 	);
 
 
-	DebugOverlay::AddText("tick rendered: " + std::to_string(count_tick_rendered), ImColor(1.f, 0.3f, 0.3f, 1.f));
+	//DebugOverlay::AddText("tick rendered: " + std::to_string(count_tick_rendered), ImColor(1.f, 0.3f, 0.3f, 1.f));
 
 	timeCursor->Draw(p_min, p_max);
 

@@ -5,6 +5,7 @@
 #include "Core/Animation/Widgets/Panel/Transform/Vertical/Timeline.Transform.Vertical.h"
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
+#include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
 #include "IconDrawer/Timeline.Layers.Icon.Drawer.h"
 
 
@@ -14,8 +15,9 @@
 class Timeline_Layers_List {
 public:
 	Timeline_Layers_List(
-		LayersDataProvider* layersData, 
+		LayersDataProvider* layersData,
 		TimelineProviderData* timelineData,
+		TimelineController* timelineController,
 		TimelineTransformHorizontal* horizontalTransform,
 		TimelineTransformVertical* verticalTransform);
 	~Timeline_Layers_List();
@@ -31,6 +33,7 @@ public:
 private:
 	LayersDataProvider* layersData;
 	TimelineProviderData* timelineData;
+	TimelineController* timelineController;
 	TimelineTransformHorizontal*	horizontalTransform;
 	TimelineTransformVertical*		verticalTransform;
 

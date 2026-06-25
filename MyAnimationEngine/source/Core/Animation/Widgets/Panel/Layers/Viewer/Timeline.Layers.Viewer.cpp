@@ -69,25 +69,27 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 	colorRGB underline = lerp(body, colorRGB{ 0,0,0 }, 0.55f);
 
 
-	float width = rect.Max.x - rect.Min.x;
-	float height = rect.Max.y - rect.Min.y;
+
 
 	const float SIZE_TEX = 512.f;
 
-	float fraction_x = rect.Min.x - std::floor(rect.Min.x);
-	float fraction_y = rect.Min.y - std::floor(rect.Min.y);
+	// вот именно с таким width классно выглядит
+	float width		= horizontalTransform->getPostionScreen_real(info.time.End) - horizontalTransform->getPostionScreen_real(info.time.Begin);
+	float height	= rect.Max.y - rect.Min.y;
 
+	float uv_width = width / SIZE_TEX;
+	float uv_height = height / SIZE_TEX;
 	
-	ImVec2 uv_min = { (float)info.time.Begin / SIZE_TEX, rect.Min.y / SIZE_TEX };
-	ImVec2 uv_max = { (float)info.time.Begin / SIZE_TEX + (width) / SIZE_TEX, rect.Max.y / SIZE_TEX};
-	
+	ImVec2 uv_min = { 0.f, 0.f };
+	ImVec2 uv_max = { uv_width, uv_height };
+
 
 	draw_list->AddRectFilled({ rect.Min.x,  rect.Min.y + 2.f }, { rect.Max.x, round(rect.Max.y) }, ImColor(body.r, body.g, body.b, 1.f), 0.f, 0);
 
 	draw_list->AddImage(
 		NoiseTexture::getInstance().getID(),
-		{ rect.Min.x,  rect.Min.y + 2.f },
-		{ rect.Max.x, round(rect.Max.y) },
+		{ rect.Min.x,	rect.Min.y + 2.f },
+		{ rect.Max.x,	round(rect.Max.y) },
 		uv_min,
 		uv_max,
 		ImColor(1.f, 1.f, 1.f, 0.35f));
@@ -96,9 +98,6 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 	draw_list->AddRect({ rect.Min.x - 0.5f,rect.Min.y + 2.f }, { rect.Max.x + 0.5f, round(rect.Max.y) }, ImColor(outline.r, outline.g, outline.b, 1.f), 0.f, 0, 1.f);
 	if (!hovered)
 		draw_list->AddRect({ rect.Min.x-1.2f, rect.Max.y-2.f }, { rect.Max.x + 1.2f, round(rect.Max.y) }, ImColor(underline.r, underline.g, underline.b, 1.f), 1.f);
-
-	
-
 
 }
 

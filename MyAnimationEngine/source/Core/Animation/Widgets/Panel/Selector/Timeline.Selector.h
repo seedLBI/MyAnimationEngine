@@ -1,0 +1,7 @@
+﻿#ifndef TIMELINE_SELECTOR_H
+#define TIMELINE_SELECTOR_H
+
+
+
+
+#endif

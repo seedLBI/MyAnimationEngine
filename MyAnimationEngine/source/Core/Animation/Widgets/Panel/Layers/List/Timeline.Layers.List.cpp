@@ -9,11 +9,12 @@
 #include "Utils/ImGui/Utils.ImGui.h"
 #include <cstring>
 
-Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, TimelineProviderData* timelineData, TimelineTransformHorizontal* horizontalTransform, TimelineTransformVertical* verticalTransform)
-	: layersData(layersData),
+Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, TimelineProviderData* timelineData, TimelineController* timelineController, TimelineTransformHorizontal* horizontalTransform, TimelineTransformVertical* verticalTransform)
+	: layersData (layersData),
       timelineData (timelineData),
-      horizontalTransform(horizontalTransform),
-	  verticalTransform(verticalTransform)
+      timelineController (timelineController),
+      horizontalTransform (horizontalTransform),
+	  verticalTransform (verticalTransform)
 {
 
     columns.resize(8);
@@ -1036,17 +1037,17 @@ void Timeline_Layers_List::Draw() {
                             color = COLOR_CHANGEBLE_HELD;
 
                         if (held) {
-                            float delta = ImGui::GetIO().MouseDelta.x * 0.01;
+                            if (timelineController->GetState() == TimelineRunState::PAUSE) {
+                                float delta = ImGui::GetIO().MouseDelta.x * 0.01;
 
-                            auto def_val = evaluated_value;
-                            def_val[j] += delta;
-                            value.kr.setDefaultValue(def_val);
+                                auto def_val = evaluated_value;
+                                def_val[j] += delta;
+                                value.kr.setDefaultValue(def_val);
 
-                            if (value.kr.getKeyframes().empty() == false) {
-                                value.kr.add(eval_time, def_val, TypeKeyframe::LINEAR);
+                                if (value.kr.getKeyframes().empty() == false) {
+                                    value.kr.add(eval_time, def_val, TypeKeyframe::LINEAR);
+                                }
                             }
-
-
                         }
 
                         draw_list->AddText(p, color, text);
@@ -1120,11 +1121,14 @@ void Timeline_Layers_List::Draw() {
                             ImGuiColorEditFlags_AlphaBar)) {
 
 
-                            value.kr.setDefaultValue(evaluated_value);
+                            if (timelineController->GetState() == TimelineRunState::PAUSE) {
+                                value.kr.setDefaultValue(evaluated_value);
 
-                            if (value.kr.getKeyframes().empty() == false) {
-                                value.kr.add(eval_time, evaluated_value, TypeKeyframe::LINEAR);
+                                if (value.kr.getKeyframes().empty() == false) {
+                                    value.kr.add(eval_time, evaluated_value, TypeKeyframe::LINEAR);
+                                }
                             }
+
                         }
 
 

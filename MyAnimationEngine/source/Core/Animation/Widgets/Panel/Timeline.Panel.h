@@ -21,6 +21,9 @@
 #include "Layers/List/Timeline.Layers.List.h"
 #include "Layers/Viewer/Timeline.Layers.Viewer.h"
 #include "UpperControls/Timeline.UpperControls.h"
+#include "Graph/Timeline.Graph.h"
+#include "HorizontalTickRenderer/Horizontal.Tick.Renderer.h"
+
 
 #include "TimeCursor/Timeline.TimeCursor.h"
 
@@ -62,14 +65,15 @@ private:
 	Timeline_Scroll_Vertical*   scrollVertical;
 
 
-	Timeline_TimeCursor*	timelineTimeCursor;
+	HorizontalTickRenderer* horizontalTickRenderer = nullptr;
 
+	Timeline_TimeCursor*	timelineTimeCursor;
 	Timeline_Ruler*			timelineRuler;
 	Timeline_Range*			timelineRange;
 	Timeline_Layers_List*	layersList;
 	Timeline_Layers_Viewer* layersViewer;
 	Timeline_UpperControls* upperControls;
-
+	Timeline_Graph*			graph;
 
 
 	void Draw_1Level(const float& thickness_separator);

@@ -3,6 +3,7 @@
 
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Widgets/Panel/Transform/Horizontal/Timeline.Transform.Horizontal.h"
+#include "Core/Animation/Widgets/Panel/HorizontalTickRenderer/Horizontal.Tick.Renderer.h"
 #include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
 #include "Utils/Timer/Timer.Framerate.h"
 
@@ -14,7 +15,13 @@
 
 class Timeline_Ruler {
 public:
-	Timeline_Ruler(Timeline_TimeCursor* timeCursor, TimelineController* timelineController, TimelineProviderData* timelineData, TimelineTransformHorizontal* timelineTransformHorizontal);
+	Timeline_Ruler(
+		Timeline_TimeCursor* timeCursor, 
+		TimelineController* timelineController, 
+		TimelineProviderData* timelineData, 
+		TimelineTransformHorizontal* timelineTransformHorizontal,
+		HorizontalTickRenderer* horizontalTickRenderer
+	);
 	~Timeline_Ruler();
 
 	void Draw();
@@ -29,6 +36,9 @@ private:
 	TimelineController* timelineController = nullptr;
 	TimelineProviderData* timelineData = nullptr;
 	TimelineTransformHorizontal* timelineTransformHorizontal = nullptr;
+
+	HorizontalTickRenderer* horizontalTickRenderer = nullptr;
+
 	
 	float mouse_global;
 	float mouse_screen;

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Microsoft.Windows.CppWinRT.2.0.220531.1\build\native\Microsoft.Windows.CppWinRT.props" Condition="Exists('..\packages\Microsoft.Windows.CppWinRT.2.0.220531.1\build\native\Microsoft.Windows.CppWinRT.props')" />
   <ItemGroup Label="ProjectConfigurations">
@@ -28,7 +28,11 @@
     <ClCompile Include="source\Core\Animation\Renderer\Renderer.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Controller\Timeline.Controller.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Graph\Timeline.Graph.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Graph\VerticalTransform\Timeline.Graph.Transform.Vertical.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\List\IconDrawer\Timeline.Layers.Icon.Drawer.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Textures\Noise\Texture.Noise.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\Vertical\Timeline.Transform.Vertical.cpp" />
@@ -100,7 +104,11 @@
     <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Data\Timeline.Data.h" />
     <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Colors\Panel.Colors.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Graph\Timeline.Graph.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Graph\VerticalTransform\Timeline.Graph.Transform.Vertical.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\List\IconDrawer\Timeline.Layers.Icon.Drawer.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Textures\Noise\Texture.Noise.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Vertical\Timeline.Transform.Vertical.h" />
