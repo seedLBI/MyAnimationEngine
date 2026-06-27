@@ -22,7 +22,7 @@ void HorizontalTickRenderer::DrawTicks(
 	ImColor colorMain, ImColor colorSub,
 	float widthMain, float widthSub,
 	float heightMain, float heightSubMinor, float heightSubMajor,
-	bool drawText
+	bool drawText, bool drawAllSide_SubTicks
 )
 {
 	auto drawlist = ImGui::GetWindowDrawList();
@@ -78,6 +78,56 @@ void HorizontalTickRenderer::DrawTicks(
 	if (draw_sub_ticks && distance_between_sub_ticks > 0.001f && distance_between_sub_ticks < 52.f) {
 		sub_text_step = std::ceil(52.f / distance_between_sub_ticks);
 	}
+
+	if (drawAllSide_SubTicks && draw_sub_ticks) {
+
+
+		float left_bound = timelineTransformHorizontal->getLeftBoundView_global_lerped();
+		float right_bound = timelineTransformHorizontal->getRightBoundView_global_lerped();
+
+		float pos_begin_timeline = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(0.f);
+		float pos_end_timeline = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(timelineData->GetData().totalTime);
+
+		if (left_bound < 0.f) {
+			float time_sub_tick = 0.f - step_Sub;
+
+			while (time_sub_tick >= left_bound) {
+
+				float pos_tick = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(time_sub_tick);
+
+				ImVec2 min_pos_tick = { pos_tick - widthSub / 2.f, p_min.y };
+				ImVec2 max_pos_tick = { pos_tick + widthSub / 2.f, p_max.y };
+
+
+				drawlist->AddRectFilled(min_pos_tick, max_pos_tick, colorSub, 0.f);
+
+				time_sub_tick -= step_Sub;
+			}
+
+
+
+		}
+		if (right_bound > timelineData->GetData().totalTime) {
+			float time_sub_tick = timelineData->GetData().totalTime + step_Sub;
+
+			while (time_sub_tick <= right_bound) {
+
+				float pos_tick = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(time_sub_tick);
+
+				ImVec2 min_pos_tick = { pos_tick - widthSub / 2.f, p_min.y };
+				ImVec2 max_pos_tick = { pos_tick + widthSub / 2.f, p_max.y };
+
+
+				drawlist->AddRectFilled(min_pos_tick, max_pos_tick, colorSub, 0.f);
+
+				time_sub_tick += step_Sub;
+			}
+		}
+
+
+	}
+
+
 
 
 	for (size_t i = begin_index_main_tick; i <= count_main_tick; i++) {

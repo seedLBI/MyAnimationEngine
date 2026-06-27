@@ -21,7 +21,7 @@ public:
 		ImColor colorMain, ImColor colorSub,
 		float widthMain, float widthSub,
 		float heightMain, float heightSubMinor, float heightSubMajor,
-		bool drawText
+		bool drawText, bool drawAllSide_SubTicks = false
 	);
 
 private:

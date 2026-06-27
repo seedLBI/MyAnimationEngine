@@ -40,7 +40,7 @@ void Timeline_Graph::Draw() {
 		ImColor(0.4f, 0.4f, 0.4f, 1.f), ImColor(0.3f, 0.3f, 0.3f, 1.f),
 		1.5f, 1.f,
 		region_max.y, region_max.y, region_max.y,
-		false
+		false,true
 	);
 
 

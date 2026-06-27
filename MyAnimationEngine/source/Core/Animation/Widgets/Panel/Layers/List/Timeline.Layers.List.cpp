@@ -259,7 +259,7 @@ void Timeline_Layers_List::DrawObject(LayerObject* object, uint64_t index)
 
     const float margin = 5.f;
 
-
+    float startX = ImGui::GetCursorScreenPos().x;
     float startY = ImGui::GetCursorScreenPos().y;
 
     bool toggle_drawed = false;
@@ -274,11 +274,11 @@ void Timeline_Layers_List::DrawObject(LayerObject* object, uint64_t index)
 
         if ((current_col == TypeColumn::MARKER || current_col == TypeColumn::INDEX || current_col == TypeColumn::NAME) && toggle_drawed == false) {
             toggle_drawed = true;
-            ImGui::SetCursorScreenPos(ImVec2(columns[current_col].startCursorPos - 20.f, startY));
+            ImGui::SetCursorScreenPos(ImVec2(startX + columns[current_col].startCursorPos - 20.f, startY));
             DrawToggle(object, index);
         }
 
-        ImGui::SetCursorScreenPos(ImVec2(columns[current_col].startCursorPos, startY));
+        ImGui::SetCursorScreenPos(ImVec2(startX + columns[current_col].startCursorPos, startY));
 
 
         switch (current_col) {
@@ -523,7 +523,7 @@ void Timeline_Layers_List::DrawColumnsHeader() {
         }
 
 
-        current_column.startCursorPos = p.x;
+        current_column.startCursorPos = p.x - cursor_pos.x;
 
         const char* textToDraw = "";
 
