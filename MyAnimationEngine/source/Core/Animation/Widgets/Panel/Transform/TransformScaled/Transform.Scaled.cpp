@@ -197,5 +197,25 @@ void TransformScaled::clampScale() {
 }
 
 float TransformScaled::clampOffset(float target_offset) {
-	return std::clamp(target_offset, bounds_offset.bmin, bounds_offset.bmax);
+	float S = getLengthTick_real();
+	float H = this->availableScreenValue;
+
+	float G_min = bounds_offset.bmin;
+	float G_max = bounds_offset.bmax;
+
+	float limit1, limit2;
+
+	if (S > 0.f) {
+		limit1 = H - G_max * S;
+		limit2 = -G_min * S;
+	}
+	else {
+		limit1 = H - G_min * S;
+		limit2 = -G_max * S;
+	}
+
+	float min_bound = std::min(limit1, limit2);
+	float max_bound = std::max(limit1, limit2);
+
+	return std::clamp(target_offset, min_bound, max_bound);
 }

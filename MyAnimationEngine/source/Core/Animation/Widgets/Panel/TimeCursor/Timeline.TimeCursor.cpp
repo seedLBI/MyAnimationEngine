@@ -41,7 +41,7 @@ void Timeline_TimeCursor::Draw(const ImVec2& p_min, const ImVec2& p_max) {
 	ImColor color_alpha = ImColor(1.f, 0.0f, 0.0f, 0.f);
 
 
-	drawlist->AddRectFilled({ screen_int_cursor_pos_1 , p_min.y }, { screen_int_cursor_pos_2, p_max.y }, ImColor(1.f,1.f,1.f,0.5f), 0.f, 0.f);
+	drawlist->AddRectFilled({ screen_int_cursor_pos_1 , p_min.y }, { screen_int_cursor_pos_2, p_max.y }, ImColor(1.f,1.f,1.f,0.1f), 0.f, 0.f);
 
 
 	drawlist->AddRectFilled(min_pos, max_pos, color, 2.f, 0.f);

@@ -44,6 +44,9 @@ private:
 	float mouse_global = 0.f, mouse_screen = 0.f;
 	float scroll_zoom;
 
+
+	float min_graph = 0.f, max_graph = 0.f;
+
 	bool NeedCenterized = false;
 };
 
