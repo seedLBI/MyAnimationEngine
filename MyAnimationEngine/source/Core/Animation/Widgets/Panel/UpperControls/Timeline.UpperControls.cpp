@@ -13,7 +13,13 @@
 #include "CursorManager/CursorManger.h"
 
 
-Timeline_UpperControls::Timeline_UpperControls(LayersDataProvider* layersData, TimelineProviderData* timelineData) : layersData(layersData), timelineData(timelineData)
+Timeline_UpperControls::Timeline_UpperControls(
+	LayersDataProvider* layersData, 
+	TimelineProviderData* timelineData,
+	TransformScaled* graphVerticalTransform) : 
+	layersData(layersData), 
+	timelineData(timelineData),
+	graphVerticalTransform(graphVerticalTransform)
 {
 
 }
@@ -269,6 +275,7 @@ float Timeline_UpperControls::DrawButtons() {
 
 	if (MyButtonBehavior(mg_min, mg_max, "GRAPH_MODE_TOGGLE", mg_hovered, mg_held)) {
 		GraphMode = !GraphMode;
+		//graphVerticalTransform->centerize(0.f);
 	}
 
 	ImColor bg_mg = ImColor(0.f, 0.f, 0.f, 0.f);

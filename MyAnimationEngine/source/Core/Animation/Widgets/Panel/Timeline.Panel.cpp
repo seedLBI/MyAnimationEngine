@@ -17,7 +17,7 @@ TimelinePanel::TimelinePanel(
 
 	timelineTransformHorizontal = new TimelineTransformHorizontal(timelineData);
 	timelineTransformVertical	= new TimelineTransformVertical();
-
+	graphTransformVertical		= new TransformScaled();
 	
 	horizontalTickRenderer = new HorizontalTickRenderer(timelineTransformHorizontal, timelineData);
 
@@ -27,7 +27,7 @@ TimelinePanel::TimelinePanel(
 	scrollHorizontal = new Timeline_Scroll_Horizontal(timelineData, timelineTransformHorizontal);
 	scrollVertical = new Timeline_Scroll_Vertical(layersData, timelineTransformVertical);
 
-	upperControls = new Timeline_UpperControls(layersData, timelineData);
+	upperControls = new Timeline_UpperControls(layersData, timelineData, graphTransformVertical);
 
 	timelineRuler = new Timeline_Ruler(timelineTimeCursor, timelineController, timelineData, timelineTransformHorizontal, horizontalTickRenderer);
 	timelineRange = new Timeline_Range(timelineTimeCursor, timelineData, timelineTransformHorizontal);
@@ -36,7 +36,8 @@ TimelinePanel::TimelinePanel(
 
 	layersList = new Timeline_Layers_List(layersData, timelineData, timelineController, timelineTransformHorizontal, timelineTransformVertical);
 
-	graph = new Timeline_Graph(layersData, timelineData, timelineController, timelineTransformHorizontal, horizontalTickRenderer);
+	graph = new Timeline_Graph(timelineTimeCursor, layersData, timelineData, timelineController, timelineTransformHorizontal, graphTransformVertical, horizontalTickRenderer);
+	graph->NeedCenterize();
 
 	layerFactory->CreateSolid(0.f, 2.f);
 	layerFactory->CreateSolid(1.f, 2.f);
@@ -322,10 +323,9 @@ void TimelinePanel::Update() {
 	timelineRange->Update();
 	layersList->Update();
 
-	if (upperControls->isGraphMode())
-		graph->Update();
-	else
-		layersViewer->Update();
+	layersViewer->Update();
+	graph->Update(delta_time);
+
 
 	upperControls->Update();
 

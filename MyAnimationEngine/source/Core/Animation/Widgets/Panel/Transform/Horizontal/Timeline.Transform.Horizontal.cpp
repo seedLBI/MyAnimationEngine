@@ -306,9 +306,9 @@ void TimelineTransformHorizontal::fitToRanges(const double& global_left, const d
 	real_offset = getOffset().GetReal();
 }
 
-LerpedValue_float& TimelineTransformHorizontal::getOffset() {
+LerpedValue<float>& TimelineTransformHorizontal::getOffset() {
 	return offset;
 }
-LerpedValue_float& TimelineTransformHorizontal::getScale() {
+LerpedValue<float>& TimelineTransformHorizontal::getScale() {
 	return scale;
 }

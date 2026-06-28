@@ -7,6 +7,8 @@
 
 #include "Transform/Horizontal/Timeline.Transform.Horizontal.h"
 #include "Transform/Vertical/Timeline.Transform.Vertical.h"
+#include "Transform/TransformScaled/Transform.Scaled.h"
+
 
 #include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
 
@@ -60,6 +62,8 @@ private:
 
 	TimelineTransformHorizontal* timelineTransformHorizontal = nullptr;
 	TimelineTransformVertical*   timelineTransformVertical = nullptr;
+	TransformScaled* graphTransformVertical = nullptr;
+
 
 	Timeline_Scroll_Horizontal* scrollHorizontal;
 	Timeline_Scroll_Vertical*   scrollVertical;

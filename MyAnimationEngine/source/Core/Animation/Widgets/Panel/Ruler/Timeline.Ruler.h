@@ -57,8 +57,8 @@ private:
 	bool OutOfView(const ImVec2& pos);
 	bool OutOfView(const ImVec2& pos_min, const ImVec2& pos_max);
 
-	LerpedValue_float time_left_bound;
-	LerpedValue_float time_right_bound;
+	LerpedValue<float> time_left_bound;
+	LerpedValue<float> time_right_bound;
 
 	const float width_gradient_bound = 20.f;
 

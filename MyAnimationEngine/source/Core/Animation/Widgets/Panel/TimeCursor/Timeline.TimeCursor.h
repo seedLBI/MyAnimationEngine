@@ -24,7 +24,7 @@ private:
 	TimelineTransformHorizontal* horizontalTransform;
 
 
-	LerpedValue_float width_tail_lerped;
+	LerpedValue<float> width_tail_lerped;
 	const float max_width_tail = 50.f;
 
 	const float width_cursor = 2.f;

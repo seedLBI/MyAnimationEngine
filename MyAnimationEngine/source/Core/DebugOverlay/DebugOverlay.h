@@ -16,7 +16,7 @@ namespace DebugOverlay {
 
 	namespace vars {
 		extern std::vector<LineTexts> elements;
-		extern LerpedValue_float timer_show;
+		extern LerpedValue<float> timer_show;
 		extern bool isShow;
 	}
 

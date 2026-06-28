@@ -7,27 +7,44 @@
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
-#include "VerticalTransform/Timeline.Graph.Transform.Vertical.h"
+
+#include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
+
+#include "Core/Animation/Widgets/Panel/Transform/TransformScaled/Transform.Scaled.h"
+
+#include "Utils/ImGui/Utils.ImGui.h"
 
 class Timeline_Graph{
 public:
-	Timeline_Graph(	LayersDataProvider* layersData,
+	Timeline_Graph(	Timeline_TimeCursor* timeCursor,
+					LayersDataProvider* layersData,
 					TimelineProviderData* timelineData,
 					TimelineController* timelineController,
 					TimelineTransformHorizontal* horizontalTransform,
+					TransformScaled* verticalTransform,
 					HorizontalTickRenderer* horizontalTickRenderer);
 	~Timeline_Graph();
 
 	void Draw();
-	void Update();
+	void Update(const float& dt);
+
+	void NeedCenterize();
 
 private:
+	Timeline_TimeCursor* timeCursor;
 	LayersDataProvider* layersData;
 	TimelineProviderData* timelineData;
 	TimelineController* timelineController;
 	TimelineTransformHorizontal* horizontalTransform;
 	HorizontalTickRenderer* horizontalTickRenderer;
-	Graph_VerticalTransform* verticalTransform;
+
+	TransformScaled* verticalTransform;
+
+	bool isHovered = false, isDraging = false, isHeld = false;
+	float mouse_global = 0.f, mouse_screen = 0.f;
+	float scroll_zoom;
+
+	bool NeedCenterized = false;
 };
 
 

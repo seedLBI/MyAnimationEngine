@@ -297,9 +297,6 @@
     <ClCompile Include="source\Core\DebugOverlay\DebugOverlay.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="source\Utils\LerpedValue\LerpedValue.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\Vertical\Timeline.Transform.Vertical.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -360,10 +357,10 @@
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="source\Core\Animation\Widgets\Panel\Graph\VerticalTransform\Timeline.Graph.Transform.Vertical.cpp">
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.cpp">
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\TransformScaled\Transform.Scaled.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -602,10 +599,10 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Animation\Widgets\Panel\Graph\VerticalTransform\Timeline.Graph.Transform.Vertical.h">
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.h">
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\TransformScaled\Transform.Scaled.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

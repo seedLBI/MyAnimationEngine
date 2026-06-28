@@ -20,14 +20,13 @@ public:
 	const float& getAvailableHeight();
 	const float& getContentHeight();
 
-
 	float getScaledHeightOneObject();
 
 	float getOffset_lerped();
 	void addOffset(const float& value);
 
 private:
-	LerpedValue_float offset;
+	LerpedValue<float> offset;
 	float height_available = 0.f;
 	float height_content = 0.f;
 

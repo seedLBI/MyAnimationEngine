@@ -48,7 +48,6 @@ public:
 	void addZoom(const double& value);
 	void addOffset(const double& value);
 
-
 	void setOffsetWithClamp(const double& value);
 
 	void setOffsetDelta(const float& delta);
@@ -61,15 +60,15 @@ public:
 	void fitToRanges(const double& global_left, const double& global_right);
 
 
-	LerpedValue_float& getOffset();
-	LerpedValue_float& getScale();
+	LerpedValue<float>& getOffset();
+	LerpedValue<float>& getScale();
 	const float& getReactionToOverScale();
 
 private:
 	TimelineProviderData* providerData;
 
-	LerpedValue_float scale, offset;
-	LerpedValue_float reaction_to_over_scale;
+	LerpedValue<float> scale, offset;
+	LerpedValue<float> reaction_to_over_scale;
 
 	float real_scale = 1.f;
 	float real_offset = 0.f;

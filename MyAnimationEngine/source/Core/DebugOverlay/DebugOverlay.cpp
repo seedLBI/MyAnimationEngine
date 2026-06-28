@@ -8,7 +8,7 @@ namespace DebugOverlay {
 
 	namespace vars {
 		std::vector<LineTexts> elements;
-		LerpedValue_float timer_show = LerpedValue_float(1.f);
+		LerpedValue<float> timer_show = LerpedValue<float>(1.f);
 		bool isShow = true;
 	}
 

@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "Core/Animation/Widgets/Panel/Transform/TransformScaled/Transform.Scaled.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 
@@ -10,7 +11,10 @@
 
 class Timeline_UpperControls {
 public:
-	Timeline_UpperControls(LayersDataProvider* layersData, TimelineProviderData* timelineData);
+	Timeline_UpperControls(
+		LayersDataProvider* layersData, 
+		TimelineProviderData* timelineData,
+		TransformScaled* graphVerticalTransform);
 	~Timeline_UpperControls();
 
 	void Draw();
@@ -22,7 +26,7 @@ public:
 private:
 	LayersDataProvider* layersData;
 	TimelineProviderData* timelineData;
-
+	TransformScaled* graphVerticalTransform;
 	bool GraphMode		= false;
 	bool MotionBlueMode = false;
 

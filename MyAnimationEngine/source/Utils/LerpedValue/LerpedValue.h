@@ -2,26 +2,59 @@
 #define LERPED_VALUE_H
 
 
-struct LerpedValue_float {
+template<typename T>
+struct LerpedValue {
 private:
-	float real;
-	float lerped;
+	T real;
+	T lerped;
 
 public:
+	LerpedValue();
+	LerpedValue(const T& value);
 
-	LerpedValue_float();
-	LerpedValue_float(const float& value);
+	void SetAll(const T& value);
+	void Set(const T& real);
+	const T& GetLerped() const;
+	const T& GetReal() const;
 
-
-	void SetAll(const float& value);
-	void Set(const float& real);
-	const float& GetLerped() const;
-	const float& GetReal() const;
-
-	void Update(const float& time);
+	void Update(const T& time);
 };
 
+template<typename T>
+LerpedValue<T>::LerpedValue() {
+	SetAll(0.f);
+}
 
+template<typename T>
+LerpedValue<T>::LerpedValue(const T& value) {
+	SetAll(value);
+}
+
+template<typename T>
+void LerpedValue<T>::SetAll(const T& value) {
+	lerped = value;
+	real = value;
+}
+
+template<typename T>
+void LerpedValue<T>::Set(const T& real) {
+	this->real = real;
+}
+
+template<typename T>
+const T& LerpedValue<T>::GetLerped() const {
+	return lerped;
+}
+
+template<typename T>
+const T& LerpedValue<T>::GetReal() const {
+	return real;
+}
+
+template<typename T>
+void LerpedValue<T>::Update(const T& time) {
+	lerped = lerped + time * (real - lerped);
+}
 
 
 #endif
