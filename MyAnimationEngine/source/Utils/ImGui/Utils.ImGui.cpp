@@ -249,3 +249,33 @@ bool MyButtonBehavior(const ImVec2& bb_min, const ImVec2& bb_max, const char* id
 	ImGui::ItemAdd(bb, id);
 	return ImGui::ButtonBehavior(bb, id, &hovered, &held);
 }
+
+#include <cmath>
+
+void AddDashedLine(ImDrawList* draw_list, const ImVec2& p1, const ImVec2& p2, ImU32 col, float thickness, float dash_length, float gap_length) {
+	float dx = p2.x - p1.x;
+	float dy = p2.y - p1.y;
+	float total_length = std::sqrt(dx * dx + dy * dy);
+
+	if (total_length <= 0.0f)
+		return;
+
+	float dir_x = dx / total_length;
+	float dir_y = dy / total_length;
+
+	float current_length = 0.0f;
+
+	while (current_length < total_length)
+	{
+		float next_dash_end = current_length + dash_length;
+		if (next_dash_end > total_length)
+			next_dash_end = total_length;
+
+		ImVec2 start = ImVec2(p1.x + dir_x * current_length, p1.y + dir_y * current_length);
+		ImVec2 end = ImVec2(p1.x + dir_x * next_dash_end, p1.y + dir_y * next_dash_end);
+
+		draw_list->AddLine(start, end, col, thickness);
+
+		current_length += dash_length + gap_length;
+	}
+}

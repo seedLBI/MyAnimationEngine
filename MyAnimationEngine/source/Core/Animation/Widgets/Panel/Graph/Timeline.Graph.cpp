@@ -1,6 +1,8 @@
 ﻿#include "Timeline.Graph.h"
 
 #include "Core/DebugOverlay/DebugOverlay.h"
+#include "Utils/ImGui/Utils.ImGui.h"
+
 
 
 Timeline_Graph::Timeline_Graph(Timeline_TimeCursor* timeCursor,
@@ -45,8 +47,8 @@ void Timeline_Graph::Draw() {
 	ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
 
 
-	ImColor colorLight(0.3f, 0.3f, 0.3f, 1.f);
-	ImColor colorDark(0.2f, 0.2f, 0.2f, 1.f);
+	ImColor colorLight(0.2f, 0.2f, 0.2f, 1.f);
+	ImColor colorDark(0.15f, 0.15f, 0.15f, 1.f);
 
 
 	verticalTransform->updateAvailableScreenValue(region_max.y);
@@ -212,7 +214,6 @@ void Timeline_Graph::Draw() {
 			ImColor(1.f, 0.f, 0.f, 0.1f)
 		);
 
-
 		drawlist->AddRectFilled(
 			{ p_min.x, p_min.y  },
 			{ p_max.x, p_max.y - (region_max.y - screen_max_range) },
@@ -231,6 +232,41 @@ void Timeline_Graph::Draw() {
 		ImColor(0.3f,1.f,0.3f,1.f),
 		ImColor(0.3f,0.3f,1.f,1.f)
 	};
+
+	if (keyframes.empty() == false) {
+		
+		float front_begin = cursor_pos.x;
+		float front_pos = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + keyframes.front().sample.time);
+		float back_pos = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + keyframes.back().sample.time);
+		float back_end = cursor_pos.x + region_max.x;
+
+		for (size_t j = 0; j < keyframes.front().sample.value.size(); j++) {
+
+			float front_pos_y = cursor_pos.y + verticalTransform->getPosScreen_lerped(keyframes.front().sample.value[j]);
+			float back_pos_y = cursor_pos.y + verticalTransform->getPosScreen_lerped(keyframes.back().sample.value[j]);
+
+			const float gap = 3.f;
+			const float length = 6.f;
+
+			AddDashedLine(drawlist,
+				{ front_pos, front_pos_y },
+				{ front_begin, front_pos_y },
+				(j <= 2 ? colors[j] : ImColor(0.5f, 0.5f, 0.2f, 1.f)),
+				1.f,
+				length, gap);
+
+			AddDashedLine(drawlist,
+				{ back_pos, back_pos_y },
+				{ back_end, back_pos_y },
+				(j <= 2 ? colors[j] : ImColor(0.5f, 0.5f, 0.2f, 1.f)),
+				1.f,
+				length, gap);
+
+
+		}
+	}
+
+
 
 	for (size_t i = 0; i < keyframes.size(); i++) {
 		float pos_x = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);

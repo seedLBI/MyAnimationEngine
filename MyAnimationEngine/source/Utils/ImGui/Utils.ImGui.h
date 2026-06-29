@@ -31,3 +31,5 @@ void ButtonCheckBox(const char* label, const char* help, bool& state);
 bool MyButtonBehavior(const ImVec2& bb_min,const ImVec2& bb_max, const char* id, bool& hovered, bool& held);
 
 bool ButtonDelete(ImGuiWindow* imgui_window, ImDrawList* draw_list, const char* nameIndex, const ImU32& ColorText);
+
+void AddDashedLine(ImDrawList* draw_list, const ImVec2& p1, const ImVec2& p2, ImU32 col, float thickness, float dash_length, float gap_length);
