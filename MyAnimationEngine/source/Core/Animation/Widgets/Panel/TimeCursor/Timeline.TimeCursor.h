@@ -7,8 +7,7 @@
 
 #include "ThirdParty/ImGui/imgui.h"
 
-class Timeline_TimeCursor
-{
+class Timeline_TimeCursor {
 public:
 	Timeline_TimeCursor(
 		TimelineProviderData* timelineData,

@@ -7,6 +7,7 @@
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
+#include "Core/Animation/Widgets/Panel/Selector/Timeline.Selector.h"
 
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
 
@@ -22,7 +23,8 @@ public:
 					TimelineController* timelineController,
 					TimelineTransformHorizontal* horizontalTransform,
 					TransformScaled* verticalTransform,
-					HorizontalTickRenderer* horizontalTickRenderer);
+					HorizontalTickRenderer* horizontalTickRenderer,
+					Timeline_Selector* selector);
 	~Timeline_Graph();
 
 	void Draw();
@@ -37,7 +39,7 @@ private:
 	TimelineController* timelineController;
 	TimelineTransformHorizontal* horizontalTransform;
 	HorizontalTickRenderer* horizontalTickRenderer;
-
+	Timeline_Selector* selector;
 	TransformScaled* verticalTransform;
 
 	bool isHovered = false, isDraging = false, isHeld = false;
@@ -48,6 +50,14 @@ private:
 	float min_graph = 0.f, max_graph = 0.f;
 
 	bool NeedCenterized = false;
+
+	ImColor colorLight = ImColor(0.2f, 0.2f, 0.2f, 1.f);
+	ImColor colorDark  = ImColor(0.15f, 0.15f, 0.15f, 1.f);
+
+	void DrawTicks(ImVec2 p_min, ImVec2 p_max);
+	void DrawGraphs(ImVec2 p_min, ImVec2 p_max);
+
+
 };
 
 

@@ -6,6 +6,7 @@
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
+#include "Core/Animation/Widgets/Panel/Selector/Timeline.Selector.h"
 
 #include <unordered_map>
 
@@ -17,7 +18,8 @@ public:
 		LayersDataProvider* layersData, 
 		TimelineProviderData* timelineData, 
 		TimelineTransformVertical* verticalTransform, 
-		TimelineTransformHorizontal* horizontalTransform
+		TimelineTransformHorizontal* horizontalTransform,
+		Timeline_Selector* selector
 	);
 
 	~Timeline_Layers_Viewer();
@@ -34,6 +36,7 @@ private:
 	TimelineTransformVertical*	 verticalTransform;
 	TimelineTransformHorizontal* horizontalTransform;
 
+	Timeline_Selector* selector;
 
 	enum class ObjectStatus : uint8_t {
 		NOTHING = 0,
@@ -51,7 +54,7 @@ private:
 	ObjectStatus pressed_status;
 	ObjectStatus draging_status;
 
-	void DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered);
+	void DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered, bool isSelected);
 
 	const float width_hover = 5.f;
 	bool IsHovered_LeftResize(const ImRect& rect);

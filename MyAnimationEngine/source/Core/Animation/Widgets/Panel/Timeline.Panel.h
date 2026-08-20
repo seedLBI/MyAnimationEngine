@@ -25,6 +25,7 @@
 #include "UpperControls/Timeline.UpperControls.h"
 #include "Graph/Timeline.Graph.h"
 #include "HorizontalTickRenderer/Horizontal.Tick.Renderer.h"
+#include "Selector/Timeline.Selector.h"
 
 
 #include "TimeCursor/Timeline.TimeCursor.h"
@@ -37,16 +38,16 @@
 
 
 
-class TimelinePanel {
+class Timeline_Panel {
 public:
-	TimelinePanel(
+	Timeline_Panel(
 		FPS_Timer* deltaTime, 
 		TimelineController* timelineController,
 		TimelineProviderData* timelineData, 
 		LayersDataProvider* layersData, 
 		LayerFactory* layerFactory
 	);
-	~TimelinePanel();
+	~Timeline_Panel();
 
 	void Draw();
 	void Update();
@@ -78,7 +79,7 @@ private:
 	Timeline_Layers_Viewer* layersViewer;
 	Timeline_UpperControls* upperControls;
 	Timeline_Graph*			graph;
-
+	Timeline_Selector*		selector;
 
 	void Draw_1Level(const float& thickness_separator);
 	void DrawLayerSide_1Level(const float& height);

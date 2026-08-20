@@ -39,6 +39,10 @@
 
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Layer/Factory/Layer.Factory.h"
+#include "Core/Animation/Widgets/Preview/Timeline.Preview.h"
+
+#include "Core/Animation/Renderer/Renderer.h"
+
 
 #include "Core/DebugOverlay/DebugOverlay.h"
 
@@ -68,9 +72,12 @@ private:
 	LayerFactory* layersFactory = nullptr;
 	TimelineProviderData* timelineData = nullptr;
 	TimelineController* timelineController = nullptr;
-	TimelinePanel* timelinePanel = nullptr;
 
+	Timeline_Panel* timelinePanel = nullptr;
 	Timeline_Player* playerComposition = nullptr;
+	Timeline_Preview* preview = nullptr;
+
+	RendererAnimationScene* renderer = nullptr;
 
 	void Draw();
 

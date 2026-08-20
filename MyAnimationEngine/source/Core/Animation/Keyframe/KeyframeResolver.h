@@ -52,7 +52,7 @@ public:
 
 	void addFromDefaultValue(float time);
 	void add(const Keyframe<T, N>& keyframe);
-	void add(float time, std::array<T,N>& value, TypeKeyframe type = TypeKeyframe::BINARY);
+	void add(float time, std::array<T,N>& value, TypeKeyframe type = TypeKeyframe::LINEAR);
 	void changeKeyframe(uint64_t index, const Keyframe<T, N>& keyframe);
 	void changeType(uint64_t index, TypeKeyframe type);
 	void erase(uint64_t index);
@@ -220,7 +220,7 @@ template<typename T, uint8_t N>
 void KeyframeResolver<T, N>::addFromDefaultValue(float time) {
 	Keyframe<T, N> keyframe;
 	keyframe.sample = {time, getDefaultValue() };
-	keyframe.type = TypeKeyframe::BINARY;
+	keyframe.type = TypeKeyframe::LINEAR;
 	add(keyframe);
 }
 

@@ -22,12 +22,15 @@ Application::Application() {
 
 	layersData			= new LayersDataProvider();
 	timelineData		= new TimelineProviderData();
+	renderer			= new RendererAnimationScene(layersData);
 
 	layersFactory		= new LayerFactory(timelineData, layersData);
 	timelineController  = new TimelineController(timelineData);
-	timelinePanel		= new TimelinePanel(fps_limiter, timelineController, timelineData, layersData, layersFactory);
+	timelinePanel		= new Timeline_Panel(fps_limiter, timelineController, timelineData, layersData, layersFactory);
 
 	playerComposition	= new Timeline_Player(timelineController);
+
+	preview = new Timeline_Preview(renderer);
 
 }
 Application::~Application() {
@@ -144,6 +147,8 @@ void Application::Init_DockLayout(ImGuiViewport* viewport, const ImGuiID& docksp
 
 		ImGui::DockBuilderDockWindow(u8"Временная шкала", panel_id);
 		ImGui::DockBuilderDockWindow(u8"Проигрыватель", player_id);
+		ImGui::DockBuilderDockWindow(u8"Предпросмотр", left_id);
+
 
 		ImGui::DockBuilderFinish(dockspace_id);
 		dock_initialized = true;
@@ -164,31 +169,30 @@ void Application::Run() {
 
 void Application::Draw() {
 
-	DebugOverlay::AddText("FPS_imgui_io: " + std::to_string(ImGui::GetIO().Framerate), ImColor{ 0.5f,0.5f,1.f,1.f });
+	//DebugOverlay::AddText("FPS_imgui_io: " + std::to_string(ImGui::GetIO().Framerate), ImColor{ 0.5f,0.5f,1.f,1.f });
 	DebugOverlay::AddText("FPS_limiter : " + std::to_string(1.f / fps_limiter->GetDeltaTime()), ImColor{ 0.5f,0.5f,1.f,1.f });
 
-
+	renderer->Draw(timelineData->GetData().currentTime);
 
 	mainMenuBar->Draw();
 
-
 	playerComposition->Draw();
 	timelinePanel->Draw();
+	preview->Draw();
 
-	ImGui::ShowDemoWindow();
+	//ImGui::ShowDemoWindow();
 
 	DebugOverlay::DrawDebug();
 
-	auto drawlist = ImGui::GetForegroundDrawList();
-	drawlist->AddCircleFilled(ImGui::GetMousePos(), 2.f, ImColor(1.f, 0.f, 0.f, 1.f));
+	//auto drawlist = ImGui::GetForegroundDrawList();
+	//drawlist->AddCircleFilled(ImGui::GetMousePos(), 2.f, ImColor(1.f, 0.f, 0.f, 1.f));
 }
 void Application::Update() {
 	CursorManager::getInstance().Update();
 	CursorManager::getInstance().SetCursor(TypeCursor::POINTER);
 
 
-	if (ImGui::IsKeyPressed(ImGuiKey_Tab))
-	{
+	if (ImGui::IsKeyPressed(ImGuiKey_Tab)) {
 		DebugOverlay::ToggleShow();
 	}
 
@@ -196,6 +200,7 @@ void Application::Update() {
 	timelinePanel->Update();
 	timelineController->Update();
 	playerComposition->Update();
+	renderer->Update();
 }
 
 void Application::BeginDraw() {

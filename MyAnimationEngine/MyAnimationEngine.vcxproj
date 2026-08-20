@@ -22,6 +22,7 @@
   <ItemGroup>
     <ClCompile Include="source\Application\Application.cpp" />
     <ClCompile Include="source\Core\Animation\Camera\Animation.Camera.cpp" />
+    <ClCompile Include="source\Core\Animation\Camera\Global\Global.Camera.cpp" />
     <ClCompile Include="source\Core\Animation\Layer\Factory\Layer.Factory.cpp" />
     <ClCompile Include="source\Core\Animation\Layer\Object\Layer.Object.cpp" />
     <ClCompile Include="source\Core\Animation\Layer\Objects\Solid\Layer.Object.Solid.cpp" />
@@ -89,6 +90,7 @@
   <ItemGroup>
     <ClInclude Include="source\Application\Application.h" />
     <ClInclude Include="source\Core\Animation\Camera\Animation.Camera.h" />
+    <ClInclude Include="source\Core\Animation\Camera\Global\Global.Camera.h" />
     <ClInclude Include="source\Core\Animation\Keyframe\Keyframe.h" />
     <ClInclude Include="source\Core\Animation\Keyframe\KeyframeResolver.h" />
     <ClInclude Include="source\Core\Animation\Layer\Data\Layers.Data.h" />

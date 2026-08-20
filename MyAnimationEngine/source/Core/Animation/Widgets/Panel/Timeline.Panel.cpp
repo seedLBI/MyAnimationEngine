@@ -1,7 +1,7 @@
 ﻿#include "Timeline.Panel.h"
 #include "Colors/Panel.Colors.h"
 
-TimelinePanel::TimelinePanel(
+Timeline_Panel::Timeline_Panel(
 	FPS_Timer* deltaTime, 
 	TimelineController* timelineController,
 	TimelineProviderData* timelineData, 
@@ -19,6 +19,8 @@ TimelinePanel::TimelinePanel(
 	timelineTransformVertical	= new TimelineTransformVertical();
 	graphTransformVertical		= new TransformScaled();
 	
+	selector = new Timeline_Selector();
+
 	horizontalTickRenderer = new HorizontalTickRenderer(timelineTransformHorizontal, timelineData);
 
 
@@ -32,29 +34,19 @@ TimelinePanel::TimelinePanel(
 	timelineRuler = new Timeline_Ruler(timelineTimeCursor, timelineController, timelineData, timelineTransformHorizontal, horizontalTickRenderer);
 	timelineRange = new Timeline_Range(timelineTimeCursor, timelineData, timelineTransformHorizontal);
 
-	layersViewer = new Timeline_Layers_Viewer(timelineTimeCursor, layersData, timelineData, timelineTransformVertical, timelineTransformHorizontal);
+	layersViewer = new Timeline_Layers_Viewer(timelineTimeCursor, layersData, timelineData, timelineTransformVertical, timelineTransformHorizontal, selector);
 
-	layersList = new Timeline_Layers_List(layersData, timelineData, timelineController, timelineTransformHorizontal, timelineTransformVertical);
+	layersList = new Timeline_Layers_List(layerFactory, layersData, timelineData, timelineController, timelineTransformHorizontal, timelineTransformVertical, selector);
 
-	graph = new Timeline_Graph(timelineTimeCursor, layersData, timelineData, timelineController, timelineTransformHorizontal, graphTransformVertical, horizontalTickRenderer);
+	graph = new Timeline_Graph(timelineTimeCursor, layersData, timelineData, timelineController, timelineTransformHorizontal, graphTransformVertical, horizontalTickRenderer, selector);
 	graph->NeedCenterize();
-
-	layerFactory->CreateSolid(0.f, 2.f);
-	layerFactory->CreateSolid(1.f, 2.f);
-	layerFactory->CreateSolid(2.f, 2.f);
-	layerFactory->CreateSolid(3.f, 2.f);
-	layerFactory->CreateSolid(4.f, 2.f);
-	layerFactory->CreateSolid(5.f, 2.f);
-	layerFactory->CreateSolid(6.f, 2.f);
-	layerFactory->CreateSolid(7.f, 2.f);
-	layerFactory->CreateSolid(8.f, 2.f);
 
 	NoiseTexture::getInstance();
 
 
 }
 
-TimelinePanel::~TimelinePanel() {
+Timeline_Panel::~Timeline_Panel() {
 	delete layersList;
 	delete layersViewer;
 	delete timelineRuler;
@@ -69,7 +61,7 @@ TimelinePanel::~TimelinePanel() {
 
 }
 
-void TimelinePanel::Draw() {
+void Timeline_Panel::Draw() {
 
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, COLOR_BG_LIST.Value);
 	ImGui::PushStyleColor(ImGuiCol_Separator, COLOR_SEPARATOR.Value);
@@ -136,7 +128,7 @@ void TimelinePanel::Draw() {
 
 }
 
-void TimelinePanel::Draw_1Level(const float& thickness_separator) {
+void Timeline_Panel::Draw_1Level(const float& thickness_separator) {
 
 	float height = ImGui::GetTextLineHeight() * 2.f;
 
@@ -155,21 +147,21 @@ void TimelinePanel::Draw_1Level(const float& thickness_separator) {
 	DrawVerticalSliderBox_1Level(height);
 
 }
-void TimelinePanel::DrawLayerSide_1Level(const float& height) {
+void Timeline_Panel::DrawLayerSide_1Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_LayerSide_1Level", ImVec2(layersList->getLengthColumn(), height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 	upperControls->Draw();
 
 	ImGui::EndChild();
 }
-void TimelinePanel::DrawTimelineSide_1Level(const float& height) {
+void Timeline_Panel::DrawTimelineSide_1Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_TimelineSide_1Level", ImVec2(ImGui::GetContentRegionAvail().x - 20, height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 	timelineRuler->Draw();
 
 	ImGui::EndChild();
 }
-void TimelinePanel::DrawVerticalSliderBox_1Level(const float& height) {
+void Timeline_Panel::DrawVerticalSliderBox_1Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_SliderSide_1Level", ImVec2(20, height));
 
 	
@@ -178,7 +170,7 @@ void TimelinePanel::DrawVerticalSliderBox_1Level(const float& height) {
 }
 
 
-void TimelinePanel::Draw_2Level(const float& thickness_separator) {
+void Timeline_Panel::Draw_2Level(const float& thickness_separator) {
 	float height = ImGui::GetTextLineHeight();
 
 	DrawLayerSide_2Level(height);
@@ -196,7 +188,7 @@ void TimelinePanel::Draw_2Level(const float& thickness_separator) {
 	DrawVerticalSliderBox_2Level(height);
 
 }
-void TimelinePanel::DrawLayerSide_2Level(const float& height) {
+void Timeline_Panel::DrawLayerSide_2Level(const float& height) {
 
 	ImGui::BeginChild(u8"Timeline_LayerSide_2Level", ImVec2(layersList->getLengthColumn(), height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
@@ -205,14 +197,14 @@ void TimelinePanel::DrawLayerSide_2Level(const float& height) {
 	ImGui::EndChild();
 
 }
-void TimelinePanel::DrawTimelineSide_2Level(const float& height) {
+void Timeline_Panel::DrawTimelineSide_2Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_TimelineSide_2Level", ImVec2(ImGui::GetContentRegionAvail().x - 20, height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 	timelineRange->Draw();
 
 	ImGui::EndChild();
 }
-void TimelinePanel::DrawVerticalSliderBox_2Level(const float& height) {
+void Timeline_Panel::DrawVerticalSliderBox_2Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_SliderSide_2Level", ImVec2(20, height));
 
 
@@ -221,7 +213,7 @@ void TimelinePanel::DrawVerticalSliderBox_2Level(const float& height) {
 }
 
 
-void TimelinePanel::Draw_3Level(const float& thickness_separator) {
+void Timeline_Panel::Draw_3Level(const float& thickness_separator) {
 	float height = ImGui::GetContentRegionAvail().y - 20.f;
 
 	DrawLayerSide_3Level(height);
@@ -238,14 +230,14 @@ void TimelinePanel::Draw_3Level(const float& thickness_separator) {
 
 	DrawVerticalSliderBox_3Level(height);
 }
-void TimelinePanel::DrawLayerSide_3Level(const float& height) {
+void Timeline_Panel::DrawLayerSide_3Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_LayerSide_3Level", ImVec2(layersList->getLengthColumn(), height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 	layersList->Draw();
 
 	ImGui::EndChild();
 }
-void TimelinePanel::DrawTimelineSide_3Level(const float& height) {
+void Timeline_Panel::DrawTimelineSide_3Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_TimelineSide_3Level", ImVec2(ImGui::GetContentRegionAvail().x - 20, height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 	if (upperControls->isGraphMode())
@@ -256,7 +248,7 @@ void TimelinePanel::DrawTimelineSide_3Level(const float& height) {
 
 	ImGui::EndChild();
 }
-void TimelinePanel::DrawVerticalSliderBox_3Level(const float& height) {
+void Timeline_Panel::DrawVerticalSliderBox_3Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_SliderSide_3Level", ImVec2(20, height));
 
 	scrollVertical->Draw();
@@ -265,7 +257,7 @@ void TimelinePanel::DrawVerticalSliderBox_3Level(const float& height) {
 }
 
 
-void TimelinePanel::Draw_4Level(const float& thickness_separator) {
+void Timeline_Panel::Draw_4Level(const float& thickness_separator) {
 	float height = 20.f;
 
 	DrawLayerSide_4Level(height);
@@ -282,21 +274,21 @@ void TimelinePanel::Draw_4Level(const float& thickness_separator) {
 
 	DrawVerticalSliderBox_4Level(height);
 }
-void TimelinePanel::DrawLayerSide_4Level(const float& height) {
+void Timeline_Panel::DrawLayerSide_4Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_LayerSide_4Level", ImVec2(layersList->getLengthColumn(), height));
 
 
 
 	ImGui::EndChild();
 }
-void TimelinePanel::DrawTimelineSide_4Level(const float& height) {
+void Timeline_Panel::DrawTimelineSide_4Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_TimelineSide_4Level", ImVec2(ImGui::GetContentRegionAvail().x - 20, height));
 
 	scrollHorizontal->Draw();
 
 	ImGui::EndChild();
 }
-void TimelinePanel::DrawVerticalSliderBox_4Level(const float& height) {
+void Timeline_Panel::DrawVerticalSliderBox_4Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_SliderSide_4Level", ImVec2(20, height));
 
 
@@ -305,7 +297,7 @@ void TimelinePanel::DrawVerticalSliderBox_4Level(const float& height) {
 }
 
 
-void TimelinePanel::Update() {
+void Timeline_Panel::Update() {
 
 	//timelineTransformHorizontal->centerize(timelineData->GetData().currentTime, false);
 

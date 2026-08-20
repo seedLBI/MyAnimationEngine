@@ -22,7 +22,7 @@ public:
 
 template<typename T>
 LerpedValue<T>::LerpedValue() {
-	SetAll(0.f);
+	//SetAll(0.f);
 }
 
 template<typename T>
@@ -55,6 +55,7 @@ template<typename T>
 void LerpedValue<T>::Update(const T& time) {
 	lerped = lerped + time * (real - lerped);
 }
+
 
 
 #endif

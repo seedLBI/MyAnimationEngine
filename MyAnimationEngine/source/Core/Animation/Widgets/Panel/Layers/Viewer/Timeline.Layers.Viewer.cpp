@@ -2,19 +2,21 @@
 #include "CursorManager/CursorManger.h"
 #include "Core/DebugOverlay/DebugOverlay.h"
 #include "Core/Animation/Widgets/Panel/Textures/Noise/Texture.Noise.h"
-
+#include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
 
 Timeline_Layers_Viewer::Timeline_Layers_Viewer(
 	Timeline_TimeCursor* timeCursor,
 	LayersDataProvider* layersData,
 	TimelineProviderData* timelineData,
 	TimelineTransformVertical* verticalTransform,
-	TimelineTransformHorizontal* horizontalTransform)
+	TimelineTransformHorizontal* horizontalTransform,
+	Timeline_Selector* selector)
 	: timeCursor(timeCursor),
 	layersData(layersData),
 	timelineData(timelineData),
 	verticalTransform(verticalTransform),
-	horizontalTransform(horizontalTransform)
+	horizontalTransform(horizontalTransform),
+	selector(selector)
 {
 
 }
@@ -44,7 +46,7 @@ bool Timeline_Layers_Viewer::IsHovered_BodyMove(const ImRect& rect) {
 	return ImGui::IsMouseHoveringRect( min,max );
 }
 
-void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered) {
+void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered, bool isSelected) {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
@@ -86,13 +88,15 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 
 	draw_list->AddRectFilled({ rect.Min.x,  rect.Min.y + 2.f }, { rect.Max.x, round(rect.Max.y) }, ImColor(body.r, body.g, body.b, 1.f), 0.f, 0);
 
-	draw_list->AddImage(
-		NoiseTexture::getInstance().getID(),
-		{ rect.Min.x,	rect.Min.y + 2.f },
-		{ rect.Max.x,	round(rect.Max.y) },
-		uv_min,
-		uv_max,
-		ImColor(1.f, 1.f, 1.f, 0.35f));
+	if (isSelected)
+		draw_list->AddImage(
+			NoiseTexture::getInstance().getID(),
+			{ rect.Min.x,	rect.Min.y + 2.f },
+			{ rect.Max.x,	round(rect.Max.y) },
+			uv_min,
+			uv_max,
+			ImColor(1.f, 1.f, 1.f, 0.45f));
+	
 
 
 	draw_list->AddRect({ rect.Min.x - 0.5f,rect.Min.y + 2.f }, { rect.Max.x + 0.5f, round(rect.Max.y) }, ImColor(outline.r, outline.g, outline.b, 1.f), 0.f, 0, 1.f);
@@ -176,7 +180,13 @@ void Timeline_Layers_Viewer::Draw() {
 		ImRect rect = ImRect{ rect_min, rect_max };
 
 
-		draw_list->AddRectFilled({ p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) }, ImColor(.19f, .19f, .19f, 1.f));
+		bool isLayerSelected = index == selector->GetLayerIndex();
+
+		ImColor bg_layer = COLOR_BG_LAYER;
+		if (isLayerSelected)
+			bg_layer = COLOR_BG_LAYER_CHOOSED;
+
+		draw_list->AddRectFilled({ p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) }, bg_layer);
 
 
 
@@ -188,7 +198,7 @@ void Timeline_Layers_Viewer::Draw() {
 		bool hovered	= ImGui::IsItemHovered();
 		bool active		= ImGui::IsItemActive();
 
-		DrawLayerBox(rect, layerInfo, hovered || active);
+		DrawLayerBox(rect, layerInfo, hovered || active, isLayerSelected);
 
 
 
@@ -199,6 +209,7 @@ void Timeline_Layers_Viewer::Draw() {
 			isHovered = ObjectStatus::RIGHT_RESIZE;
 		else if (IsHovered_BodyMove(rect))
 			isHovered = ObjectStatus::BODY_MOVE;
+
 
 
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Left) == false) {
@@ -242,6 +253,8 @@ void Timeline_Layers_Viewer::Draw() {
 
 
 		if (draging_status == ObjectStatus::BODY_MOVE && index_drag == index) {
+			selector->SetLayerIndex(index);
+
 			float screen_pos_x = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + offset_from_begin_time_layer);
 			const int count = 4;
 			const float gap = 3.f;
@@ -312,7 +325,9 @@ void Timeline_Layers_Viewer::Draw() {
 	});
 
 
-
+	if (index_drag == UINT64_MAX && ImGui::IsMouseHoveringRect(p_min,p_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+		selector->UnsetAll();
+	}
 
 
 	draw_list->AddRectFilled({ p_min.x + left_range, p_min.y}, { p_min.x + right_range, p_max.y }, ImColor(1.f, 1.f, 1.f, 0.1f), 0.f, 0);

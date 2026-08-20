@@ -18,6 +18,7 @@
 
 #define COLOR_SEPARATOR					ImColor(0.f,0.f,0.f,1.f)
 
+#define COLOR_BG_LAYER_NAME_CHOOSED		ImColor(.69f, .69f, .69f, 1.f)
 #define COLOR_BG_LAYER_CHOOSED			ImColor(.29f, .29f, .29f, 1.f)
 #define COLOR_BG_LAYER					ImColor(.19f, .19f, .19f, 1.f)
 #define COLOR_BG_LIST					ImColor(.11f, .11f, .11f, 1.f)

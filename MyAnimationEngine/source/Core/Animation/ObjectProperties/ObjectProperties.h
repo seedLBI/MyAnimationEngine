@@ -14,6 +14,21 @@ private:
 		TP2Float, TP3Float, TP4Float, TPColor
 	>;
 	robin_hood::unordered_map< std::string,PropertyVariant> properties;
+	std::vector<std::string> names;
+
+	bool isUnique(const std::string& name) {
+		for (size_t i = 0; i < names.size(); i++)
+			if (names[i] == name)
+				return false;
+		return true;
+	}
+	void removeName(const std::string& name) {
+		for (size_t i = 0; i < names.size(); i++)
+			if (names[i] == name) {
+				names.erase(names.begin() + i);
+				return;
+			}
+	}
 
 public:
 	ObjectProperties() {
@@ -157,22 +172,6 @@ public:
 	}
 
 
-private:
-
-	std::vector<std::string> names;
-	bool isUnique(const std::string& name) {
-		for (size_t i = 0; i < names.size(); i++)
-			if (names[i] == name)
-				return false;
-		return true;
-	}
-	void removeName(const std::string& name) {
-		for (size_t i = 0; i < names.size(); i++)
-			if (names[i] == name) {
-				names.erase(names.begin() + i);
-				return;
-			}
-	}
 };
 
 

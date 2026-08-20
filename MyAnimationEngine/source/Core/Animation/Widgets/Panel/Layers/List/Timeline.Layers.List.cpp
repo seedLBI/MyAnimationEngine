@@ -9,12 +9,21 @@
 #include "Utils/ImGui/Utils.ImGui.h"
 #include <cstring>
 
-Timeline_Layers_List::Timeline_Layers_List(LayersDataProvider* layersData, TimelineProviderData* timelineData, TimelineController* timelineController, TimelineTransformHorizontal* horizontalTransform, TimelineTransformVertical* verticalTransform)
-	: layersData (layersData),
+Timeline_Layers_List::Timeline_Layers_List(
+    LayerFactory* layerFactory, 
+    LayersDataProvider* layersData, 
+    TimelineProviderData* timelineData, 
+    TimelineController* timelineController, 
+    TimelineTransformHorizontal* horizontalTransform, 
+    TimelineTransformVertical* verticalTransform, 
+    Timeline_Selector* selector)
+	: layerFactory(layerFactory),
+      layersData (layersData),
       timelineData (timelineData),
       timelineController (timelineController),
       horizontalTransform (horizontalTransform),
-	  verticalTransform (verticalTransform)
+	  verticalTransform (verticalTransform),
+      selector(selector)
 {
 
     columns.resize(8);
@@ -256,94 +265,97 @@ void Timeline_Layers_List::DrawObject(LayerObject* object, uint64_t index)
     float height_object = verticalTransform->getScaledHeightOneObject();
 
     ImGui::BeginChild(("##Layer##" + str_index).c_str(), ImVec2(ImGui::GetContentRegionAvail().x, height_object), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    {
 
-    const float margin = 5.f;
+        const float margin = 5.f;
 
-    float startX = ImGui::GetCursorScreenPos().x;
-    float startY = ImGui::GetCursorScreenPos().y;
+        float startX = ImGui::GetCursorScreenPos().x;
+        float startY = ImGui::GetCursorScreenPos().y;
 
-    bool toggle_drawed = false;
-
-
-    for (size_t i = 0; i < index_current_columns.size(); i++) {
-
-        auto current_col = index_current_columns[i];
-
-        if (columns[current_col].isDisable)
-            continue;
-
-        if ((current_col == TypeColumn::MARKER || current_col == TypeColumn::INDEX || current_col == TypeColumn::NAME) && toggle_drawed == false) {
-            toggle_drawed = true;
-            ImGui::SetCursorScreenPos(ImVec2(startX + columns[current_col].startCursorPos - 20.f, startY));
-            DrawToggle(object, index);
-        }
-
-        ImGui::SetCursorScreenPos(ImVec2(startX + columns[current_col].startCursorPos, startY));
+        bool toggle_drawed = false;
 
 
-        switch (current_col) {
-        case TypeColumn::FUNCTION_AV: {
+        for (size_t i = 0; i < index_current_columns.size(); i++) {
 
-            ImGui::SetCursorScreenPos(ImVec2(av_symbols_cursor_pos[AV_SYMBOLS::VISIBLE], startY));
-            drawTriggerButton(
-                object->GetLayerInfo().isVisible,
-                ("##LAYER_VISIBLE_TRIGGER" + str_index).c_str(),
-                ICON_FA_EYE,
-                height_object
-            );
+            auto current_col = index_current_columns[i];
 
+            if (columns[current_col].isDisable)
+                continue;
 
-            ImGui::SetCursorScreenPos(ImVec2(av_symbols_cursor_pos[AV_SYMBOLS::LOCK], startY));
-            drawTriggerButton(
-                object->GetLayerInfo().isLocked,
-                ("##LAYER_LOCKED_TRIGGER" + str_index).c_str(),
-                ICON_FA_LOCK,
-                height_object
-            );
+            if ((current_col == TypeColumn::MARKER || current_col == TypeColumn::INDEX || current_col == TypeColumn::NAME) && toggle_drawed == false) {
+                toggle_drawed = true;
+                ImGui::SetCursorScreenPos(ImVec2(startX + columns[current_col].startCursorPos - 20.f, startY));
+                DrawToggle(object, index);
+            }
+
+            ImGui::SetCursorScreenPos(ImVec2(startX + columns[current_col].startCursorPos, startY));
 
 
-            ImGui::SetCursorScreenPos(ImVec2(av_symbols_cursor_pos[AV_SYMBOLS::ONLY], startY));
-            drawTriggerButton(
-                object->GetLayerInfo().isOnly,
-                ("##LAYER_ONLY_VISIBLE_TRIGGER" + str_index).c_str(),
-                "CIRCLE",
-                height_object
-            );
-            break;
-        }
-        case TypeColumn::MARKER: {
-            DrawLayerColor(object, index);
-            break;
-        }
-        case TypeColumn::INDEX: {
-            DrawLayerIndex(object, index);
-            break;
-        }
-        case TypeColumn::NAME: {
-            DrawLayerIconType(object, index);
-            ImGui::SameLine(0.f, margin);
-            DrawLayerName(object, index);
-            break;
-        }
-        case TypeColumn::TOGGLES: {
-            
-            break;
-        }
-        case TypeColumn::PARENT: {
+            switch (current_col) {
+            case TypeColumn::FUNCTION_AV: {
 
-            break;
-        }
-        case TypeColumn::MODES: {
+                ImGui::SetCursorScreenPos(ImVec2(av_symbols_cursor_pos[AV_SYMBOLS::VISIBLE], startY));
+                drawTriggerButton(
+                    object->GetLayerInfo().isVisible,
+                    ("##LAYER_VISIBLE_TRIGGER" + str_index).c_str(),
+                    ICON_FA_EYE,
+                    height_object
+                );
 
-            break;
-        }
-        case TypeColumn::NOTHING:
-        default:
-            break;
+
+                ImGui::SetCursorScreenPos(ImVec2(av_symbols_cursor_pos[AV_SYMBOLS::LOCK], startY));
+                drawTriggerButton(
+                    object->GetLayerInfo().isLocked,
+                    ("##LAYER_LOCKED_TRIGGER" + str_index).c_str(),
+                    ICON_FA_LOCK,
+                    height_object
+                );
+
+
+                ImGui::SetCursorScreenPos(ImVec2(av_symbols_cursor_pos[AV_SYMBOLS::ONLY], startY));
+                drawTriggerButton(
+                    object->GetLayerInfo().isOnly,
+                    ("##LAYER_ONLY_VISIBLE_TRIGGER" + str_index).c_str(),
+                    "CIRCLE",
+                    height_object
+                );
+                break;
+            }
+            case TypeColumn::MARKER: {
+                DrawLayerColor(object, index);
+                break;
+            }
+            case TypeColumn::INDEX: {
+                DrawLayerIndex(object, index);
+                break;
+            }
+            case TypeColumn::NAME: {
+                DrawLayerIconType(object, index);
+                ImGui::SameLine(0.f, margin);
+                DrawLayerName(object, index);
+                break;
+            }
+            case TypeColumn::TOGGLES: {
+
+                break;
+            }
+            case TypeColumn::PARENT: {
+
+                break;
+            }
+            case TypeColumn::MODES: {
+
+                break;
+            }
+            case TypeColumn::NOTHING:
+            default:
+                break;
+            }
         }
     }
-
     ImGui::EndChild();
+
+
 }
 
 bool Timeline_Layers_List::DrawToggle(LayerObject* object, uint64_t index) {
@@ -665,7 +677,6 @@ void Timeline_Layers_List::DrawColumnsHeader() {
 
 
 
-
     Pop_SmallestFont();
 
     ImGui::PopStyleColor();
@@ -709,18 +720,54 @@ void Timeline_Layers_List::Draw() {
     verticalTransform->updateAvailableHeight(region_max.y);
 
     ImVec2 mouse_pos = { ImGui::GetMousePos().x - cursor_pos.x,ImGui::GetMousePos().y - cursor_pos.y };
+    
+
 
 
     ImVec2 p_min = cursor_pos;
     ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
+    ImVec2 p_center = { cursor_pos.x + region_max.x / 2.f, cursor_pos.y + region_max.y / 2.f };
     float itemHeight = verticalTransform->getScaledHeightOneObject();
+
+    
+    if (layersData->GetData().layers.empty()) {
+        Push_BoldFont();
+        const char* text = u8"Нажми по мне ПКМ!!";
+        ImVec2 size_text = ImGui::CalcTextSize(text);
+        ImVec2 pos_text = { p_center.x - size_text.x / 2.f, p_center.y - size_text.y / 2.f };
+        draw_list->AddText(pos_text, ImColor(1.f, 1.f, 1.f, 0.5f), text);
+        Pop_BoldFont();
+    }
+    
+
 
     if (ImGui::IsMouseHoveringRect(p_min, p_max)) {
         float scrol_zoom = ImGui::GetIO().MouseWheel;
         verticalTransform->addOffset(scrol_zoom * itemHeight);
     }
 
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right, false) && ImGui::IsMouseHoveringRect(p_min, p_max))
+        ImGui::OpenPopup("POPUP_LIST_MENU_CONTEXT");
 
+    Push_SmallFont();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.f, 12.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12.f, 12.f));
+    if (ImGui::BeginPopupContextItem("POPUP_LIST_MENU_CONTEXT")) {
+        
+        if (ImGui::BeginMenu(u8"Создать слой")) {
+            if (ImGui::MenuItem(u8"Камера")) {
+
+            }
+            if (ImGui::MenuItem(u8"Сплошной")) {
+                layerFactory->CreateSolid();
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndPopup();
+    }
+    ImGui::PopStyleVar(2);
+    Pop_SmallFont();
 
 
 
@@ -736,7 +783,26 @@ void Timeline_Layers_List::Draw() {
         ImGui::SetCursorScreenPos(p);
         auto& layerInfo = layer->GetLayerInfo();
 
-        draw_list->AddRectFilled({ p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) }, COLOR_BG_LAYER);
+        ImVec2 rect_min = { p_min.x, round(p.y + 1.f) };
+        ImVec2 rect_max = { p_max.x, round(p.y + itemHeight) };
+
+        if (ImGui::IsMouseHoveringRect(rect_min,rect_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)){
+            selector->UnsetAll();
+            selector->SetLayerIndex(index);
+        }
+
+
+
+        ImColor color_background = COLOR_BG_LAYER;
+
+        if (selector->GetLayerIndex() == index) {
+            color_background = COLOR_BG_LAYER_CHOOSED;
+        }
+
+        draw_list->AddRectFilled(rect_min, rect_max, color_background);
+
+
+
 
         if (index == 0) ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 1.f);
 
@@ -763,6 +829,10 @@ void Timeline_Layers_List::Draw() {
                 float eval_time = timelineData->GetData().currentTime - layerInfo.time.Begin;
                 auto evaluated_value = value.kr.evaluate(eval_time);
 
+
+
+
+                
                 if (isHaveKeyframes) {
                     const float offset = 8.f;
 
@@ -969,9 +1039,6 @@ void Timeline_Layers_List::Draw() {
                 }
 
 
-
-
-
                 if (columns[MARKER].isDisable == false)
                     offsetX = columns[MARKER].startCursorPos;
                 else if (columns[INDEX].isDisable == false)
@@ -994,9 +1061,23 @@ void Timeline_Layers_List::Draw() {
 
                 ImGui::SameLine(0.f, 10.f);
 
+                ImVec2 propertie_min = { p.x + offsetX + 18.f, p.y + 1.f };
+                ImVec2 propertie_max = { p.x + offsetX + 22.f + (columns[TOGGLES].startCursorPos - offsetX - 22.f - itemHeight / 2.f - 5.f), p.y + itemHeight };
+
+
+                if (ImGui::IsMouseHoveringRect(propertie_min, propertie_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                    selector->SetPropertieName(name);
+                    selector->SetLayerIndex(index);
+                }
+
+                if (selector->GetPropertieName() == name && selector->GetLayerIndex() == index) {
+                    draw_list->AddRectFilled(propertie_min, propertie_max, COLOR_BG_LAYER_CHOOSED);
+                }
+                
+
 
                 draw_list->AddText({ p.x + offsetX + 22.f,p.y - offsetY + 1.f }, COLOR_DEFAULT, name.c_str());
-
+                 
 
                 //draw_list->
                 offsetX = columns[TOGGLES].startCursorPos;

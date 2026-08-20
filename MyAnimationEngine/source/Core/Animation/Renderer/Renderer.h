@@ -3,6 +3,10 @@
 
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 
+#include "Utils/OpenGL/Framebuffer/Framebuffer.h"
+#include "Utils/OpenGL/Texture/Texture.h"
+
+
 class RendererAnimationScene {
 public:
 	RendererAnimationScene(LayersDataProvider* layersData);
@@ -11,35 +15,15 @@ public:
 	void Draw(float time);
 	void Update();
 
+	const Texture& getTexture();
+
 private:
 	LayersDataProvider* layersData;
+	Framebuffer* output_framebuffer;
+	Texture*	 output_texture;
 };
 
-RendererAnimationScene::RendererAnimationScene(LayersDataProvider* layersData): layersData(layersData) {
 
-}
-
-RendererAnimationScene::~RendererAnimationScene(){
-
-}
-
-void RendererAnimationScene::Draw(float time) {
-	auto& layers = layersData->GetData().layers;
-
-	for (size_t i = 0; i < layers.size(); i++) {
-		auto& layer = layers[i];
-		bool is_visible = layer.get()->GetLayerInfo().isVisible;
-		if (is_visible == false)
-			continue;
-
-		layer->Draw(time);
-	}
-
-}
-
-void RendererAnimationScene::Update() {
-
-}
 
 
 #endif
