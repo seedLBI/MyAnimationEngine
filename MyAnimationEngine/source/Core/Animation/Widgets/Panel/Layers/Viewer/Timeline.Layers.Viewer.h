@@ -45,14 +45,11 @@ private:
 		BODY_MOVE = 3
 	};
 
-	float drag_start_mouse_global = 0.f;
-	float drag_start_time_begin = 0.f;
-	float offset_from_begin_time_layer = 0.f;
-	float length_drag = 0.f;
-
 	uint64_t index_drag = UINT64_MAX;
 	ObjectStatus pressed_status;
 	ObjectStatus draging_status;
+
+	long double drag_start_mouse_global;
 
 	void DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered, bool isSelected);
 

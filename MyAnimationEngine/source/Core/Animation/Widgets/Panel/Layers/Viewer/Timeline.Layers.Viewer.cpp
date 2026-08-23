@@ -54,7 +54,12 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 	ImVec2 mouse_pos = { ImGui::GetMousePos().x - cursor_pos.x,ImGui::GetMousePos().y - cursor_pos.y };
 	
 	colorRGB outline;
-	colorRGB body = info.color;
+	colorRGB body = lerp(info.color, colorRGB{ 0,0,0 }, 0.45f);
+	
+	if (isSelected)
+		body = info.color;
+
+
 
 	bool isLight = getLuminance(info.color) > 0.6f;
 
@@ -180,7 +185,7 @@ void Timeline_Layers_Viewer::Draw() {
 		ImRect rect = ImRect{ rect_min, rect_max };
 
 
-		bool isLayerSelected = index == selector->GetLayerIndex();
+		bool isLayerSelected = selector->ContainsLayer({ index });
 
 		ImColor bg_layer = COLOR_BG_LAYER;
 		if (isLayerSelected)
@@ -231,11 +236,29 @@ void Timeline_Layers_Viewer::Draw() {
 			pressed_status = isHovered;
 
 			if (pressed_status != ObjectStatus::NOTHING) {
+
+				if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+					selector->AddMoreSelectedLayer_Toggle({ index });
+				else if (!selector->ContainsLayer({ index }))
+					selector->SelectLayer({ index });
+
+				ImGui::IsMouseDragging(ImGuiMouseButton_Left);
+
 				index_drag = index;
-				drag_start_time_begin = time_begin;
-				length_drag = time_end - time_begin;
+
 				drag_start_mouse_global = horizontalTransform->getPostionGlobal_real(ImGui::GetMousePos().x - cursor_pos.x);
-				offset_from_begin_time_layer = drag_start_mouse_global - time_begin;
+
+				for (const auto& layer : selector->getLayers()) {
+					LayerInfo& info = layers[layer.index].get()->GetLayerInfo();
+
+					info.time.DragInfo.OffsetFromBegin = drag_start_mouse_global - info.time.Begin;
+
+					info.time.DragInfo.Prev_Length = info.time.End - info.time.Begin;
+					info.time.DragInfo.Prev_Begin = info.time.Begin;
+				}
+
+
+
 			}
 		}
 
@@ -252,10 +275,8 @@ void Timeline_Layers_Viewer::Draw() {
 		}
 
 
-		if (draging_status == ObjectStatus::BODY_MOVE && index_drag == index) {
-			selector->SetLayerIndex(index);
-
-			float screen_pos_x = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + offset_from_begin_time_layer);
+		if (draging_status == ObjectStatus::BODY_MOVE && index_drag == index ) {
+			float screen_pos_x = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + layerInfo.time.DragInfo.OffsetFromBegin);
 			const int count = 4;
 			const float gap = 3.f;
 			const float offset = -gap * float(count) / 2.f;
@@ -273,6 +294,7 @@ void Timeline_Layers_Viewer::Draw() {
 				);
 			}
 		}
+
 
 		if (layerInfo.isVisible == false) {
 			draw_list->AddRectFilled({ p_min.x,rect_min.y }, { p_max.x,rect_max.y }, ImColor(0.f, 0.f, 0.f, 0.7f), 0.f, 0);
@@ -335,21 +357,23 @@ void Timeline_Layers_Viewer::Draw() {
 	timeCursor->Draw(p_min, p_max);
 
 
-	if (index_drag != UINT64_MAX) {
-		const auto& index = index_drag;
+
+
+
+	float delta = horizontalTransform->getPostionGlobal_lerped(ImGui::GetMousePos().x - cursor_pos.x) - drag_start_mouse_global;
+	float step_frame = 1.f / (float)timelineData->GetData().framerate;
+	float count = std::floor(delta / step_frame);
+	float time = count * step_frame;
+	if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+		time = delta;
+	delta = time;
+
+
+
+	for (const auto& layer : selector->getLayers()) {
+		const auto& index = layer.index;
 		const auto& status = draging_status;
-
-		float delta = horizontalTransform->getPostionGlobal_lerped(ImGui::GetMousePos().x - cursor_pos.x) - drag_start_mouse_global;
-
-		float step_frame = 1.f / (float)timelineData->GetData().framerate;
-		float count = std::floor(delta / step_frame);
-		float time = count * step_frame;
-
-		if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
-			time = delta;
-
-		delta = time;
-
+		
 		LayerInfo& info = layers[index].get()->GetLayerInfo();
 
 		switch (status) {
@@ -358,7 +382,7 @@ void Timeline_Layers_Viewer::Draw() {
 			CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_HORIZONTAL);
 
 			if (status == ObjectStatus::RIGHT_RESIZE) {
-				info.time.End = drag_start_time_begin + length_drag + delta;
+				info.time.End = info.time.DragInfo.Prev_Begin + info.time.DragInfo.Prev_Length + delta;
 
 				if (info.time.End <= info.time.Begin) {
 					info.time.End = info.time.Begin + 0.1f;
@@ -370,7 +394,7 @@ void Timeline_Layers_Viewer::Draw() {
 
 			}
 			else {
-				info.time.Begin = drag_start_time_begin + delta;
+				info.time.Begin = info.time.DragInfo.Prev_Begin + delta;
 
 				if (info.time.Begin >= info.time.End) {
 					info.time.Begin = info.time.End - 0.1f;
@@ -387,24 +411,25 @@ void Timeline_Layers_Viewer::Draw() {
 		case ObjectStatus::BODY_MOVE:
 			CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
 
-			
 
-			info.time.Begin = drag_start_time_begin + delta;
-			info.time.End = drag_start_time_begin + length_drag + delta;
+
+			info.time.Begin = info.time.DragInfo.Prev_Begin + delta;
+			info.time.End = info.time.DragInfo.Prev_Begin + info.time.DragInfo.Prev_Length + delta;
 
 			if (info.time.End <= 0.f) {
 				info.time.End = 0.f;
-				info.time.Begin = -length_drag;
+				info.time.Begin = -info.time.DragInfo.Prev_Length;
 			}
 
 			if (info.time.Begin > timelineData->GetData().totalTime) {
 				info.time.Begin = timelineData->GetData().totalTime;
-				info.time.End	= info.time.Begin + length_drag;
+				info.time.End = info.time.Begin + info.time.DragInfo.Prev_Length;
 			}
 
 			break;
 		}
 
+	
 	}
 		
 

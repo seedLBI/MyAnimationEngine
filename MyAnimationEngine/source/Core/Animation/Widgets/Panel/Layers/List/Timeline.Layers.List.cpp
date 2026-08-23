@@ -162,7 +162,7 @@ void Timeline_Layers_List::drawTriggerButton(bool& value, std::string index, con
 
     const float size = availableHeight * 0.8f;
 
-    ImVec2 p_min = { ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y + (availableHeight - size)  };
+    ImVec2 p_min = { ImGui::GetCursorScreenPos().x, std::round(ImGui::GetCursorScreenPos().y + (availableHeight - size) - 1.1f)  };
     ImVec2 p_max = { p_min.x + size, p_min.y + size};
 
 
@@ -264,7 +264,7 @@ void Timeline_Layers_List::DrawObject(LayerObject* object, uint64_t index)
     std::string str_index = std::to_string(index);
     float height_object = verticalTransform->getScaledHeightOneObject();
 
-    ImGui::BeginChild(("##Layer##" + str_index).c_str(), ImVec2(ImGui::GetContentRegionAvail().x, height_object), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::BeginChild(("##Layer##" + str_index).c_str(), ImVec2(ImGui::GetContentRegionAvail().x, height_object + 1.f), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     {
 
         const float margin = 5.f;
@@ -483,12 +483,30 @@ bool Timeline_Layers_List::DrawLayerName(LayerObject* object, uint64_t index) {
     float itemHeight = verticalTransform->getScaledHeightOneObject();
     float textHeight = ImGui::GetTextLineHeight();
     float offsetY = (itemHeight - textHeight) * 0.5f - 1.f;
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - offsetY);
-
     
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 text_size = ImGui::CalcTextSize(object->GetLayerInfo().name.c_str());
+    ImVec2 min_text = ImGui::GetCursorScreenPos();
+    min_text.y += 2.5f;
+    min_text.x -= 2.f;
+    ImVec2 max_text = { min_text.x + text_size.x, min_text.y + text_size.y - 5.f };
 
+    ImColor color_text = COLOR_DEFAULT;
+
+    if (selector->HavePropertiesInLayer({ index })) {
+        draw_list->AddRect(min_text, max_text, COLOR_BG_LAYER_NAME_CHOOSED, 0.f, 0, 2.f);
+    }
+    else if (selector->ContainsLayer({ index })) {
+        color_text.Value.x = 1.f - color_text.Value.x;
+        color_text.Value.y = 1.f - color_text.Value.y;
+        color_text.Value.z = 1.f - color_text.Value.z;
+
+        draw_list->AddRectFilled(min_text, max_text, COLOR_BG_LAYER_NAME_CHOOSED, 0.f);
+    }
+
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - offsetY);
     Push_SmallFont();
-    ImGui::TextColored(COLOR_DEFAULT, object->GetLayerInfo().name.c_str());
+    ImGui::TextColored(color_text, object->GetLayerInfo().name.c_str());
     Pop_SmallFont();
     return false;
 }
@@ -787,19 +805,21 @@ void Timeline_Layers_List::Draw() {
         ImVec2 rect_max = { p_max.x, round(p.y + itemHeight) };
 
         if (ImGui::IsMouseHoveringRect(rect_min,rect_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)){
-            selector->UnsetAll();
-            selector->SetLayerIndex(index);
+            if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+                selector->AddMoreSelectedLayer_Toggle({ index });
+            else if (!selector->ContainsLayer({index}))
+                selector->SelectLayer({ index });
         }
 
 
 
         ImColor color_background = COLOR_BG_LAYER;
 
-        if (selector->GetLayerIndex() == index) {
+        if (selector->ContainsLayer({ index })) {
             color_background = COLOR_BG_LAYER_CHOOSED;
         }
-
         draw_list->AddRectFilled(rect_min, rect_max, color_background);
+
 
 
 
@@ -1066,11 +1086,20 @@ void Timeline_Layers_List::Draw() {
 
 
                 if (ImGui::IsMouseHoveringRect(propertie_min, propertie_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-                    selector->SetPropertieName(name);
-                    selector->SetLayerIndex(index);
+                    if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+                        selector->AddMoreSelectedLayer({ index });
+                        selector->AddMoreSelectedProperty_Toggle({ index, name });
+                    }
+                    else if (!selector->ContainsProperty({ index, name })) {
+                        selector->SelectLayer({ index });
+                        selector->SelectProperty({ index, name });
+                    }
                 }
 
-                if (selector->GetPropertieName() == name && selector->GetLayerIndex() == index) {
+
+
+
+                if (selector->ContainsProperty({index, name})) {
                     draw_list->AddRectFilled(propertie_min, propertie_max, COLOR_BG_LAYER_CHOOSED);
                 }
                 

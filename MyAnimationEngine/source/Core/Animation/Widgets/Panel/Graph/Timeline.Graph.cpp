@@ -167,16 +167,18 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 
 	if (layersData->GetData().layers.empty() ||
-		selector->GetLayerIndex() > layersData->GetData().layers.size() - 1||
-		selector->GetPropertieName().empty()) {
+		selector->getProperties().empty()) {
 		timeCursor->Draw(p_min, p_max);
 		return;
 	}
 
-	auto* layerObject = layersData->GetData().layers[selector->GetLayerIndex()].get();
+	auto index_selector = selector->getProperties().begin()->layer.index;
+	auto name_property  = selector->getProperties().begin()->name;
+
+	auto* layerObject = layersData->GetData().layers[index_selector].get();
 	float time_begin = layerObject->GetLayerInfo().time.Begin;
 
-	auto& variant_prop = layerObject->GetProperties().getVariant(selector->GetPropertieName());
+	auto& variant_prop = layerObject->GetProperties().getVariant(name_property);
 
 	std::visit([&](auto& propertie) {
 		auto& keyframes = propertie.kr.getKeyframes();
