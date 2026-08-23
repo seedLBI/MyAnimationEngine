@@ -4,6 +4,7 @@
 #include "Core/Animation/Widgets/Panel/Transform/Horizontal/Timeline.Transform.Horizontal.h"
 #include "Core/Animation/Widgets/Panel/Transform/Vertical/Timeline.Transform.Vertical.h"
 #include "Core/Animation/Widgets/Panel/Selector/Timeline.Selector.h"
+#include "Core/Animation/Widgets/Panel/AreaSelection/Timeline.AreaSelection.h"
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Layer/Factory/Layer.Factory.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
@@ -25,7 +26,8 @@ public:
 		TimelineController* timelineController,
 		TimelineTransformHorizontal* horizontalTransform,
 		TimelineTransformVertical* verticalTransform,
-		Timeline_Selector* selector);
+		Timeline_Selector* selector,
+		Timeline_AreaSelection* areaSelection);
 	~Timeline_Layers_List();
 
 	void Draw();
@@ -44,6 +46,7 @@ private:
 	TimelineTransformHorizontal* horizontalTransform;
 	TimelineTransformVertical* verticalTransform;
 	Timeline_Selector* selector;
+	Timeline_AreaSelection* areaSelection;
 
 
 	void DrawObject(LayerObject* object, uint64_t index);

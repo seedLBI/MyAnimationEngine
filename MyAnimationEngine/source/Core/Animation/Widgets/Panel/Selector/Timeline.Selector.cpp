@@ -8,11 +8,11 @@ void Timeline_Selector::UnsetAll() {
 }
 
 
-bool Timeline_Selector::HavePropertiesInLayer(SelectedLayer layer) {
+bool Timeline_Selector::HaveSelectedPropertiesInLayer(SelectedLayer layer) {
 	auto it = properties.lower_bound({ layer, "" });
 	return it != properties.end() && it->layer == layer;
 }
-void Timeline_Selector::ClearAllPropertiesInLayer(SelectedLayer layer) {
+void Timeline_Selector::ClearAllSelectedPropertiesInLayer(SelectedLayer layer) {
 	for (auto it = properties.begin(); it != properties.end(); ) {
 		if (it->layer == layer)
 			it = properties.erase(it);
@@ -34,11 +34,28 @@ void Timeline_Selector::SelectKeyframe(const SelectedKeyframe& keyframe) {
 	keyframes.insert(keyframe);
 }
 
+void Timeline_Selector::EraseLayer(SelectedLayer layer) {
+	layers.erase(layer);
+}
+void Timeline_Selector::ErasePropertie(const SelectedProperty& propertу) {
+	properties.erase(propertу);
+}
+
+std::optional<SelectedLayer> Timeline_Selector::GetMinSelectedLayer() const {
+	if (layers.empty())return std::nullopt;
+	return *layers.begin();
+}
+std::optional<SelectedLayer> Timeline_Selector::GetMaxSelectedLayer() const {
+	if (layers.empty())return std::nullopt;
+	return *layers.rbegin();
+}
+
+
 
 void Timeline_Selector::AddMoreSelectedLayer_Toggle(SelectedLayer layer) {
 	if (ContainsLayer(layer)) {
 		layers.erase(layer);
-		ClearAllPropertiesInLayer(layer);
+		ClearAllSelectedPropertiesInLayer(layer);
 	}
 	else
 		layers.insert(layer);

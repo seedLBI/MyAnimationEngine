@@ -10,13 +10,15 @@ Timeline_Layers_Viewer::Timeline_Layers_Viewer(
 	TimelineProviderData* timelineData,
 	TimelineTransformVertical* verticalTransform,
 	TimelineTransformHorizontal* horizontalTransform,
-	Timeline_Selector* selector)
+	Timeline_Selector* selector,
+	Timeline_AreaSelection* areaSelection)
 	: timeCursor(timeCursor),
 	layersData(layersData),
 	timelineData(timelineData),
 	verticalTransform(verticalTransform),
 	horizontalTransform(horizontalTransform),
-	selector(selector)
+	selector(selector),
+	areaSelection(areaSelection)
 {
 
 }
@@ -327,7 +329,7 @@ void Timeline_Layers_Viewer::Draw() {
 
 						DrawRomb(
 							{
-								p.x + horizontalTransform->getPostionScreen_lerped(time_begin + sample.time),
+								p.x + horizontalTransform->getPostionScreen_lerped(layerInfo.time.Begin + sample.time + value.kr.getDelta()),
 								p.y + textHeight / 2.f
 							},
 							textHeight / 4.f,
@@ -349,16 +351,20 @@ void Timeline_Layers_Viewer::Draw() {
 
 	if (index_drag == UINT64_MAX && ImGui::IsMouseHoveringRect(p_min,p_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 		selector->UnsetAll();
+		areaSelection->SetStatus(true);
+		areaSelection->SetStartMousePosition(ImGui::GetMousePos());
+		areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_VIEWER);
+	}
+
+	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+	{
+		areaSelection->SetStatus(false);
 	}
 
 
 	draw_list->AddRectFilled({ p_min.x + left_range, p_min.y}, { p_min.x + right_range, p_max.y }, ImColor(1.f, 1.f, 1.f, 0.1f), 0.f, 0);
 
 	timeCursor->Draw(p_min, p_max);
-
-
-
-
 
 	float delta = horizontalTransform->getPostionGlobal_lerped(ImGui::GetMousePos().x - cursor_pos.x) - drag_start_mouse_global;
 	float step_frame = 1.f / (float)timelineData->GetData().framerate;
@@ -367,8 +373,6 @@ void Timeline_Layers_Viewer::Draw() {
 	if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
 		time = delta;
 	delta = time;
-
-
 
 	for (const auto& layer : selector->getLayers()) {
 		const auto& index = layer.index;
@@ -403,6 +407,12 @@ void Timeline_Layers_Viewer::Draw() {
 				if (info.time.Begin >= timelineData->GetData().totalTime) {
 					info.time.Begin = timelineData->GetData().totalTime;
 				}
+
+				auto& properties = layers[index].get()->GetProperties();
+				properties.forEachUnwrapped([&](const std::string& name, auto& value) {
+					value.kr.setDelta(-delta);
+				});
+
 			}
 
 
@@ -427,8 +437,13 @@ void Timeline_Layers_Viewer::Draw() {
 			}
 
 			break;
+		case ObjectStatus::NOTHING:
+			auto& properties = layers[index].get()->GetProperties();
+			properties.forEachUnwrapped([&](const std::string& name, auto& value) {
+				value.kr.applyDelta();
+			});
+			break;
 		}
-
 	
 	}
 		

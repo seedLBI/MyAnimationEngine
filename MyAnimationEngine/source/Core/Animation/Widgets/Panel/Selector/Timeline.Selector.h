@@ -7,7 +7,7 @@
 #include <string>
 #include <tuple>
 #include <algorithm>
-
+#include <optional>
 
 struct SelectedLayer {
 	uint64_t index;
@@ -41,7 +41,6 @@ struct SelectedKeyframe {
 	}
 };
 
-
 class Timeline_Selector{
 public:
 	Timeline_Selector() = default;
@@ -53,12 +52,19 @@ public:
 	void SelectProperty(const SelectedProperty& propertу);
 	void SelectKeyframe(const SelectedKeyframe& keyframe);
 
-	void ClearAllPropertiesInLayer(SelectedLayer layer);
-	bool HavePropertiesInLayer(SelectedLayer layer);
+	void ClearAllSelectedPropertiesInLayer(SelectedLayer layer);
+	bool HaveSelectedPropertiesInLayer(SelectedLayer layer);
+
+	void EraseLayer(SelectedLayer layer);
+	void ErasePropertie(const SelectedProperty& propertу);
+
 
 	void AddMoreSelectedLayer_Toggle(SelectedLayer layer);
 	void AddMoreSelectedProperty_Toggle(const SelectedProperty& propertу);
 	void AddMoreSelectedKeyframe_Toggle(const SelectedKeyframe& keyframe);
+
+	std::optional<SelectedLayer> GetMinSelectedLayer() const;
+	std::optional<SelectedLayer> GetMaxSelectedLayer() const;
 
 	void AddMoreSelectedLayer(SelectedLayer layer);
 	void AddMoreSelectedProperty(const SelectedProperty& propertу);
@@ -71,6 +77,7 @@ public:
 	const std::set<SelectedKeyframe>& getKeyframes() const;
 	const std::set<SelectedProperty>& getProperties() const;
 	const std::set<SelectedLayer>& getLayers() const;
+
 
 private:
 	std::set<SelectedKeyframe> keyframes;

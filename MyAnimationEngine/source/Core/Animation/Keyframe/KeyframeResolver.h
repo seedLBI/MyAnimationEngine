@@ -49,6 +49,9 @@ public:
 
 	void setDefaultValue(std::array<T, N>& value);
 
+	void setDelta(float delta);
+	void applyDelta();
+	float getDelta();
 
 	void addFromDefaultValue(float time);
 	void add(const Keyframe<T, N>& keyframe);
@@ -66,6 +69,8 @@ private:
 	std::vector<TypeKeyframe> type_restrictions;
 
 	std::optional<RangeValueKeyframe<T, N>> range;
+
+	float delta = 0.f;
 
 	uint32_t default_sample_rate = 24;
 	bool is_dirty = true;
@@ -143,6 +148,34 @@ KeyframeResolver<T, N>::~KeyframeResolver()
 {
 
 }
+
+template<typename T, uint8_t N>
+void KeyframeResolver<T, N>::setDelta(float delta) {
+	this->delta = delta;
+}
+template<typename T, uint8_t N>
+void KeyframeResolver<T, N>::applyDelta() {
+	if (this->delta == 0.f) return;
+	is_dirty = true;
+
+	for (auto& keyframe : keyframes) {
+		keyframe.sample.time += this->delta;
+		for (size_t i = 0; i < N; i++) {
+			if (keyframe.anchors.in.has_value())
+				keyframe.anchors.in.value().time[i] += this->delta;
+			if (keyframe.anchors.out.has_value())
+				keyframe.anchors.out.value().time[i] += this->delta;
+		}
+	}
+
+	this->delta = 0.f;
+}
+template<typename T, uint8_t N>
+float KeyframeResolver<T, N>::getDelta() {
+	return this->delta;
+}
+
+
 
 template<typename T, uint8_t N>
 const std::optional<RangeValueKeyframe<T,N>>& KeyframeResolver<T, N>::getRange() {

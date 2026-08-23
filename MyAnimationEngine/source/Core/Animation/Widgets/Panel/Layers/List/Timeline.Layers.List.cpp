@@ -16,14 +16,16 @@ Timeline_Layers_List::Timeline_Layers_List(
     TimelineController* timelineController, 
     TimelineTransformHorizontal* horizontalTransform, 
     TimelineTransformVertical* verticalTransform, 
-    Timeline_Selector* selector)
+    Timeline_Selector* selector,
+    Timeline_AreaSelection* areaSelection)
 	: layerFactory(layerFactory),
       layersData (layersData),
       timelineData (timelineData),
       timelineController (timelineController),
       horizontalTransform (horizontalTransform),
 	  verticalTransform (verticalTransform),
-      selector(selector)
+      selector(selector),
+      areaSelection(areaSelection)
 {
 
     columns.resize(8);
@@ -493,7 +495,7 @@ bool Timeline_Layers_List::DrawLayerName(LayerObject* object, uint64_t index) {
 
     ImColor color_text = COLOR_DEFAULT;
 
-    if (selector->HavePropertiesInLayer({ index })) {
+    if (selector->HaveSelectedPropertiesInLayer({ index })) {
         draw_list->AddRect(min_text, max_text, COLOR_BG_LAYER_NAME_CHOOSED, 0.f, 0, 2.f);
     }
     else if (selector->ContainsLayer({ index })) {
@@ -804,9 +806,39 @@ void Timeline_Layers_List::Draw() {
         ImVec2 rect_min = { p_min.x, round(p.y + 1.f) };
         ImVec2 rect_max = { p_max.x, round(p.y + itemHeight) };
 
+
+        if (areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && areaSelection->IsActive()) {
+            if (areaSelection->CheckAABB({ rect_min, rect_max }))
+                selector->AddMoreSelectedLayer({ index });
+            else if (!selector->HaveSelectedPropertiesInLayer({index}))
+                selector->EraseLayer({ index });
+        }
+
         if (ImGui::IsMouseHoveringRect(rect_min,rect_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)){
             if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
                 selector->AddMoreSelectedLayer_Toggle({ index });
+            else if (ImGui::IsKeyDown(ImGuiKey_LeftShift) && selector->getLayers().empty() == false) {
+
+                uint64_t min_index = selector->GetMinSelectedLayer().value().index;
+                uint64_t max_index = selector->GetMaxSelectedLayer().value().index;
+
+                selector->UnsetAll();
+
+                uint64_t delta_min = index > min_index ? index - min_index : min_index - index;
+                uint64_t delta_max = index > max_index ? index - max_index : max_index - index;
+
+                uint64_t from = (std::min)(index, min_index);
+                uint64_t to = (std::max)(index, min_index);
+
+                if (delta_min <= delta_max) {
+                    from = (std::min)(index, max_index);
+                    to = (std::max)(index, max_index);
+                }
+
+                for (size_t i = from; i <= to; i++)
+                    selector->AddMoreSelectedLayer({ i });
+
+            }
             else if (!selector->ContainsLayer({index}))
                 selector->SelectLayer({ index });
         }
@@ -836,6 +868,21 @@ void Timeline_Layers_List::Draw() {
 
             auto& properties = layer->GetProperties();
             properties.forEachUnwrapped([&](const std::string& name, auto& value) {
+
+                if (areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && areaSelection->IsActive()) {
+                    if (areaSelection->CheckAABB({ { p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) } })) {
+                        selector->AddMoreSelectedProperty({ index, name });
+                        selector->AddMoreSelectedLayer({ index });
+                    }
+                    else {
+                        selector->ErasePropertie({ index, name });
+                        if (!selector->HaveSelectedPropertiesInLayer({index}))
+                            selector->EraseLayer({ index });
+                    }
+                }
+
+
+
 
                 const auto& keyframes = value.kr.getKeyframes();
 
@@ -1262,6 +1309,18 @@ void Timeline_Layers_List::Draw() {
         }
 
     });
+
+    if (ImGui::IsMouseHoveringRect(p, p_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        selector->UnsetAll();
+        areaSelection->SetStatus(true);
+        areaSelection->SetStartMousePosition(ImGui::GetMousePos());
+        areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_LIST);
+    }
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+        areaSelection->SetStatus(false);
+    }
+
+
 
     verticalTransform->updateContentHeight(heightContent);
 }

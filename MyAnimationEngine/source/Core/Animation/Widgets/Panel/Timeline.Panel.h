@@ -26,7 +26,7 @@
 #include "Graph/Timeline.Graph.h"
 #include "HorizontalTickRenderer/Horizontal.Tick.Renderer.h"
 #include "Selector/Timeline.Selector.h"
-
+#include "AreaSelection/Timeline.AreaSelection.h"
 
 #include "TimeCursor/Timeline.TimeCursor.h"
 
@@ -65,13 +65,12 @@ private:
 	TimelineTransformVertical*   timelineTransformVertical = nullptr;
 	TransformScaled* graphTransformVertical = nullptr;
 
-
 	Timeline_Scroll_Horizontal* scrollHorizontal;
 	Timeline_Scroll_Vertical*   scrollVertical;
 
-
 	HorizontalTickRenderer* horizontalTickRenderer = nullptr;
 
+	// gui
 	Timeline_TimeCursor*	timelineTimeCursor;
 	Timeline_Ruler*			timelineRuler;
 	Timeline_Range*			timelineRange;
@@ -79,7 +78,9 @@ private:
 	Timeline_Layers_Viewer* layersViewer;
 	Timeline_UpperControls* upperControls;
 	Timeline_Graph*			graph;
-	Timeline_Selector*		selector;
+	Timeline_AreaSelection* areaSelection;
+
+	Timeline_Selector* selector;
 
 	void Draw_1Level(const float& thickness_separator);
 	void DrawLayerSide_1Level(const float& height);

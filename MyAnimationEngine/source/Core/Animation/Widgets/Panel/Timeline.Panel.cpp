@@ -21,6 +21,8 @@ Timeline_Panel::Timeline_Panel(
 	
 	selector = new Timeline_Selector();
 
+	areaSelection = new Timeline_AreaSelection();
+
 	horizontalTickRenderer = new HorizontalTickRenderer(timelineTransformHorizontal, timelineData);
 
 
@@ -34,9 +36,8 @@ Timeline_Panel::Timeline_Panel(
 	timelineRuler = new Timeline_Ruler(timelineTimeCursor, timelineController, timelineData, timelineTransformHorizontal, horizontalTickRenderer);
 	timelineRange = new Timeline_Range(timelineTimeCursor, timelineData, timelineTransformHorizontal);
 
-	layersViewer = new Timeline_Layers_Viewer(timelineTimeCursor, layersData, timelineData, timelineTransformVertical, timelineTransformHorizontal, selector);
-
-	layersList = new Timeline_Layers_List(layerFactory, layersData, timelineData, timelineController, timelineTransformHorizontal, timelineTransformVertical, selector);
+	layersViewer = new Timeline_Layers_Viewer(timelineTimeCursor, layersData, timelineData, timelineTransformVertical, timelineTransformHorizontal, selector, areaSelection);
+	layersList = new Timeline_Layers_List(layerFactory, layersData, timelineData, timelineController, timelineTransformHorizontal, timelineTransformVertical, selector, areaSelection);
 
 	graph = new Timeline_Graph(timelineTimeCursor, layersData, timelineData, timelineController, timelineTransformHorizontal, graphTransformVertical, horizontalTickRenderer, selector);
 	graph->NeedCenterize();
@@ -215,6 +216,12 @@ void Timeline_Panel::DrawVerticalSliderBox_2Level(const float& height) {
 
 void Timeline_Panel::Draw_3Level(const float& thickness_separator) {
 	float height = ImGui::GetContentRegionAvail().y - 20.f;
+	float width = ImGui::GetContentRegionAvail().x - 20.f;
+
+	ImVec2 clip_min = ImGui::GetCursorScreenPos();
+	ImVec2 clip_max = clip_min;
+	clip_max.y += height;
+	clip_max.x += width;
 
 	DrawLayerSide_3Level(height);
 
@@ -223,6 +230,15 @@ void Timeline_Panel::Draw_3Level(const float& thickness_separator) {
 	ImGui::SameLine();
 
 	DrawTimelineSide_3Level(height);
+
+
+
+
+	auto* draw_list = ImGui::GetForegroundDrawList();
+	draw_list->PushClipRect(clip_min, clip_max, true);
+	areaSelection->Update();
+	areaSelection->Draw(draw_list);
+	draw_list->PopClipRect();
 
 	ImGui::SameLine();
 	ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, thickness_separator);
@@ -320,6 +336,5 @@ void Timeline_Panel::Update() {
 
 
 	upperControls->Update();
-
 
 }

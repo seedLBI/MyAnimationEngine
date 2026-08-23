@@ -7,6 +7,7 @@
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
 #include "Core/Animation/Widgets/Panel/Selector/Timeline.Selector.h"
+#include "Core/Animation/Widgets/Panel/AreaSelection/Timeline.AreaSelection.h"
 
 #include <unordered_map>
 
@@ -19,7 +20,8 @@ public:
 		TimelineProviderData* timelineData, 
 		TimelineTransformVertical* verticalTransform, 
 		TimelineTransformHorizontal* horizontalTransform,
-		Timeline_Selector* selector
+		Timeline_Selector* selector,
+		Timeline_AreaSelection* areaSelection
 	);
 
 	~Timeline_Layers_Viewer();
@@ -37,6 +39,7 @@ private:
 	TimelineTransformHorizontal* horizontalTransform;
 
 	Timeline_Selector* selector;
+	Timeline_AreaSelection* areaSelection;
 
 	enum class ObjectStatus : uint8_t {
 		NOTHING = 0,
