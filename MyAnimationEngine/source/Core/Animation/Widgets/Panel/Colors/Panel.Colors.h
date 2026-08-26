@@ -34,11 +34,13 @@
 #define COLOR_BODY_RANGE_HOVERED		ImColor(.42f, .42f, .42f, 1.f)
 #define COLOR_BODY_RANGE_HELD			ImColor(.51f, .51f, .51f, 1.f)
 
-#define COLOR_TIMELINE_CURSOR_FRAME_BG	ImColor(.3f, .3f, .3f, 1.f)
-#define COLOR_TIMELINE_CURSOR			ImColor(.25f, .59f, .95f, 1.f)
+#define COLOR_TIMELINE_CURSOR_FRAME_BG		 ImColor(.3f, .3f, .3f, 1.f)
+#define COLOR_TIMELINE_CURSOR				 ImColor(.25f, .59f, .95f, 1.f)
 
-#define COLOR_KEYFRAME					ImColor(.42f, .42f, .42f, 1.f)
-#define COLOR_KEYFRAME_OUTLINE			ImColor(.25f, .57f, .92f, 1.f)
+#define COLOR_KEYFRAME						 ImColor(.42f, .42f, .42f, 1.f)
+#define COLOR_KEYFRAME_OUTLINE				 ImColor(.25f, .57f, .92f, 1.f)
 
+#define COLOR_LAYER_GRAB_OUTLINE			 ImColor(.22f, .47f, .74f, 1.f)
+#define COLOR_LAYER_GRAB_LINE_COPY_POSITION  ImColor(.25f, .59f, .95f, 1.f)
 
 #endif

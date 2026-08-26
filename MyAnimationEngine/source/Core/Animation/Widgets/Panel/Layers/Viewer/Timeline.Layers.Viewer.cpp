@@ -108,15 +108,32 @@ void Timeline_Layers_Viewer::DrawRomb(const ImVec2& pos_center, float size, ImCo
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 
-	ImVec2 vertexs[] = {
-		{pos_center.x - size, pos_center.y},
-		{pos_center.x, pos_center.y + size},
-		{pos_center.x + size, pos_center.y},
+	ImVec2 vertexs_main[] = {
 		{pos_center.x, pos_center.y - size},
+		{pos_center.x + size, pos_center.y},
+		{pos_center.x, pos_center.y + size},
 		{pos_center.x - size, pos_center.y},
+		{pos_center.x, pos_center.y - size},
 	};
 
-	draw_list->AddConvexPolyFilled(vertexs, 4, color);
+	if (isSelected)	{
+		float upsize = size / 3.f;
+		float roundness_offset = size / 4.f;
+		ImVec2 vertexs_outline[] = {
+			{pos_center.x - roundness_offset, pos_center.y - size - upsize},
+			{pos_center.x + roundness_offset, pos_center.y - size - upsize},
+			{pos_center.x + size + upsize, pos_center.y - roundness_offset},
+			{pos_center.x + size + upsize, pos_center.y + roundness_offset},
+			{pos_center.x + roundness_offset, pos_center.y + size + upsize},
+			{pos_center.x - roundness_offset, pos_center.y + size + upsize},
+			{pos_center.x - size - upsize, pos_center.y + roundness_offset},
+			{pos_center.x - size - upsize, pos_center.y - roundness_offset},
+			{pos_center.x - roundness_offset, pos_center.y - size - upsize},
+		};
+		draw_list->AddConvexPolyFilled(vertexs_outline, 8, colorSelected);
+	}
+
+	draw_list->AddConvexPolyFilled(vertexs_main, 4, color);
 
 }
 
@@ -153,8 +170,6 @@ void Timeline_Layers_Viewer::Draw() {
 	float width_window = ImGui::GetWindowWidth();
 
 
-	float left_range  = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().left_range_repeat);
-	float right_range = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().right_range_repeat);
 
 
 
@@ -306,7 +321,6 @@ void Timeline_Layers_Viewer::Draw() {
 
 			auto& properties = layer->GetProperties();
 
-
 			properties.forEachUnwrapped([&](const std::string& name, auto& value) {
 
 				float textHeight = ImGui::GetTextLineHeight();
@@ -318,18 +332,60 @@ void Timeline_Layers_Viewer::Draw() {
 						auto& keyframe = keyframes[i];
 						auto& sample = keyframe.sample;
 
+						float pos_screen = ctx->horizontalTransform->getPostionScreen_lerped(layerInfo.time.Begin + sample.time + value.kr.getDelta());
+
+						ImVec2 min_hitbox = { p.x + pos_screen - textHeight / 2.f, p.y };
+						ImVec2 max_hitbox = { p.x + pos_screen + textHeight / 2.f, p.y + textHeight};
+
+						SelectedKeyframe current = { {index, name}, i };
+
+						if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_VIEWER && ctx->areaSelection->IsActive()) {
+
+							if (ctx->areaSelection->CheckAABB({ min_hitbox, max_hitbox })) {
+								ctx->selector->AddMoreSelectedKeyframe(current);
+								ctx->selector->AddMoreSelectedProperty({ index, name });
+								ctx->selector->AddMoreSelectedLayer({ index });
+							}
+							else {
+								ctx->selector->EraseKeyframe(current);
+								if (!ctx->selector->HaveSelectedKeyframesInProperty({ index, name })) {
+									ctx->selector->ErasePropertie({ index, name });
+								}
+								if (!ctx->selector->HaveSelectedKeyframesInLayer({index})) {
+									ctx->selector->ErasePropertie({ index, name });
+									ctx->selector->EraseLayer({ index });
+								}
+							}
+						}
+
+						bool isSelected = ctx->selector->ContainsKeyframe(current);
+
 						DrawRomb(
 							{
-								p.x + ctx->horizontalTransform->getPostionScreen_lerped(layerInfo.time.Begin + sample.time + value.kr.getDelta()),
+								p.x + pos_screen,
 								p.y + textHeight / 2.f
 							},
 							textHeight / 4.f,
-							ImColor(.37f, .37f, .37f, 1.f)
+							COLOR_KEYFRAME,
+							isSelected,
+							COLOR_KEYFRAME_OUTLINE
 						);
-
 					}
 				}
 
+				/*
+				if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && ctx->areaSelection->IsActive()) {
+                    if (ctx->areaSelection->CheckAABB({ { p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) } })) {
+                        ctx->selector->AddMoreSelectedProperty({ index, name });
+                        ctx->selector->AddMoreSelectedLayer({ index });
+                    }
+                    else {
+                        ctx->selector->ErasePropertie({ index, name });
+                        if (!ctx->selector->HaveSelectedPropertiesInLayer({index}))
+                            ctx->selector->EraseLayer({ index });
+                    }
+                }
+				*/
 
 				p.y += itemHeight;
 				draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
@@ -353,7 +409,11 @@ void Timeline_Layers_Viewer::Draw() {
 	}
 
 
+	float left_range = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().left_range_repeat);
+	float right_range = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().right_range_repeat);
+
 	draw_list->AddRectFilled({ p_min.x + left_range, p_min.y}, { p_min.x + right_range, p_max.y }, ImColor(1.f, 1.f, 1.f, 0.1f), 0.f, 0);
+
 
 	timeCursor->Draw(p_min, p_max);
 

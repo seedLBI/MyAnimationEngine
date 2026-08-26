@@ -46,7 +46,7 @@ GLFWcursor* CursorManager::LoadImageCursorFromFile(const std::string& path, int 
 }
 
 void CursorManager::LoadCursors() {
-	cursors.resize(7);
+	cursors.resize(9);
 
 	cursors[(int)TypeCursor::POINTER]			= LoadImageCursorFromFile("resources/cursors/pointer_c_shaded.png",		4,	2);
 	cursors[(int)TypeCursor::POINT]				= LoadImageCursorFromFile("resources/cursors/hand_thin_point.png",		6,	4);
@@ -55,6 +55,8 @@ void CursorManager::LoadCursors() {
 	cursors[(int)TypeCursor::RESIZE_HORIZONTAL] = LoadImageCursorFromFile("resources/cursors/resize_b_horizontal.png",	16,	16);
 	cursors[(int)TypeCursor::RESIZE_VERTICAL]	= LoadImageCursorFromFile("resources/cursors/resize_b_vertical.png",	16, 16);
 	cursors[(int)TypeCursor::TEXT]				= LoadImageCursorFromFile("resources/cursors/bracket_b_vertical.png",	16, 16);
+	cursors[(int)TypeCursor::DISABLED]			= LoadImageCursorFromFile("resources/cursors/disabled.png",				16, 16);
+	cursors[(int)TypeCursor::COPY]				= LoadImageCursorFromFile("resources/cursors/cursor_copy.png",			0, 0);
 	
 	glfwSetCursor(WindowManager::getInstance().GetHandle(), cursors[(int)current]);
 }

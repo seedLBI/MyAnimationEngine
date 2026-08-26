@@ -52,8 +52,6 @@ Timeline_Panel::Timeline_Panel(
 	graph->NeedCenterize();
 
 	NoiseTexture::getInstance();
-
-
 }
 
 Timeline_Panel::~Timeline_Panel() {

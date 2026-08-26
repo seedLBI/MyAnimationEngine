@@ -306,9 +306,25 @@ void Timeline_Graph::Draw() {
 	ImGui::SetCursorScreenPos(cursor_pos);
 
 	DrawTicks(p_min, p_max);
-
-	DrawGraphs(p_min, p_max);
 	
+	DrawGraphs(p_min, p_max);
+
+	float left_range = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().left_range_repeat);
+	float right_range = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().right_range_repeat);
+
+	drawlist->AddRectFilled({ p_min.x + left_range, p_min.y }, { p_min.x + right_range, p_max.y }, ImColor(1.f, 1.f, 1.f, 0.1f), 0.f, 0);
+	
+
+	if (ImGui::IsKeyDown(ImGuiKey_LeftShift) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+		ctx->selector->UnsetAll();
+		ctx->areaSelection->SetStatus(true);
+		ctx->areaSelection->SetStartMousePosition(ImGui::GetMousePos());
+		ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_LIST);
+	}
+	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+		ctx->areaSelection->SetStatus(false);
+	}
+
 }
 
 void Timeline_Graph::Update(const float& dt) {
@@ -325,7 +341,7 @@ void Timeline_Graph::Update(const float& dt) {
 
 	static bool isOfsetDeltaApplied = false;
 
-	if (isDraging && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+	if (isDraging && ImGui::IsMouseDown(ImGuiMouseButton_Left) && !ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
 		isOfsetDeltaApplied = true;
 		float delta_y = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
 		float delta_x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;

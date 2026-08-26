@@ -472,10 +472,14 @@ bool Timeline_Layers_List::DrawLayerName(LayerObject* object, uint64_t index) {
     
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 text_size = ImGui::CalcTextSize(object->GetLayerInfo().name.c_str());
-    ImVec2 min_text = ImGui::GetCursorScreenPos();
-    min_text.y += 2.5f;
-    min_text.x -= 2.f;
-    ImVec2 max_text = { min_text.x + text_size.x, min_text.y + text_size.y - 5.f };
+
+    ImVec2 min_text = { 
+        ImGui::GetCursorScreenPos().x - 2.f,
+        ImGui::GetCursorScreenPos().y + 2.5f };
+    ImVec2 max_text = {
+        min_text.x + columns[TypeColumn::NAME].width - 4.f,
+        min_text.y + text_size.y - 5.f };
+
 
     ImColor color_text = COLOR_DEFAULT;
 
@@ -781,7 +785,18 @@ void Timeline_Layers_List::Draw() {
 
     float heightContent = 0.f;
 
+    if (offsets_selected_while_grabing.size() != ctx->selector->getLayers().size())
+        offsets_selected_while_grabing.resize(ctx->selector->getLayers().size());
 
+    
+    uint64_t count_selected = 0;
+
+    if (DragDrawedOnce)
+        CursorManager::getInstance().SetCursor(TypeCursor::DISABLED);
+
+    IsDragUpper = false;
+    IsDragLower = false;
+    index_layer_dragdrop = UINT64_MAX;
 
     ctx->layersData->forEach([&](LayerObject* layer, uint64_t index) {
         ImGui::SetCursorScreenPos(p);
@@ -789,6 +804,26 @@ void Timeline_Layers_List::Draw() {
 
         ImVec2 rect_min = { p_min.x, round(p.y + 1.f) };
         ImVec2 rect_max = { p_max.x, round(p.y + itemHeight) };
+
+        ImVec2 name_min = { columns[TypeColumn::NAME].startCursorPos, rect_min.y };
+        ImVec2 name_max = { columns[TypeColumn::NAME].startCursorPos + columns[TypeColumn::NAME].width, rect_max.y };
+
+
+        isHoveredLayer = ImGui::IsMouseHoveringRect(rect_min, rect_max);
+        bool isHoveredName = ImGui::IsMouseHoveringRect(name_min, name_max);
+
+        bool isSelectedLayer = ctx->selector->ContainsLayer({ index });
+        ImColor color_background = COLOR_BG_LAYER;
+
+        if (isSelectedLayer) {
+            color_background = COLOR_BG_LAYER_CHOOSED; 
+
+            offsets_selected_while_grabing[count_selected] = round(p.y + 1.f);
+            count_selected++;
+        }
+
+
+
 
 
         if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && ctx->areaSelection->IsActive()) {
@@ -798,7 +833,8 @@ void Timeline_Layers_List::Draw() {
                 ctx->selector->EraseLayer({ index });
         }
 
-        if (ImGui::IsMouseHoveringRect(rect_min,rect_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)){
+
+        if (isHoveredLayer && ImGui::IsMouseClicked(ImGuiMouseButton_Left)){
             if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
                 ctx->selector->AddMoreSelectedLayer_Toggle({ index });
             else if (ImGui::IsKeyDown(ImGuiKey_LeftShift) && ctx->selector->getLayers().empty() == false) {
@@ -823,21 +859,22 @@ void Timeline_Layers_List::Draw() {
                     ctx->selector->AddMoreSelectedLayer({ i });
 
             }
-            else if (!ctx->selector->ContainsLayer({index}))
+            else if (!isSelectedLayer)
                 ctx->selector->SelectLayer({ index });
+            
+            if (isHoveredName) {
+                indexGrabbingLayer = index;
+                pos_grab_start = ImGui::GetMousePos();
+                isGrabingLayer = true;
+                timer_AfterPress.start();
+            }
+            
         }
 
 
+       
 
-        ImColor color_background = COLOR_BG_LAYER;
-
-        if (ctx->selector->ContainsLayer({ index })) {
-            color_background = COLOR_BG_LAYER_CHOOSED;
-        }
         draw_list->AddRectFilled(rect_min, rect_max, color_background);
-
-
-
 
 
         if (index == 0) ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 1.f);
@@ -1113,7 +1150,7 @@ void Timeline_Layers_List::Draw() {
                 ImGui::SameLine(0.f, 10.f);
 
                 ImVec2 propertie_min = { p.x + offsetX + 18.f, p.y + 1.f };
-                ImVec2 propertie_max = { p.x + offsetX + 22.f + (columns[TOGGLES].startCursorPos - offsetX - 22.f - itemHeight / 2.f - 5.f), p.y + itemHeight };
+                ImVec2 propertie_max = { p.x + offsetX + 22.f + (columns[TOGGLES].startCursorPos - offsetX - 22.f - itemHeight / 2.f - 8.f), p.y + itemHeight };
 
 
                 if (ImGui::IsMouseHoveringRect(propertie_min, propertie_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
@@ -1126,9 +1163,6 @@ void Timeline_Layers_List::Draw() {
                         ctx->selector->SelectProperty({ index, name });
                     }
                 }
-
-
-
 
                 if (ctx->selector->ContainsProperty({index, name})) {
                     draw_list->AddRectFilled(propertie_min, propertie_max, COLOR_BG_LAYER_CHOOSED);
@@ -1292,7 +1326,50 @@ void Timeline_Layers_List::Draw() {
 
         }
 
+        if (DragDrawedOnce && isSelectedLayer == false && isHoveredLayer) {
+
+            CursorManager::getInstance().SetCursor(TypeCursor::COPY);
+
+            index_layer_dragdrop = index;
+
+            IsDragUpper = ImGui::IsMouseHoveringRect(rect_min, { rect_max.x, rect_min.y + (rect_max.y - rect_min.y) / 2.f });
+            IsDragLower = ImGui::IsMouseHoveringRect({ rect_min.x, rect_min.y + (rect_max.y - rect_min.y) / 2.f }, rect_max);
+
+            if (IsDragUpper)
+                ImGui::GetForegroundDrawList()->AddLine(rect_min, { rect_max.x, rect_min.y }, COLOR_LAYER_GRAB_LINE_COPY_POSITION, 5.f);
+            if (IsDragLower)
+                ImGui::GetForegroundDrawList()->AddLine({ rect_min.x, p.y }, { rect_max.x, p.y }, COLOR_LAYER_GRAB_LINE_COPY_POSITION, 5.f);
+        }
+
     });
+
+    if (isGrabingLayer && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+        timer_AfterPress.stop();
+
+        if (timer_AfterPress.elapsedSeconds() >= time4enableDrag) {
+            ImVec2 delta = { ImGui::GetMousePos().x - pos_grab_start.x, ImGui::GetMousePos().y - pos_grab_start.y };
+
+            if (delta.x > 0 || delta.y > 0 || DragDrawedOnce) {
+                DragDrawedOnce = true;
+                for (const auto& offset : offsets_selected_while_grabing) {
+                    ImVec2 grab_min = { columns[TypeColumn::NAME].startCursorPos + delta.x, offset + delta.y };
+                    ImVec2 grab_max = { columns[TypeColumn::NAME].startCursorPos + columns[TypeColumn::NAME].width + delta.x, offset + itemHeight + delta.y };
+                    
+                    ImGui::GetForegroundDrawList()->AddRect(grab_min, grab_max, COLOR_LAYER_GRAB_OUTLINE, 0, 0, 2.f);
+                }
+            }
+        }
+    }
+    else {
+        isGrabingLayer = false;
+        indexGrabbingLayer = UINT64_MAX;
+        DragDrawedOnce = false;
+        if ((IsDragUpper || IsDragLower) && index_layer_dragdrop != UINT64_MAX) {
+            auto new_set = ctx->layersData->MoveLayersBySet(ConvertToIndices(ctx->selector->getLayers()), index_layer_dragdrop, IsDragUpper);
+            ctx->selector->UnsetAll();
+            ctx->selector->AddSelectedLayersBySet(new_set);
+        }
+    }
 
     if (ImGui::IsMouseHoveringRect(p, p_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
         ctx->selector->UnsetAll();

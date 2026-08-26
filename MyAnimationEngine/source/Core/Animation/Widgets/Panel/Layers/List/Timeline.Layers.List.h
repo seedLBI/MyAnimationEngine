@@ -5,6 +5,7 @@
 #include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 #include "IconDrawer/Timeline.Layers.Icon.Drawer.h"
 
+#include "Utils/Timer/Timer.h"
 
 #include <vector>
 #include <string>
@@ -67,6 +68,17 @@ private:
 
 	int getCountEnabledColumns();
 
+	uint64_t indexGrabbingLayer = 0;
+	bool isGrabingLayer = false;
+	bool isHoveredLayer = false;
+	std::vector<float> offsets_selected_while_grabing;
+	ImVec2 pos_grab_start;
+	Timer timer_AfterPress;
+	float time4enableDrag = 0.05f;
+	bool DragDrawedOnce = false;
+	bool IsDragUpper = false;
+	bool IsDragLower = false;
+	uint64_t index_layer_dragdrop = UINT64_MAX;
 
 	enum AV_SYMBOLS {
 		VISIBLE,

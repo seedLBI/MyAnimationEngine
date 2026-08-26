@@ -1,6 +1,15 @@
 ﻿#include "Timeline.Selector.h"
 
 
+std::set<uint64_t> ConvertToIndices(const std::set<SelectedLayer>& selectedLayers) {
+	std::set<uint64_t> result;
+
+	for (const auto& layer : selectedLayers)
+		result.insert(result.end(), layer.index);
+
+	return result;
+}
+
 void Timeline_Selector::UnsetAll() {
 	layers.clear();
 	properties.clear();
@@ -12,6 +21,15 @@ bool Timeline_Selector::HaveSelectedPropertiesInLayer(SelectedLayer layer) {
 	auto it = properties.lower_bound({ layer, "" });
 	return it != properties.end() && it->layer == layer;
 }
+bool Timeline_Selector::HaveSelectedKeyframesInLayer(SelectedLayer layer) {
+	auto it = keyframes.lower_bound({ layer, "" });
+	return it != keyframes.end() && it->property.layer == layer;
+}
+bool Timeline_Selector::HaveSelectedKeyframesInProperty(const SelectedProperty& propertу) {
+	auto it = keyframes.lower_bound({ propertу });
+	return it != keyframes.end() && it->property == propertу;
+}
+
 void Timeline_Selector::ClearAllSelectedPropertiesInLayer(SelectedLayer layer) {
 	for (auto it = properties.begin(); it != properties.end(); ) {
 		if (it->layer == layer)
@@ -40,6 +58,10 @@ void Timeline_Selector::EraseLayer(SelectedLayer layer) {
 void Timeline_Selector::ErasePropertie(const SelectedProperty& propertу) {
 	properties.erase(propertу);
 }
+void Timeline_Selector::EraseKeyframe(const SelectedKeyframe& keyframe) {
+	keyframes.erase(keyframe);
+}
+
 
 std::optional<SelectedLayer> Timeline_Selector::GetMinSelectedLayer() const {
 	if (layers.empty())return std::nullopt;
@@ -50,6 +72,12 @@ std::optional<SelectedLayer> Timeline_Selector::GetMaxSelectedLayer() const {
 	return *layers.rbegin();
 }
 
+
+void Timeline_Selector::AddSelectedLayersBySet(const std::set<uint64_t>& new_layers) {
+	for (const auto& layer : new_layers) {
+		layers.insert({ layer });
+	}
+}
 
 
 void Timeline_Selector::AddMoreSelectedLayer_Toggle(SelectedLayer layer) {

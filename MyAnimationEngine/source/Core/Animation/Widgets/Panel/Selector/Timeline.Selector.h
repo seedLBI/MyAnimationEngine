@@ -19,6 +19,8 @@ struct SelectedLayer {
 	}
 };
 
+std::set<uint64_t> ConvertToIndices(const std::set<SelectedLayer>& selectedLayers);
+
 struct SelectedProperty {
 	SelectedLayer layer;
 	std::string name;
@@ -54,10 +56,15 @@ public:
 
 	void ClearAllSelectedPropertiesInLayer(SelectedLayer layer);
 	bool HaveSelectedPropertiesInLayer(SelectedLayer layer);
+	bool HaveSelectedKeyframesInLayer(SelectedLayer layer);
+	bool HaveSelectedKeyframesInProperty(const SelectedProperty& propertу);
+
 
 	void EraseLayer(SelectedLayer layer);
 	void ErasePropertie(const SelectedProperty& propertу);
+	void EraseKeyframe(const SelectedKeyframe& keyframe);
 
+	void AddSelectedLayersBySet(const std::set<uint64_t>& new_layers);
 
 	void AddMoreSelectedLayer_Toggle(SelectedLayer layer);
 	void AddMoreSelectedProperty_Toggle(const SelectedProperty& propertу);
