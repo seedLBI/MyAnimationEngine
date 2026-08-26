@@ -1,9 +1,7 @@
 ﻿#ifndef TIMELINE_RANGE_H
 #define TIMELINE_RANGE_H
 
-#include "Core/Animation/Widgets/Panel/Transform/Horizontal/Timeline.Transform.Horizontal.h"
-#include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
-
+#include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
 
 #include "ThirdParty/ImGui/imgui.h"
@@ -12,9 +10,8 @@
 class Timeline_Range {
 public:
 	Timeline_Range(
-		Timeline_TimeCursor* timeCursor,
-		TimelineProviderData* timelineData, 
-		TimelineTransformHorizontal* horizontalTransform
+		TimelineContext* ctx,
+		Timeline_TimeCursor* timeCursor
 	);
 	~Timeline_Range();
 
@@ -22,9 +19,8 @@ public:
 	void Update();
 
 private:
+	TimelineContext* ctx;
 	Timeline_TimeCursor* timeCursor;
-	TimelineProviderData* timelineData;
-	TimelineTransformHorizontal* horizontalTransform;
 
 	const float button_width = 10.f;
 	const float hitbox_width = button_width * 3.f;

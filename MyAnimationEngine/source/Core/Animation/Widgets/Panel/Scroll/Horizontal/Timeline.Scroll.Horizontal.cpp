@@ -12,11 +12,7 @@
 #include <iostream>
 #include <algorithm>
 
-Timeline_Scroll_Horizontal::Timeline_Scroll_Horizontal(
-	TimelineProviderData* timelineData,
-	TimelineTransformHorizontal* horizontalTransform)
-	: timelineData(timelineData),
-	horizontalTransform(horizontalTransform)
+Timeline_Scroll_Horizontal::Timeline_Scroll_Horizontal(TimelineContext* ctx) : ctx(ctx)
 {
 
 }
@@ -36,7 +32,7 @@ void Timeline_Scroll_Horizontal::Draw() {
 	ImVec2 p_min = cursor_pos;
 	ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
 
-	float center = 0.5f * (horizontalTransform->getLeftBoundView_global_real() + horizontalTransform->getRightBoundView_global_real());
+	float center = 0.5f * (ctx->horizontalTransform->getLeftBoundView_global_real() + ctx->horizontalTransform->getRightBoundView_global_real());
 
 	ImVec2 p = p_min;
 
@@ -63,7 +59,7 @@ void Timeline_Scroll_Horizontal::Draw() {
 		hovered_minus_zoom, held_minus_zoom);
 
 	if (pressed_minus_zoom) {
-		horizontalTransform->zoomToPointByValue(center, 0.75f, false);
+		ctx->horizontalTransform->zoomToPointByValue(center, 0.75f, false);
 	}
 
 	ImColor color_minus_zoom = COLOR_DEFAULT;
@@ -92,9 +88,9 @@ void Timeline_Scroll_Horizontal::Draw() {
 
 
 
-	float currentScale	= horizontalTransform->getScale().GetLerped();
-	float minScale		= horizontalTransform->getMinScale();
-	float maxScale		= horizontalTransform->getMaxScale();
+	float currentScale	= ctx->horizontalTransform->getScale().GetLerped();
+	float minScale		= ctx->horizontalTransform->getMinScale();
+	float maxScale		= ctx->horizontalTransform->getMaxScale();
 
 	float t = (currentScale - minScale)/(maxScale - minScale);
 
@@ -147,8 +143,8 @@ void Timeline_Scroll_Horizontal::Draw() {
 
 		float new_scale = minScale + t_linear * (maxScale - minScale);
 
-		horizontalTransform->scaleZoomBy( new_scale / horizontalTransform->getScale().GetReal());
-		horizontalTransform->centerize(center);
+		ctx->horizontalTransform->scaleZoomBy( new_scale / ctx->horizontalTransform->getScale().GetReal());
+		ctx->horizontalTransform->centerize(center);
 
 	}
 
@@ -173,7 +169,7 @@ void Timeline_Scroll_Horizontal::Draw() {
 		hovered_plus_zoom, held_plus_zoom);
 
 	if (pressed_plus_zoom)
-		horizontalTransform->zoomToPointByValue(center, 1.5f, false);
+		ctx->horizontalTransform->zoomToPointByValue(center, 1.5f, false);
 
 	ImColor color_plus_zoom = COLOR_DEFAULT;
 	ImColor color_bg_plus_zoom = COLOR_BG_BUTTONS;
@@ -197,13 +193,13 @@ void Timeline_Scroll_Horizontal::Draw() {
 
 	float full_length_slider = region_max.x - (p.x - p_min.x) - padding;
 
-	float min_offset = horizontalTransform->getMinOffset();
-	float max_offset = horizontalTransform->getMaxOffset();
+	float min_offset = ctx->horizontalTransform->getMinOffset();
+	float max_offset = ctx->horizontalTransform->getMaxOffset();
 
-	float offset_lerped = horizontalTransform->getOffset().GetLerped();
+	float offset_lerped = ctx->horizontalTransform->getOffset().GetLerped();
 
 	float full_length_offset = abs(max_offset - min_offset)*3.f;
-	float visible_length_offset = horizontalTransform->getAvailableWidth();
+	float visible_length_offset = ctx->horizontalTransform->getAvailableWidth();
 
 	if (visible_length_offset > full_length_offset)
 		visible_length_offset = full_length_offset;
@@ -242,13 +238,13 @@ void Timeline_Scroll_Horizontal::Draw() {
 	if (held_slider_offset || ImGui::IsMouseHoveringRect({ p.x, p.y + region_max.y / 2.f - max_radius }, { p.x + full_length_slider, p.y + region_max.y / 2.f + max_radius })) {
 		float scrol_zoom = ImGui::GetIO().MouseWheel;
 		if (scrol_zoom != 0.f) {
-			float center = 0.5f * (horizontalTransform->getLeftBoundView_global_real() + horizontalTransform->getRightBoundView_global_real());
+			float center = 0.5f * (ctx->horizontalTransform->getLeftBoundView_global_real() + ctx->horizontalTransform->getRightBoundView_global_real());
 
 			float mult = scrol_zoom > 0.f ? 1.5f : 0.75f;
-			horizontalTransform->zoomToPointByValue(center, mult, false);
+			ctx->horizontalTransform->zoomToPointByValue(center, mult, false);
 		}
 		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left, false)) {
-			horizontalTransform->fitToRanges(-0.1, timelineData->GetData().totalTime + 0.1);
+			ctx->horizontalTransform->fitToRanges(-0.1, ctx->timelineData->GetData().totalTime + 0.1);
 		}
 	}
 
@@ -260,10 +256,10 @@ void Timeline_Scroll_Horizontal::Draw() {
 		float pixels_for_full_range = full_length_slider * (1.f - t_width);
 		float delta_offset = (mouse_delta_x / pixels_for_full_range) * (max_offset - min_offset);
 
-		float actualOffset = horizontalTransform->getOffset().GetReal();
+		float actualOffset = ctx->horizontalTransform->getOffset().GetReal();
 		float newOffset = actualOffset + delta_offset;
 
-		horizontalTransform->setOffsetWithClamp(newOffset);
+		ctx->horizontalTransform->setOffsetWithClamp(newOffset);
 	}
 
 	draw_list->AddRectFilled(min_FullSlider,max_FullSlider, COLOR_BG_BUTTONS_HOVERED, max_radius);

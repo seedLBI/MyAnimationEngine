@@ -1,16 +1,8 @@
 ﻿#ifndef TIMELINE_LAYERS_LIST_H
 #define TIMELINE_LAYERS_LIST_H
 
-#include "Core/Animation/Widgets/Panel/Transform/Horizontal/Timeline.Transform.Horizontal.h"
-#include "Core/Animation/Widgets/Panel/Transform/Vertical/Timeline.Transform.Vertical.h"
-#include "Core/Animation/Widgets/Panel/Selector/Timeline.Selector.h"
-#include "Core/Animation/Widgets/Panel/AreaSelection/Timeline.AreaSelection.h"
-#include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
-#include "Core/Animation/Layer/Factory/Layer.Factory.h"
-#include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
-#include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
 
-
+#include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 #include "IconDrawer/Timeline.Layers.Icon.Drawer.h"
 
 
@@ -19,15 +11,7 @@
 
 class Timeline_Layers_List {
 public:
-	Timeline_Layers_List(
-		LayerFactory* layerFactory,
-		LayersDataProvider* layersData,
-		TimelineProviderData* timelineData,
-		TimelineController* timelineController,
-		TimelineTransformHorizontal* horizontalTransform,
-		TimelineTransformVertical* verticalTransform,
-		Timeline_Selector* selector,
-		Timeline_AreaSelection* areaSelection);
+	Timeline_Layers_List(TimelineContext* ctx);
 	~Timeline_Layers_List();
 
 	void Draw();
@@ -39,15 +23,7 @@ public:
 	void Update();
 
 private:
-	LayerFactory* layerFactory;
-	LayersDataProvider* layersData;
-	TimelineProviderData* timelineData;
-	TimelineController* timelineController;
-	TimelineTransformHorizontal* horizontalTransform;
-	TimelineTransformVertical* verticalTransform;
-	Timeline_Selector* selector;
-	Timeline_AreaSelection* areaSelection;
-
+	TimelineContext* ctx;
 
 	void DrawObject(LayerObject* object, uint64_t index);
 

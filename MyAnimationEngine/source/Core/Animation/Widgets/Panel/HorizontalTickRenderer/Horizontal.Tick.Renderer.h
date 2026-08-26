@@ -1,8 +1,7 @@
 ﻿#ifndef HORIZONTAL_TICK_RENDERER_H
 #define HORIZONTAL_TICK_RENDERER_H
 
-#include "Core/Animation/Widgets/Panel/Transform/Horizontal/Timeline.Transform.Horizontal.h"
-#include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
+#include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 
 #include "ThirdParty/ImGui/imgui.h"
 #include "ThirdParty/ImGui/imgui_internal.h"
@@ -11,9 +10,7 @@
 
 class HorizontalTickRenderer {
 public:
-	HorizontalTickRenderer(
-		TimelineTransformHorizontal* timelineTransformHorizontal,
-		TimelineProviderData* timelineData);
+	HorizontalTickRenderer(TimelineContext* ctx);
 	~HorizontalTickRenderer();
 
 	void DrawTicks(
@@ -25,8 +22,7 @@ public:
 	);
 
 private:
-	TimelineTransformHorizontal* timelineTransformHorizontal;
-	TimelineProviderData* timelineData;
+	TimelineContext* ctx;
 };
 
 

@@ -1,10 +1,6 @@
 ﻿#include "Timeline.TimeCursor.h"
 
-Timeline_TimeCursor::Timeline_TimeCursor(
-	TimelineProviderData* timelineData,
-	TimelineTransformHorizontal* horizontalTransform
-) : timelineData(timelineData),
-	horizontalTransform(horizontalTransform)
+Timeline_TimeCursor::Timeline_TimeCursor(TimelineContext* ctx) : ctx(ctx)
 {
 
 }
@@ -17,18 +13,18 @@ void Timeline_TimeCursor::Draw(const ImVec2& p_min, const ImVec2& p_max) {
 	auto drawlist = ImGui::GetWindowDrawList();
 
 
-	float pos_timeline = p_min.x + horizontalTransform->getPostionScreen_lerped(timelineData->GetData().currentTime);
+	float pos_timeline = p_min.x + ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().currentTime);
 
 	float height_timeline = ImGui::GetTextLineHeight() * 2.f;
 
 
-	float width_frame_time = (float)timelineData->GetData().getLengthTimeFrame();
+	float width_frame_time = (float)ctx->timelineData->GetData().getLengthTimeFrame();
 
-	float pos_integer_current = width_frame_time * std::floorf(timelineData->GetData().currentTime / width_frame_time);
+	float pos_integer_current = width_frame_time * std::floorf(ctx->timelineData->GetData().currentTime / width_frame_time);
 
 
-	float screen_int_cursor_pos_1 = p_min.x + horizontalTransform->getPostionScreen_lerped(pos_integer_current);
-	float screen_int_cursor_pos_2 = p_min.x + horizontalTransform->getPostionScreen_lerped(pos_integer_current + width_frame_time);
+	float screen_int_cursor_pos_1 = p_min.x + ctx->horizontalTransform->getPostionScreen_lerped(pos_integer_current);
+	float screen_int_cursor_pos_2 = p_min.x + ctx->horizontalTransform->getPostionScreen_lerped(pos_integer_current + width_frame_time);
 
 
 
@@ -55,8 +51,8 @@ void Timeline_TimeCursor::Draw(const ImVec2& p_min, const ImVec2& p_max) {
 
 void Timeline_TimeCursor::Update(const float& dt) {
 
-	delta_time = timelineData->GetData().currentTime - prev_value;
-	prev_value = timelineData->GetData().currentTime;
+	delta_time = ctx->timelineData->GetData().currentTime - prev_value;
+	prev_value = ctx->timelineData->GetData().currentTime;
 
 	float value_set_delta = delta_time * 300.f;
 
@@ -64,10 +60,6 @@ void Timeline_TimeCursor::Update(const float& dt) {
 		value_set_delta = max_width_tail * (std::abs(value_set_delta) / value_set_delta);
 	}
 
-
 	width_tail_lerped.Set(value_set_delta);
-
-
-
 	width_tail_lerped.Update(dt * 10.f);
 }

@@ -5,20 +5,11 @@
 #include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
 
 Timeline_Layers_Viewer::Timeline_Layers_Viewer(
-	Timeline_TimeCursor* timeCursor,
-	LayersDataProvider* layersData,
-	TimelineProviderData* timelineData,
-	TimelineTransformVertical* verticalTransform,
-	TimelineTransformHorizontal* horizontalTransform,
-	Timeline_Selector* selector,
-	Timeline_AreaSelection* areaSelection)
-	: timeCursor(timeCursor),
-	layersData(layersData),
-	timelineData(timelineData),
-	verticalTransform(verticalTransform),
-	horizontalTransform(horizontalTransform),
-	selector(selector),
-	areaSelection(areaSelection)
+	TimelineContext* ctx,
+	Timeline_TimeCursor* timeCursor)
+	: 
+	ctx(ctx),
+	timeCursor(timeCursor)
 {
 
 }
@@ -83,7 +74,7 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 	const float SIZE_TEX = 512.f;
 
 	// вот именно с таким width классно выглядит
-	float width		= horizontalTransform->getPostionScreen_real(info.time.End) - horizontalTransform->getPostionScreen_real(info.time.Begin);
+	float width		= ctx->horizontalTransform->getPostionScreen_real(info.time.End) - ctx->horizontalTransform->getPostionScreen_real(info.time.Begin);
 	float height	= rect.Max.y - rect.Min.y;
 
 	float uv_width = width / SIZE_TEX;
@@ -141,7 +132,7 @@ void Timeline_Layers_Viewer::Draw() {
 
 
 
-	auto& layers = layersData->GetData().layers;
+	auto& layers = ctx->layersData->GetData().layers;
 
 	ImVec2 region_max = ImGui::GetContentRegionAvail();
 	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
@@ -158,28 +149,28 @@ void Timeline_Layers_Viewer::Draw() {
 
 
 
-	float itemHeight = verticalTransform->getScaledHeightOneObject();
+	float itemHeight = ctx->verticalTransform->getScaledHeightOneObject();
 	float width_window = ImGui::GetWindowWidth();
 
 
-	float left_range  = horizontalTransform->getPostionScreen_lerped(timelineData->GetData().left_range_repeat);
-	float right_range = horizontalTransform->getPostionScreen_lerped(timelineData->GetData().right_range_repeat);
+	float left_range  = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().left_range_repeat);
+	float right_range = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().right_range_repeat);
 
 
 
 	ImVec2 p = p_min;
-	p.y += verticalTransform->getOffset_lerped();
+	p.y += ctx->verticalTransform->getOffset_lerped();
 
 
-	layersData->forEach([&](LayerObject* layer, uint64_t index) {
+	ctx->layersData->forEach([&](LayerObject* layer, uint64_t index) {
 
 		auto& layerInfo = layer->GetLayerInfo();
 
 		float time_begin = layerInfo.time.Begin;
 		float time_end = layerInfo.time.End;
 
-		float screen_time_begin = horizontalTransform->getPostionScreen_lerped(time_begin);
-		float screen_time_end = horizontalTransform->getPostionScreen_lerped(time_end);
+		float screen_time_begin = ctx->horizontalTransform->getPostionScreen_lerped(time_begin);
+		float screen_time_end = ctx->horizontalTransform->getPostionScreen_lerped(time_end);
 
 		ImVec2 rect_min = { p.x + screen_time_begin, p.y };
 		ImVec2 rect_max = { p.x + screen_time_end,	 p.y + itemHeight };
@@ -187,7 +178,7 @@ void Timeline_Layers_Viewer::Draw() {
 		ImRect rect = ImRect{ rect_min, rect_max };
 
 
-		bool isLayerSelected = selector->ContainsLayer({ index });
+		bool isLayerSelected = ctx->selector->ContainsLayer({ index });
 
 		ImColor bg_layer = COLOR_BG_LAYER;
 		if (isLayerSelected)
@@ -233,24 +224,24 @@ void Timeline_Layers_Viewer::Draw() {
 
 
 		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && isHovered == ObjectStatus::BODY_MOVE)
-			horizontalTransform->fitToRanges(time_begin - 0.1f, time_end + 0.1f);
+			ctx->horizontalTransform->fitToRanges(time_begin - 0.1f, time_end + 0.1f);
 		else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 			pressed_status = isHovered;
 
 			if (pressed_status != ObjectStatus::NOTHING) {
 
 				if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
-					selector->AddMoreSelectedLayer_Toggle({ index });
-				else if (!selector->ContainsLayer({ index }))
-					selector->SelectLayer({ index });
+					ctx->selector->AddMoreSelectedLayer_Toggle({ index });
+				else if (!ctx->selector->ContainsLayer({ index }))
+					ctx->selector->SelectLayer({ index });
 
 				ImGui::IsMouseDragging(ImGuiMouseButton_Left);
 
 				index_drag = index;
 
-				drag_start_mouse_global = horizontalTransform->getPostionGlobal_real(ImGui::GetMousePos().x - cursor_pos.x);
+				drag_start_mouse_global = ctx->horizontalTransform->getPostionGlobal_real(ImGui::GetMousePos().x - cursor_pos.x);
 
-				for (const auto& layer : selector->getLayers()) {
+				for (const auto& layer : ctx->selector->getLayers()) {
 					LayerInfo& info = layers[layer.index].get()->GetLayerInfo();
 
 					info.time.DragInfo.OffsetFromBegin = drag_start_mouse_global - info.time.Begin;
@@ -278,7 +269,7 @@ void Timeline_Layers_Viewer::Draw() {
 
 
 		if (draging_status == ObjectStatus::BODY_MOVE && index_drag == index ) {
-			float screen_pos_x = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + layerInfo.time.DragInfo.OffsetFromBegin);
+			float screen_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + layerInfo.time.DragInfo.OffsetFromBegin);
 			const int count = 4;
 			const float gap = 3.f;
 			const float offset = -gap * float(count) / 2.f;
@@ -329,7 +320,7 @@ void Timeline_Layers_Viewer::Draw() {
 
 						DrawRomb(
 							{
-								p.x + horizontalTransform->getPostionScreen_lerped(layerInfo.time.Begin + sample.time + value.kr.getDelta()),
+								p.x + ctx->horizontalTransform->getPostionScreen_lerped(layerInfo.time.Begin + sample.time + value.kr.getDelta()),
 								p.y + textHeight / 2.f
 							},
 							textHeight / 4.f,
@@ -350,15 +341,15 @@ void Timeline_Layers_Viewer::Draw() {
 
 
 	if (index_drag == UINT64_MAX && ImGui::IsMouseHoveringRect(p_min,p_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-		selector->UnsetAll();
-		areaSelection->SetStatus(true);
-		areaSelection->SetStartMousePosition(ImGui::GetMousePos());
-		areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_VIEWER);
+		ctx->selector->UnsetAll();
+		ctx->areaSelection->SetStatus(true);
+		ctx->areaSelection->SetStartMousePosition(ImGui::GetMousePos());
+		ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_VIEWER);
 	}
 
 	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
 	{
-		areaSelection->SetStatus(false);
+		ctx->areaSelection->SetStatus(false);
 	}
 
 
@@ -366,15 +357,15 @@ void Timeline_Layers_Viewer::Draw() {
 
 	timeCursor->Draw(p_min, p_max);
 
-	float delta = horizontalTransform->getPostionGlobal_lerped(ImGui::GetMousePos().x - cursor_pos.x) - drag_start_mouse_global;
-	float step_frame = 1.f / (float)timelineData->GetData().framerate;
+	float delta = ctx->horizontalTransform->getPostionGlobal_lerped(ImGui::GetMousePos().x - cursor_pos.x) - drag_start_mouse_global;
+	float step_frame = 1.f / (float)ctx->timelineData->GetData().framerate;
 	float count = std::floor(delta / step_frame);
 	float time = count * step_frame;
 	if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
 		time = delta;
 	delta = time;
 
-	for (const auto& layer : selector->getLayers()) {
+	for (const auto& layer : ctx->selector->getLayers()) {
 		const auto& index = layer.index;
 		const auto& status = draging_status;
 		
@@ -404,8 +395,8 @@ void Timeline_Layers_Viewer::Draw() {
 					info.time.Begin = info.time.End - 0.1f;
 				}
 
-				if (info.time.Begin >= timelineData->GetData().totalTime) {
-					info.time.Begin = timelineData->GetData().totalTime;
+				if (info.time.Begin >= ctx->timelineData->GetData().totalTime) {
+					info.time.Begin = ctx->timelineData->GetData().totalTime;
 				}
 
 				auto& properties = layers[index].get()->GetProperties();
@@ -431,8 +422,8 @@ void Timeline_Layers_Viewer::Draw() {
 				info.time.Begin = -info.time.DragInfo.Prev_Length;
 			}
 
-			if (info.time.Begin > timelineData->GetData().totalTime) {
-				info.time.Begin = timelineData->GetData().totalTime;
+			if (info.time.Begin > ctx->timelineData->GetData().totalTime) {
+				info.time.Begin = ctx->timelineData->GetData().totalTime;
 				info.time.End = info.time.Begin + info.time.DragInfo.Prev_Length;
 			}
 

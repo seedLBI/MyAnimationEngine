@@ -1,12 +1,7 @@
 ﻿#include "Horizontal.Tick.Renderer.h"
 
 
-HorizontalTickRenderer::HorizontalTickRenderer(
-	TimelineTransformHorizontal* timelineTransformHorizontal,
-	TimelineProviderData* timelineData)
-	:
-	timelineTransformHorizontal(timelineTransformHorizontal),
-	timelineData(timelineData)
+HorizontalTickRenderer::HorizontalTickRenderer(TimelineContext* ctx): ctx(ctx)
 {
 
 
@@ -34,33 +29,33 @@ void HorizontalTickRenderer::DrawTicks(
 
 
 	float step_Main = 1.f;
-	float distance_between_main_ticks = timelineTransformHorizontal->getPostionScreen_lerped(step_Main) - timelineTransformHorizontal->getPostionScreen_lerped(0.f);
-	int count_main_tick = timelineData->GetData().totalTime;
+	float distance_between_main_ticks = ctx->horizontalTransform->getPostionScreen_lerped(step_Main) - ctx->horizontalTransform->getPostionScreen_lerped(0.f);
+	int count_main_tick = ctx->timelineData->GetData().totalTime;
 	float size_main_tick_text = 52.f;
 
 
 	if (distance_between_main_ticks < size_main_tick_text) {
 		float count = std::round(size_main_tick_text / distance_between_main_ticks);
 		float countTicks = std::floor(count_main_tick / count);
-		float stepTick = timelineData->GetData().totalTime / countTicks;
+		float stepTick = ctx->timelineData->GetData().totalTime / countTicks;
 		step_Main = stepTick;
 		count_main_tick = countTicks;
-		distance_between_main_ticks = timelineTransformHorizontal->getPostionScreen_lerped(stepTick) - timelineTransformHorizontal->getPostionScreen_lerped(0.f);
+		distance_between_main_ticks = ctx->horizontalTransform->getPostionScreen_lerped(stepTick) - ctx->horizontalTransform->getPostionScreen_lerped(0.f);
 	}
 
-	int begin_index_main_tick = timelineTransformHorizontal->getLeftBoundView_global_lerped() / step_Main;
+	int begin_index_main_tick = ctx->horizontalTransform->getLeftBoundView_global_lerped() / step_Main;
 	if (begin_index_main_tick < 0) begin_index_main_tick = 0;
 
 
-	float step_Sub = 1.f / (float)timelineData->GetData().framerate;
-	float distance_between_sub_ticks = timelineTransformHorizontal->getPostionScreen_lerped(step_Sub) - timelineTransformHorizontal->getPostionScreen_lerped(0.f);
-	int count_sub_tick = timelineData->GetData().framerate;
+	float step_Sub = 1.f / (float)ctx->timelineData->GetData().framerate;
+	float distance_between_sub_ticks = ctx->horizontalTransform->getPostionScreen_lerped(step_Sub) - ctx->horizontalTransform->getPostionScreen_lerped(0.f);
+	int count_sub_tick = ctx->timelineData->GetData().framerate;
 	float size_sub_tick_text = 16.f;
 	bool draw_sub_ticks = true;
 
 	if (distance_between_sub_ticks < size_sub_tick_text) {
 		float count = (std::max)(1.0f, std::round(size_sub_tick_text / distance_between_sub_ticks));
-		float countTicks = std::round((float)timelineData->GetData().framerate / count);
+		float countTicks = std::round((float)ctx->timelineData->GetData().framerate / count);
 
 		if (countTicks < 1.0f) {
 			draw_sub_ticks = false;
@@ -69,7 +64,7 @@ void HorizontalTickRenderer::DrawTicks(
 			float stepTick = 1.f / countTicks;
 			step_Sub = stepTick;
 			count_sub_tick = countTicks;
-			distance_between_sub_ticks = timelineTransformHorizontal->getPostionScreen_lerped(stepTick) - timelineTransformHorizontal->getPostionScreen_lerped(0.f);
+			distance_between_sub_ticks = ctx->horizontalTransform->getPostionScreen_lerped(stepTick) - ctx->horizontalTransform->getPostionScreen_lerped(0.f);
 		}
 	}
 
@@ -82,18 +77,18 @@ void HorizontalTickRenderer::DrawTicks(
 	if (drawAllSide_SubTicks && draw_sub_ticks) {
 
 
-		float left_bound = timelineTransformHorizontal->getLeftBoundView_global_lerped();
-		float right_bound = timelineTransformHorizontal->getRightBoundView_global_lerped();
+		float left_bound = ctx->horizontalTransform->getLeftBoundView_global_lerped();
+		float right_bound = ctx->horizontalTransform->getRightBoundView_global_lerped();
 
-		float pos_begin_timeline = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(0.f);
-		float pos_end_timeline = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(timelineData->GetData().totalTime);
+		float pos_begin_timeline = p_min.x + ctx->horizontalTransform->getPostionScreen_lerped(0.f);
+		float pos_end_timeline = p_min.x + ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().totalTime);
 
 		if (left_bound < 0.f) {
 			float time_sub_tick = 0.f - step_Sub;
 
 			while (time_sub_tick >= left_bound) {
 
-				float pos_tick = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(time_sub_tick);
+				float pos_tick = p_min.x + ctx->horizontalTransform->getPostionScreen_lerped(time_sub_tick);
 
 				ImVec2 min_pos_tick = { pos_tick - widthSub / 2.f, p_min.y };
 				ImVec2 max_pos_tick = { pos_tick + widthSub / 2.f, p_max.y };
@@ -107,12 +102,12 @@ void HorizontalTickRenderer::DrawTicks(
 
 
 		}
-		if (right_bound > timelineData->GetData().totalTime) {
-			float time_sub_tick = timelineData->GetData().totalTime + step_Sub;
+		if (right_bound > ctx->timelineData->GetData().totalTime) {
+			float time_sub_tick = ctx->timelineData->GetData().totalTime + step_Sub;
 
 			while (time_sub_tick <= right_bound) {
 
-				float pos_tick = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(time_sub_tick);
+				float pos_tick = p_min.x + ctx->horizontalTransform->getPostionScreen_lerped(time_sub_tick);
 
 				ImVec2 min_pos_tick = { pos_tick - widthSub / 2.f, p_min.y };
 				ImVec2 max_pos_tick = { pos_tick + widthSub / 2.f, p_max.y };
@@ -134,10 +129,10 @@ void HorizontalTickRenderer::DrawTicks(
 
 		double tick_main_value = std::round(double(i) * double(step_Main));
 
-		if (long double(tick_main_value) > timelineData->GetData().totalTime + 0.0001l)
+		if (long double(tick_main_value) > ctx->timelineData->GetData().totalTime + 0.0001l)
 			break;
 
-		float pos_main_tick = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(tick_main_value);
+		float pos_main_tick = p_min.x + ctx->horizontalTransform->getPostionScreen_lerped(tick_main_value);
 
 		ImVec2 min_pos_main_tick = { pos_main_tick - widthMain / 2.f, p_max.y - height_main_tick };
 		ImVec2 max_pos_main_tick = { pos_main_tick + widthMain / 2.f, p_max.y };
@@ -175,10 +170,10 @@ void HorizontalTickRenderer::DrawTicks(
 				if (abs(tick_sub_value - tick_main_value) < 0.000001f || abs(tick_sub_value - tick_main_value - step_Main) < 0.000001f) continue;
 
 
-				if (long double(tick_sub_value) > timelineData->GetData().totalTime + 0.0001l)
+				if (long double(tick_sub_value) > ctx->timelineData->GetData().totalTime + 0.0001l)
 					break;
 
-				float pos_sub_tick = p_min.x + timelineTransformHorizontal->getPostionScreen_lerped(tick_sub_value);
+				float pos_sub_tick = p_min.x + ctx->horizontalTransform->getPostionScreen_lerped(tick_sub_value);
 
 
 				bool isMajorTick = (j % sub_text_step == 0) && (subs_per_main_step / sub_text_step > 1);
@@ -189,7 +184,7 @@ void HorizontalTickRenderer::DrawTicks(
 				if (max_pos_sub_tick.x < p_min.x || min_pos_sub_tick.x > p_max.x) continue;
 
 				if (isMajorTick && drawText) {
-					int actual_frame = std::round((tick_sub_value - tick_main_value) * timelineData->GetData().framerate);
+					int actual_frame = std::round((tick_sub_value - tick_main_value) * ctx->timelineData->GetData().framerate);
 
 					char buf[32];
 					snprintf(buf, sizeof(buf), "%if", actual_frame);

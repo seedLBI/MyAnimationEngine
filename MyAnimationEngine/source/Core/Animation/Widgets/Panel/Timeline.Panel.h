@@ -9,13 +9,13 @@
 #include "Transform/Vertical/Timeline.Transform.Vertical.h"
 #include "Transform/TransformScaled/Transform.Scaled.h"
 
-
 #include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
-
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Layer/Factory/Layer.Factory.h"
 
+#include "Selector/Timeline.Selector.h"
+#include "AreaSelection/Timeline.AreaSelection.h"
 #include "Ruler/Timeline.Ruler.h"
 #include "Range/Timeline.Range.h"
 #include "Scroll/Horizontal/Timeline.Scroll.Horizontal.h"
@@ -25,17 +25,11 @@
 #include "UpperControls/Timeline.UpperControls.h"
 #include "Graph/Timeline.Graph.h"
 #include "HorizontalTickRenderer/Horizontal.Tick.Renderer.h"
-#include "Selector/Timeline.Selector.h"
-#include "AreaSelection/Timeline.AreaSelection.h"
-
 #include "TimeCursor/Timeline.TimeCursor.h"
-
-
-#include "Core/DebugOverlay/DebugOverlay.h"
-
+#include "Context/Timeline.Context.h"
 #include "Textures/Noise/Texture.Noise.h"
 
-
+#include "Core/DebugOverlay/DebugOverlay.h"
 
 
 class Timeline_Panel {
@@ -55,32 +49,31 @@ public:
 private:
 	FPS_Timer* deltaTime = nullptr;
 
-	TimelineController* timelineController = nullptr;
-	TimelineProviderData* timelineData = nullptr;
-	LayersDataProvider* layersData = nullptr;
+	TimelineContext* timelineContext = nullptr;
 
-	LayerFactory* layerFactory = nullptr;
-
+	TimelineController*			 timelineController = nullptr;
+	TimelineProviderData*		 timelineData = nullptr;
+	LayersDataProvider*			 layersData = nullptr;
+	LayerFactory*				 layerFactory = nullptr;
 	TimelineTransformHorizontal* timelineTransformHorizontal = nullptr;
 	TimelineTransformVertical*   timelineTransformVertical = nullptr;
-	TransformScaled* graphTransformVertical = nullptr;
-
-	Timeline_Scroll_Horizontal* scrollHorizontal;
-	Timeline_Scroll_Vertical*   scrollVertical;
-
-	HorizontalTickRenderer* horizontalTickRenderer = nullptr;
+	TransformScaled*			 graphTransformVertical = nullptr;
+	Timeline_Selector*			 selector = nullptr;
 
 	// gui
-	Timeline_TimeCursor*	timelineTimeCursor;
-	Timeline_Ruler*			timelineRuler;
-	Timeline_Range*			timelineRange;
-	Timeline_Layers_List*	layersList;
-	Timeline_Layers_Viewer* layersViewer;
-	Timeline_UpperControls* upperControls;
-	Timeline_Graph*			graph;
-	Timeline_AreaSelection* areaSelection;
+	HorizontalTickRenderer*		horizontalTickRenderer;
+	Timeline_TimeCursor*		timelineTimeCursor;
+	Timeline_Ruler*				timelineRuler;
+	Timeline_Range*				timelineRange;
+	Timeline_Layers_List*		layersList;
+	Timeline_Layers_Viewer*		layersViewer;
+	Timeline_UpperControls*		upperControls;
+	Timeline_Graph*				graph;
+	Timeline_AreaSelection*		areaSelection;
+	Timeline_Scroll_Horizontal* scrollHorizontal;
+	Timeline_Scroll_Vertical*	scrollVertical;
 
-	Timeline_Selector* selector;
+
 
 	void Draw_1Level(const float& thickness_separator);
 	void DrawLayerSide_1Level(const float& height);

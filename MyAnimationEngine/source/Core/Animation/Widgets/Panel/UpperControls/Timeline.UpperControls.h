@@ -1,20 +1,15 @@
-﻿#pragma once
+﻿#ifndef TIMELINE_UPPER_CONTROLS_H
+#define TIMELINE_UPPER_CONTROLS_H
 
-#include "Core/Animation/Widgets/Panel/Transform/TransformScaled/Transform.Scaled.h"
-#include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
-#include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
+#include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 
 #include "ThirdParty/ImGui/imgui.h"
-#include <string>
-
 #include "Utils/Color/Utils.Color.h"
+#include <string>
 
 class Timeline_UpperControls {
 public:
-	Timeline_UpperControls(
-		LayersDataProvider* layersData, 
-		TimelineProviderData* timelineData,
-		TransformScaled* graphVerticalTransform);
+	Timeline_UpperControls(TimelineContext* ctx);
 	~Timeline_UpperControls();
 
 	void Draw();
@@ -24,11 +19,10 @@ public:
 	const bool& isMotionBlurMode();
 
 private:
-	LayersDataProvider* layersData;
-	TimelineProviderData* timelineData;
-	TransformScaled* graphVerticalTransform;
+	TimelineContext* ctx;
+
 	bool GraphMode		= false;
-	bool MotionBlueMode = false;
+	bool MotionBlurMode = false;
 
 	float DrawTimer();
 	float DrawFinder(float availableWidth);
@@ -37,3 +31,5 @@ private:
 	std::string getTimer();
 	std::string getFrame();
 };
+
+#endif

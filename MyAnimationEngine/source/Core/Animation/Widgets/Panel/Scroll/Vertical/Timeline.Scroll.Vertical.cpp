@@ -4,11 +4,7 @@
 #include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
 #include "CursorManager/CursorManger.h"
 
-Timeline_Scroll_Vertical::Timeline_Scroll_Vertical(
-	LayersDataProvider* layersData,
-	TimelineTransformVertical* verticalTransform)
-	: layersData(layersData),
-	verticalTransform(verticalTransform)
+Timeline_Scroll_Vertical::Timeline_Scroll_Vertical(TimelineContext* ctx) : ctx(ctx)
 {
 
 }
@@ -33,12 +29,12 @@ void Timeline_Scroll_Vertical::Draw() {
 
 	float height_slider = max_FullSlider.y - min_FullSlider.y;
 
-	float koef_height = verticalTransform->getAvailableHeight() / verticalTransform->getContentHeight();
+	float koef_height = ctx->verticalTransform->getAvailableHeight() / ctx->verticalTransform->getContentHeight();
 	koef_height = std::clamp(koef_height, 0.f, 1.f);
 
 	float height_user_slider = height_slider * koef_height;
 
-	float koef_offset = -verticalTransform->getOffset_lerped() / verticalTransform->getContentHeight();
+	float koef_offset = -ctx->verticalTransform->getOffset_lerped() / ctx->verticalTransform->getContentHeight();
 	koef_offset = std::clamp(koef_offset,0.f,1.f);
 
 	float offset = height_slider * koef_offset;
@@ -66,13 +62,13 @@ void Timeline_Scroll_Vertical::Draw() {
 
 	if (ImGui::IsMouseHoveringRect(p_min, p_max)) {
 		float scrol_zoom = ImGui::GetIO().MouseWheel;
-		verticalTransform->addOffset(scrol_zoom * verticalTransform->getScaledHeightOneObject());
+		ctx->verticalTransform->addOffset(scrol_zoom * ctx->verticalTransform->getScaledHeightOneObject());
 	}
 
 	if (held_user_slider) {
 		float delta = ImGui::GetIO().MouseDelta.y;
 		float delta_to_add = delta / koef_height;
-		verticalTransform->addOffset(-delta_to_add);
+		ctx->verticalTransform->addOffset(-delta_to_add);
 	}
 
 

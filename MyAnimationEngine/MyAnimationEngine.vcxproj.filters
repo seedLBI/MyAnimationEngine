@@ -617,6 +617,9 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\AreaSelection\Timeline.AreaSelection.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Context\Timeline.Context.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

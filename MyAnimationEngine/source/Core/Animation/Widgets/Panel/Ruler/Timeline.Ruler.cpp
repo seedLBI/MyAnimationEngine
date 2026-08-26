@@ -7,17 +7,14 @@
 #include "Utils/Math/Math.Lerp.h"
 
 Timeline_Ruler::Timeline_Ruler(
+	TimelineContext* ctx,
 	Timeline_TimeCursor* timeCursor,
-	TimelineController* timelineController,
-	TimelineProviderData* timelineData, 
-	TimelineTransformHorizontal* timelineTransformHorizontal,
 	HorizontalTickRenderer* horizontalTickRenderer
-)
-	: timeCursor(timeCursor),
-	  timelineController(timelineController),
-	  timelineData(timelineData),
-	  timelineTransformHorizontal(timelineTransformHorizontal),
-	  horizontalTickRenderer(horizontalTickRenderer)
+	)
+	: 
+	ctx(ctx),
+	timeCursor(timeCursor),
+	horizontalTickRenderer(horizontalTickRenderer)
 {
 
 }
@@ -83,7 +80,7 @@ void Timeline_Ruler::Draw() {
 
 
 	ImVec2 block_min = cursor_pos;
-	ImVec2 block_max = { cursor_pos.x + timelineTransformHorizontal->getPostionScreen_lerped(0.f), cursor_pos.y + region_max.y };
+	ImVec2 block_max = { cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(0.f), cursor_pos.y + region_max.y };
 
 	ImColor color_left_bound_outOfBounds  = color_bounds;
 	ImColor color_right_bound_outOfBounds = color_bounds;
@@ -109,7 +106,7 @@ void Timeline_Ruler::Draw() {
 
 	}
 
-	block_min = { cursor_pos.x + timelineTransformHorizontal->getPostionScreen_lerped(timelineData->GetData().totalTime), cursor_pos.y };
+	block_min = { cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().totalTime), cursor_pos.y };
 	block_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
 
 	if (OutOfView(block_min) == false || block_min.x < p_max.x) {
@@ -140,7 +137,7 @@ void Timeline_Ruler::Draw() {
 	);
 
 	ImColor lerpedColor_reaction = color_reaction_overScale;
-	lerpedColor_reaction.Value.w = timelineTransformHorizontal->getReactionToOverScale() * 0.5f;
+	lerpedColor_reaction.Value.w = ctx->horizontalTransform->getReactionToOverScale() * 0.5f;
 
 	drawlist->AddRectFilled(
 		p_min,
@@ -158,15 +155,15 @@ void Timeline_Ruler::Draw() {
 }
 
 void Timeline_Ruler::UpdateVars(const float& dt) {
-	timelineTransformHorizontal->updateAvailableWidth(region_max.x);
+	ctx->horizontalTransform->updateAvailableWidth(region_max.x);
 
 	float mouse_real_screen = ImGui::GetMousePos().x;
 	float mouse_fixed = mouse_real_screen - cursor_pos.x;
-	mouse_global = timelineTransformHorizontal->getPostionGlobal_real(mouse_fixed);
-	mouse_screen = timelineTransformHorizontal->getPostionScreen_real(mouse_global);
+	mouse_global = ctx->horizontalTransform->getPostionGlobal_real(mouse_fixed);
+	mouse_screen = ctx->horizontalTransform->getPostionScreen_real(mouse_global);
 
 
-	float offsetOutOfBound = timelineTransformHorizontal->getOffset_OutOfBounds();
+	float offsetOutOfBound = ctx->horizontalTransform->getOffset_OutOfBounds();
 
 	const float valueForOutBounds = 250.f;
 
@@ -190,15 +187,15 @@ void Timeline_Ruler::UpdateZoom() {
 	if (!isHovered) return;
 	
 	if (scrol_zoom > 0.f) {
-		timelineTransformHorizontal->zoomToPointByValue(mouse_global, 1.5f, false);
+		ctx->horizontalTransform->zoomToPointByValue(mouse_global, 1.5f, false);
 	}
 	else if (scrol_zoom < 0.f) {
-		timelineTransformHorizontal->zoomToPointByValue(mouse_global, 0.75f, false);
+		ctx->horizontalTransform->zoomToPointByValue(mouse_global, 0.75f, false);
 	}
 }
 
 void Timeline_Ruler::FitAllTimeline() {
-	timelineTransformHorizontal->fitToRanges(-0.1, timelineData->GetData().totalTime + 0.1);
+	ctx->horizontalTransform->fitToRanges(-0.1, ctx->timelineData->GetData().totalTime + 0.1);
 }
 
 
@@ -226,12 +223,12 @@ void Timeline_Ruler::Update(const float& dt) {
 	if (isDraging && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 		isOfsetDeltaApplied = true;
 		float delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-		timelineTransformHorizontal->setOffsetDelta(delta);
+		ctx->horizontalTransform->setOffsetDelta(delta);
 	}
 	else {
 		isDraging = false;
 		if (isOfsetDeltaApplied)
-			timelineTransformHorizontal->applyOffsetDelta();
+			ctx->horizontalTransform->applyOffsetDelta();
 		isOfsetDeltaApplied = false;
 	}
 
@@ -243,21 +240,21 @@ void Timeline_Ruler::Update(const float& dt) {
 
 
 	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left, false)) {
-		timelineTransformHorizontal->fitToRanges(-0.1, timelineData->GetData().totalTime + 0.1);
+		ctx->horizontalTransform->fitToRanges(-0.1, ctx->timelineData->GetData().totalTime + 0.1);
 	}
 
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Right, false)) {
 
-		float step_frame = 1.f / (float)timelineData->GetData().framerate;
+		float step_frame = 1.f / (float)ctx->timelineData->GetData().framerate;
 		float count = std::floor(mouse_global / step_frame);
 		float time = count * step_frame + 0.000001f;
 
 		if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
 			time = mouse_global;
 
-		timelineData->GetData().SetTime(
+		ctx->timelineData->GetData().SetTime(
 			long double(time),
-			timelineController->GetState() == TimelineRunState::RUNNING_CYCLE
+			ctx->timelineController->GetState() == TimelineRunState::RUNNING_CYCLE
 		);
 
 		CursorManager::getInstance().SetCursor(TypeCursor::POINT);

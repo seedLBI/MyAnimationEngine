@@ -20,26 +20,35 @@ Timeline_Panel::Timeline_Panel(
 	graphTransformVertical		= new TransformScaled();
 	
 	selector = new Timeline_Selector();
-
 	areaSelection = new Timeline_AreaSelection();
 
-	horizontalTickRenderer = new HorizontalTickRenderer(timelineTransformHorizontal, timelineData);
+	timelineContext = new TimelineContext();
+	timelineContext->selector = selector;
+	timelineContext->areaSelection = areaSelection;
+	timelineContext->horizontalTransform = timelineTransformHorizontal;
+	timelineContext->verticalTransform = timelineTransformVertical;
+	timelineContext->graphTransformVertical = graphTransformVertical;
+	timelineContext->layerFactory = layerFactory;
+	timelineContext->layersData = layersData;
+	timelineContext->timelineController = timelineController;
+	timelineContext->timelineData = timelineData;
 
 
-	timelineTimeCursor = new Timeline_TimeCursor(timelineData, timelineTransformHorizontal);
+	horizontalTickRenderer = new HorizontalTickRenderer(timelineContext);
+	timelineTimeCursor = new Timeline_TimeCursor(timelineContext);
 
-	scrollHorizontal = new Timeline_Scroll_Horizontal(timelineData, timelineTransformHorizontal);
-	scrollVertical = new Timeline_Scroll_Vertical(layersData, timelineTransformVertical);
+	scrollHorizontal = new Timeline_Scroll_Horizontal(timelineContext);
+	scrollVertical = new Timeline_Scroll_Vertical(timelineContext);
 
-	upperControls = new Timeline_UpperControls(layersData, timelineData, graphTransformVertical);
+	upperControls = new Timeline_UpperControls(timelineContext);
 
-	timelineRuler = new Timeline_Ruler(timelineTimeCursor, timelineController, timelineData, timelineTransformHorizontal, horizontalTickRenderer);
-	timelineRange = new Timeline_Range(timelineTimeCursor, timelineData, timelineTransformHorizontal);
+	timelineRuler = new Timeline_Ruler(timelineContext, timelineTimeCursor, horizontalTickRenderer);
+	timelineRange = new Timeline_Range(timelineContext, timelineTimeCursor);
 
-	layersViewer = new Timeline_Layers_Viewer(timelineTimeCursor, layersData, timelineData, timelineTransformVertical, timelineTransformHorizontal, selector, areaSelection);
-	layersList = new Timeline_Layers_List(layerFactory, layersData, timelineData, timelineController, timelineTransformHorizontal, timelineTransformVertical, selector, areaSelection);
+	layersViewer = new Timeline_Layers_Viewer(timelineContext, timelineTimeCursor);
+	layersList = new Timeline_Layers_List(timelineContext);
 
-	graph = new Timeline_Graph(timelineTimeCursor, layersData, timelineData, timelineController, timelineTransformHorizontal, graphTransformVertical, horizontalTickRenderer, selector);
+	graph = new Timeline_Graph(timelineContext, timelineTimeCursor, horizontalTickRenderer);
 	graph->NeedCenterize();
 
 	NoiseTexture::getInstance();

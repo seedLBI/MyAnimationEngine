@@ -1,13 +1,9 @@
 ﻿#ifndef TIMELINE_LAYERS_LIST_TIMELINE_H
 #define TIMELINE_LAYERS_LIST_TIMELINE_H
 
-#include "Core/Animation/Widgets/Panel/Transform/Horizontal/Timeline.Transform.Horizontal.h"
-#include "Core/Animation/Widgets/Panel/Transform/Vertical/Timeline.Transform.Vertical.h"
-#include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
-#include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
+#include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
-#include "Core/Animation/Widgets/Panel/Selector/Timeline.Selector.h"
-#include "Core/Animation/Widgets/Panel/AreaSelection/Timeline.AreaSelection.h"
+
 
 #include <unordered_map>
 
@@ -15,13 +11,8 @@ class Timeline_Layers_Viewer
 {
 public:
 	Timeline_Layers_Viewer(
-		Timeline_TimeCursor* timeCursor,
-		LayersDataProvider* layersData, 
-		TimelineProviderData* timelineData, 
-		TimelineTransformVertical* verticalTransform, 
-		TimelineTransformHorizontal* horizontalTransform,
-		Timeline_Selector* selector,
-		Timeline_AreaSelection* areaSelection
+		TimelineContext* ctx,
+		Timeline_TimeCursor* timeCursor
 	);
 
 	~Timeline_Layers_Viewer();
@@ -30,16 +21,8 @@ public:
 	void Update();
 
 private:
+	TimelineContext* ctx;
 	Timeline_TimeCursor* timeCursor;
-
-	LayersDataProvider*		layersData;
-	TimelineProviderData*	timelineData;
-
-	TimelineTransformVertical*	 verticalTransform;
-	TimelineTransformHorizontal* horizontalTransform;
-
-	Timeline_Selector* selector;
-	Timeline_AreaSelection* areaSelection;
 
 	enum class ObjectStatus : uint8_t {
 		NOTHING = 0,

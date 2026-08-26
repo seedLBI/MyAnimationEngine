@@ -13,13 +13,7 @@
 #include "CursorManager/CursorManger.h"
 
 
-Timeline_UpperControls::Timeline_UpperControls(
-	LayersDataProvider* layersData, 
-	TimelineProviderData* timelineData,
-	TransformScaled* graphVerticalTransform) : 
-	layersData(layersData), 
-	timelineData(timelineData),
-	graphVerticalTransform(graphVerticalTransform)
+Timeline_UpperControls::Timeline_UpperControls(TimelineContext* ctx) : ctx(ctx)
 {
 
 }
@@ -32,7 +26,7 @@ const bool& Timeline_UpperControls::isGraphMode() {
 	return GraphMode;
 }
 const bool& Timeline_UpperControls::isMotionBlurMode() {
-	return MotionBlueMode;
+	return MotionBlurMode;
 }
 
 void Timeline_UpperControls::Draw() {
@@ -49,8 +43,8 @@ void Timeline_UpperControls::Update() {
 }
 
 std::string Timeline_UpperControls::getTimer() {
-	const uint64_t framerate = timelineData->GetData().framerate;
-	const uint64_t frame = timelineData->GetData().currentFrame;
+	const uint64_t framerate = ctx->timelineData->GetData().framerate;
+	const uint64_t frame = ctx->timelineData->GetData().currentFrame;
 
 	uint64_t sec_frame = frame % framerate;
 	uint64_t min_frame = frame / framerate;
@@ -69,8 +63,8 @@ std::string Timeline_UpperControls::getTimer() {
 }
 
 std::string Timeline_UpperControls::getFrame() {
-	const uint64_t framerate = timelineData->GetData().framerate;
-	const uint64_t frame = timelineData->GetData().currentFrame;
+	const uint64_t framerate = ctx->timelineData->GetData().framerate;
+	const uint64_t frame = ctx->timelineData->GetData().currentFrame;
 
 	std::string frame_str = std::to_string(frame);
 	PadLeft(frame_str, '0', 5);
@@ -127,7 +121,7 @@ float Timeline_UpperControls::DrawTimer() {
 		if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 			isDraging = true;
 			StartDrag = ImGui::GetMousePos();
-			frameStartDrag = timelineData->GetData().currentFrame;
+			frameStartDrag = ctx->timelineData->GetData().currentFrame;
 		}
 
 		if (isDraging && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
@@ -135,9 +129,9 @@ float Timeline_UpperControls::DrawTimer() {
 			int x_delta = int(ImGui::GetMousePos().x - StartDrag.x) / 2;
 
 			if (x_delta < 0 && abs(x_delta) > frameStartDrag)
-				timelineData->GetData().SetTime((uint64_t)0);
+				ctx->timelineData->GetData().SetTime((uint64_t)0);
 			else
-				timelineData->GetData().SetTime(frameStartDrag + x_delta);
+				ctx->timelineData->GetData().SetTime(frameStartDrag + x_delta);
 		}
 		else
 			isDraging = false;
@@ -208,7 +202,7 @@ float Timeline_UpperControls::DrawFinder(float availableWidth) {
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 
 	if (ImGui::InputText("##finder_input", searchBuffer, IM_ARRAYSIZE(searchBuffer))) {
-		layersData->setFindText(std::string(searchBuffer));
+		ctx->layersData->setFindText(std::string(searchBuffer));
 	}
 
 	is_input_active = ImGui::IsItemActive();
@@ -238,20 +232,20 @@ float Timeline_UpperControls::DrawButtons() {
 	bool mb_hovered, mb_held;
 
 	if (MyButtonBehavior(mb_min, mb_max, "MOTION_BLUR_TOGGLE", mb_hovered, mb_held)) {
-		MotionBlueMode = !MotionBlueMode;
+		MotionBlurMode = !MotionBlurMode;
 	}
 
 	ImColor bg_mb = ImColor(0.f, 0.f, 0.f, 0.f);
 	ImColor text_mb = COLOR_DEFAULT;
 
 
-	if (MotionBlueMode) {
+	if (MotionBlurMode) {
 		bg_mb = COLOR_BG_BUTTONS_HELD;
 		text_mb = ImColor(1.f, 1.f, 1.f, 1.f);
 	}
 
 	if (mb_hovered) {
-		if (MotionBlueMode)
+		if (MotionBlurMode)
 			bg_mb = COLOR_DEFAULT;
 		else
 			bg_mb = COLOR_BG_BUTTONS_HOVERED;
@@ -298,19 +292,8 @@ float Timeline_UpperControls::DrawButtons() {
 
 	ImVec2 text_mg_size = ImGui::CalcTextSize(ICON_FA_CHART_LINE);
 
-
-
 	draw_list->AddRectFilled(mg_min, mg_max, bg_mg, 5.f);
 	draw_list->AddText({ mg_min.x + width_button / 2.f - text_mg_size.x / 2.f, mg_min.y + width_button / 2.f - text_mg_size.y / 2.f - 1.f }, text_mg, ICON_FA_CHART_LINE);
-
-
-
-
-
-
-
-
-
 
 	return 0.f;
 }

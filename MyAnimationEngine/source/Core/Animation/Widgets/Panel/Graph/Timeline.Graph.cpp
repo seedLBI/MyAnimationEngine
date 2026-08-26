@@ -4,28 +4,19 @@
 
 
 
-Timeline_Graph::Timeline_Graph(Timeline_TimeCursor* timeCursor,
-	LayersDataProvider* layersData,
-	TimelineProviderData* timelineData,
-	TimelineController* timelineController,
-	TimelineTransformHorizontal* horizontalTransform,
-	TransformScaled* verticalTransform,
-	HorizontalTickRenderer* horizontalTickRenderer,
-	Timeline_Selector* selector)
+Timeline_Graph::Timeline_Graph(
+	TimelineContext* ctx,
+	Timeline_TimeCursor* timeCursor,
+	HorizontalTickRenderer* horizontalTickRenderer)
 	:
+	ctx(ctx),
 	timeCursor(timeCursor),
-	layersData(layersData),
-	timelineData(timelineData),
-	timelineController(timelineController),
-	horizontalTransform(horizontalTransform),
-	verticalTransform(verticalTransform),
-	horizontalTickRenderer(horizontalTickRenderer),
-	selector(selector)
+	horizontalTickRenderer(horizontalTickRenderer)
 {
 	
-	verticalTransform->setBaseStep(-100.f);
-	verticalTransform->setBoundsOffset(-1.f - 0.01f, 2.f + 0.01f);
-	verticalTransform->setBoundsScale(1.f, 100.f);
+	ctx->graphTransformVertical->setBaseStep(-100.f);
+	ctx->graphTransformVertical->setBoundsOffset(-1.f - 0.01f, 2.f + 0.01f);
+	ctx->graphTransformVertical->setBoundsScale(1.f, 100.f);
 	
 
 }
@@ -56,7 +47,7 @@ void Timeline_Graph::DrawTicks(ImVec2 p_min, ImVec2 p_max) {
 	//DebugOverlay::AddText("down_bound" + std::to_string(verticalTransform->getMinBoundView_lerped()), ImColor(1.f, 1.f, 1.f, 1.f));
 
 
-	float pixels_per_unit = std::abs(verticalTransform->getLengthTick_lerped());
+	float pixels_per_unit = std::abs(ctx->graphTransformVertical->getLengthTick_lerped());
 
 	float target_spacing = 60.f;
 
@@ -95,13 +86,13 @@ void Timeline_Graph::DrawTicks(ImVec2 p_min, ImVec2 p_max) {
 
 	uint64_t count_ticks = 0;
 
-	float bound_a = verticalTransform->getMinBoundView_lerped();
-	float bound_b = verticalTransform->getMaxBoundView_lerped();
+	float bound_a = ctx->graphTransformVertical->getMinBoundView_lerped();
+	float bound_b = ctx->graphTransformVertical->getMaxBoundView_lerped();
 	float v_min = std::min(bound_a, bound_b);
 	float v_max = std::max(bound_a, bound_b);
 
 	if (v_min < 0.f && v_max > 0.f) {
-		float pos_y_center_line = cursor_pos.y + verticalTransform->getPosScreen_lerped(0.f);
+		float pos_y_center_line = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(0.f);
 		drawlist->AddLine({ p_min.x, pos_y_center_line }, { p_max.x, pos_y_center_line }, ImColor(0.4f, 0.4f, 0.4f, 1.f), 4.f);
 		count_ticks++;
 
@@ -120,7 +111,7 @@ void Timeline_Graph::DrawTicks(ImVec2 p_min, ImVec2 p_max) {
 
 	for (float val = start_val; val <= v_max + tick_step; val += tick_step) {
 		if (std::abs(val) > 0.0001f * tick_step) {
-			float pos = cursor_pos.y + verticalTransform->getPosScreen_lerped(val);
+			float pos = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(val);
 
 			if (pos >= p_min.y && pos <= p_max.y) {
 				ImColor main_color = colorLight;
@@ -147,7 +138,7 @@ void Timeline_Graph::DrawTicks(ImVec2 p_min, ImVec2 p_max) {
 			if (sub_val > v_max) break;
 			if (std::abs(sub_val) < 0.0001f * tick_step) continue;
 
-			float pos_sub = cursor_pos.y + verticalTransform->getPosScreen_lerped(sub_val);
+			float pos_sub = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(sub_val);
 
 			if (pos_sub >= p_min.y && pos_sub <= p_max.y) {
 				drawlist->AddLine({ p_min.x, pos_sub }, { p_max.x, pos_sub }, colorDark, 1.f);
@@ -166,16 +157,16 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 	ImVec2 region_max = ImGui::GetContentRegionAvail();
 
 
-	if (layersData->GetData().layers.empty() ||
-		selector->getProperties().empty()) {
+	if (ctx->layersData->GetData().layers.empty() ||
+		ctx->selector->getProperties().empty()) {
 		timeCursor->Draw(p_min, p_max);
 		return;
 	}
 
-	auto index_selector = selector->getProperties().begin()->layer.index;
-	auto name_property  = selector->getProperties().begin()->name;
+	auto index_selector = ctx->selector->getProperties().begin()->layer.index;
+	auto name_property  = ctx->selector->getProperties().begin()->name;
 
-	auto* layerObject = layersData->GetData().layers[index_selector].get();
+	auto* layerObject = ctx->layersData->GetData().layers[index_selector].get();
 	float time_begin = layerObject->GetLayerInfo().time.Begin;
 
 	auto& variant_prop = layerObject->GetProperties().getVariant(name_property);
@@ -191,8 +182,8 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 			min_graph = min_value;
 			max_graph = max_value;
 
-			float screen_min_range = verticalTransform->getPosScreen_lerped(min_value);
-			float screen_max_range = verticalTransform->getPosScreen_lerped(max_value);
+			float screen_min_range = ctx->graphTransformVertical->getPosScreen_lerped(min_value);
+			float screen_max_range = ctx->graphTransformVertical->getPosScreen_lerped(max_value);
 
 			drawlist->AddRectFilled(
 				{ p_min.x, p_min.y + screen_min_range },
@@ -222,14 +213,14 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 		if (keyframes.empty() == false) {
 
 			float front_begin = cursor_pos.x;
-			float front_pos = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + keyframes.front().sample.time);
-			float back_pos = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + keyframes.back().sample.time);
+			float front_pos = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes.front().sample.time);
+			float back_pos = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes.back().sample.time);
 			float back_end = cursor_pos.x + region_max.x;
 
 			for (size_t j = 0; j < keyframes.front().sample.value.size(); j++) {
 
-				float front_pos_y = cursor_pos.y + verticalTransform->getPosScreen_lerped(keyframes.front().sample.value[j]);
-				float back_pos_y = cursor_pos.y + verticalTransform->getPosScreen_lerped(keyframes.back().sample.value[j]);
+				float front_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes.front().sample.value[j]);
+				float back_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes.back().sample.value[j]);
 
 				const float gap = 3.f;
 				const float length = 6.f;
@@ -253,13 +244,13 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 
 		for (size_t i = 1; i < keyframes.size(); i++) {
-			float pos_x = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);
+			float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);
 
 			for (size_t j = 0; j < keyframes[i].sample.value.size(); j++) {
-				float pos_y = cursor_pos.y + verticalTransform->getPosScreen_lerped(keyframes[i].sample.value[j]);
+				float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].sample.value[j]);
 
-				float prev_pos_x = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i - 1].sample.time);
-				float prev_pos_y = cursor_pos.y + verticalTransform->getPosScreen_lerped(keyframes[i - 1].sample.value[j]);
+				float prev_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i - 1].sample.time);
+				float prev_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i - 1].sample.value[j]);
 
 				if (keyframes[i - 1].type == TypeKeyframe::BINARY)
 				{
@@ -274,9 +265,9 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 		}
 
 		for (size_t i = 0; i < keyframes.size(); i++) {
-			float pos_x = cursor_pos.x + horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);
+			float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);
 			for (size_t j = 0; j < keyframes[i].sample.value.size(); j++) {
-				float pos_y = cursor_pos.y + verticalTransform->getPosScreen_lerped(keyframes[i].sample.value[j]);
+				float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].sample.value[j]);
 
 				drawlist->AddRectFilled(
 					{ pos_x - size_keyframe / 2.f, pos_y - size_keyframe / 2.f },
@@ -300,7 +291,7 @@ void Timeline_Graph::Draw() {
 	ImVec2 p_min = cursor_pos;
 	ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
 
-	verticalTransform->updateAvailableScreenValue(region_max.y);
+	ctx->graphTransformVertical->updateAvailableScreenValue(region_max.y);
 
 	MyButtonBehavior(p_min, p_max, "Timeline_Graph_canvas_button", isHovered, isHeld);
 
@@ -309,8 +300,8 @@ void Timeline_Graph::Draw() {
 
 	float mouse_real_screen = ImGui::GetMousePos().y;
 	float mouse_fixed = mouse_real_screen - cursor_pos.y;
-	mouse_global = verticalTransform->getPosGlobal_real(mouse_fixed);
-	mouse_screen = verticalTransform->getPosScreen_real(mouse_global);
+	mouse_global = ctx->graphTransformVertical->getPosGlobal_real(mouse_fixed);
+	mouse_screen = ctx->graphTransformVertical->getPosScreen_real(mouse_global);
 
 	ImGui::SetCursorScreenPos(cursor_pos);
 
@@ -323,12 +314,12 @@ void Timeline_Graph::Draw() {
 void Timeline_Graph::Update(const float& dt) {
 
 	if (NeedCenterized) {
-		if (verticalTransform->getAvailableScreenValue() > 100.f) {
-			verticalTransform->centerize(0.f);
+		if (ctx->graphTransformVertical->getAvailableScreenValue() > 100.f) {
+			ctx->graphTransformVertical->centerize(0.f);
 			NeedCenterized = false;
 		}
 	}
-	verticalTransform->update(dt * 20.f);
+	ctx->graphTransformVertical->update(dt * 20.f);
 
 
 
@@ -338,14 +329,14 @@ void Timeline_Graph::Update(const float& dt) {
 		isOfsetDeltaApplied = true;
 		float delta_y = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
 		float delta_x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
-		verticalTransform->setOffsetDelta(delta_y);
-		horizontalTransform->setOffsetDelta(delta_x);
+		ctx->graphTransformVertical->setOffsetDelta(delta_y);
+		ctx->horizontalTransform->setOffsetDelta(delta_x);
 	}
 	else {
 		isDraging = false;
 		if (isOfsetDeltaApplied) {
-			verticalTransform->applyOffsetDelta();
-			horizontalTransform->applyOffsetDelta();
+			ctx->graphTransformVertical->applyOffsetDelta();
+			ctx->horizontalTransform->applyOffsetDelta();
 		}
 		isOfsetDeltaApplied = false;
 	}
@@ -353,10 +344,10 @@ void Timeline_Graph::Update(const float& dt) {
 	if (!isHovered) return;
 
 	if (scroll_zoom > 0.f) {
-		verticalTransform->zoomToPointByValue(mouse_global, 1.5f, false);
+		ctx->graphTransformVertical->zoomToPointByValue(mouse_global, 1.5f, false);
 	}
 	else if (scroll_zoom < 0.f) {
-		verticalTransform->zoomToPointByValue(mouse_global, 0.75f, false);
+		ctx->graphTransformVertical->zoomToPointByValue(mouse_global, 0.75f, false);
 	}
 
 	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
@@ -364,7 +355,7 @@ void Timeline_Graph::Update(const float& dt) {
 	}
 
 	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-		verticalTransform->centerize((min_graph + max_graph)*0.5f);
+		ctx->graphTransformVertical->centerize((min_graph + max_graph)*0.5f);
 	}
 
 

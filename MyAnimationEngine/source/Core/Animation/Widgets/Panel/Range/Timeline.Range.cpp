@@ -4,12 +4,11 @@
 #include <algorithm>
 
 Timeline_Range::Timeline_Range(
-	Timeline_TimeCursor* timeCursor,
-	TimelineProviderData* timelineData,
-	TimelineTransformHorizontal* horizontalTransform)
-	: timeCursor(timeCursor),
-	timelineData(timelineData),
-	horizontalTransform(horizontalTransform)
+	TimelineContext* ctx,
+	Timeline_TimeCursor* timeCursor)
+	:
+	ctx(ctx),
+	timeCursor(timeCursor)
 {
 
 }
@@ -31,8 +30,8 @@ void Timeline_Range::Draw() {
 	ImGui::InvisibleButton("Timeline_Range_canvas_button", region_max, ImGuiButtonFlags_MouseButtonLeft);
 
 
-	float left_range  = horizontalTransform->getPostionScreen_lerped(timelineData->GetData().left_range_repeat);
-	float right_range = horizontalTransform->getPostionScreen_lerped(timelineData->GetData().right_range_repeat);
+	float left_range  = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().left_range_repeat);
+	float right_range = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().right_range_repeat);
 
 
 	ImVec2 range_box_min = { cursor_pos.x + left_range, cursor_pos.y };
@@ -48,7 +47,7 @@ void Timeline_Range::Draw() {
 
 	ImVec2 mouseScreen = { mouse.x - cursor_pos.x, mouse.y - cursor_pos.y };
 
-	float global_pos_mouse_x = horizontalTransform->getPostionGlobal_lerped(mouseScreen.x);
+	float global_pos_mouse_x = ctx->horizontalTransform->getPostionGlobal_lerped(mouseScreen.x);
 
 
 	float left_hitbox_min_x = range_box_min.x - button_width / 2.f - hitbox_width / 2.f;
@@ -97,17 +96,17 @@ void Timeline_Range::Draw() {
 			color_range_button = COLOR_BODY_RANGE_HOVERED;
 
 			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-				timelineData->GetData().left_range_repeat = 0.f;
-				timelineData->GetData().right_range_repeat = timelineData->GetData().totalTime;
+				ctx->timelineData->GetData().left_range_repeat = 0.f;
+				ctx->timelineData->GetData().right_range_repeat = ctx->timelineData->GetData().totalTime;
 			}
 			else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
 				range_dragging = true;
 
 
-				 left_range_before_dragging = timelineData->GetData().left_range_repeat;
-				right_range_before_dragging = timelineData->GetData().right_range_repeat;
+				 left_range_before_dragging = ctx->timelineData->GetData().left_range_repeat;
+				right_range_before_dragging = ctx->timelineData->GetData().right_range_repeat;
 
-				length_range_dragging = timelineData->GetData().right_range_repeat - timelineData->GetData().left_range_repeat;
+				length_range_dragging = ctx->timelineData->GetData().right_range_repeat - ctx->timelineData->GetData().left_range_repeat;
 				global_pos_begin_draging = global_pos_mouse_x;
 
 			}
@@ -122,13 +121,13 @@ void Timeline_Range::Draw() {
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 			color_left_button = COLOR_CHANGEBLE_HELD;
 
-			float step_frame = 1.f / (float)timelineData->GetData().framerate;
+			float step_frame = 1.f / (float)ctx->timelineData->GetData().framerate;
 			float count = std::floor(global_pos_mouse_x / step_frame);
 			float time = count * step_frame;
 			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
 				time = global_pos_mouse_x;
 
-			timelineData->GetData().SetLeftRange(time);
+			ctx->timelineData->GetData().SetLeftRange(time);
 		}
 		else left_range_dragging = false;
 	}
@@ -136,13 +135,13 @@ void Timeline_Range::Draw() {
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 			color_right_button = COLOR_CHANGEBLE_HELD;
 
-			float step_frame = 1.f / (float)timelineData->GetData().framerate;
+			float step_frame = 1.f / (float)ctx->timelineData->GetData().framerate;
 			float count = std::floor(global_pos_mouse_x / step_frame);
 			float time = count * step_frame;
 			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
 				time = global_pos_mouse_x;
 
-			timelineData->GetData().SetRightRange(time);
+			ctx->timelineData->GetData().SetRightRange(time);
 		}
 		else right_range_dragging = false;
 	}
@@ -152,7 +151,7 @@ void Timeline_Range::Draw() {
 
 			float delta_mouse = global_pos_mouse_x - global_pos_begin_draging;
 
-			float step_frame = 1.f / (float)timelineData->GetData().framerate;
+			float step_frame = 1.f / (float)ctx->timelineData->GetData().framerate;
 			float count = std::floor(delta_mouse / step_frame);
 			float time = count * step_frame;
 			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
@@ -169,16 +168,13 @@ void Timeline_Range::Draw() {
 				condidate_right = length_range_dragging;
 			}
 
-			if (condidate_right > timelineData->GetData().totalTime) {
-				condidate_left = timelineData->GetData().totalTime - length_range_dragging;
-				condidate_right = timelineData->GetData().totalTime;
+			if (condidate_right > ctx->timelineData->GetData().totalTime) {
+				condidate_left = ctx->timelineData->GetData().totalTime - length_range_dragging;
+				condidate_right = ctx->timelineData->GetData().totalTime;
 			}
 
-			timelineData->GetData().SetLeftRange(condidate_left);
-			timelineData->GetData().SetRightRange(condidate_right);
-
-
-
+			ctx->timelineData->GetData().SetLeftRange(condidate_left);
+			ctx->timelineData->GetData().SetRightRange(condidate_right);
 		}
 		else range_dragging = false;
 	}
@@ -206,11 +202,11 @@ void Timeline_Range::Draw() {
 
 	if (range_dragging) {
 
-		float delta_end = timelineData->GetData().left_range_repeat + (global_pos_begin_draging - left_range_before_dragging);
+		float delta_end = ctx->timelineData->GetData().left_range_repeat + (global_pos_begin_draging - left_range_before_dragging);
 
 
-		float screen_begin_pos_drag = horizontalTransform->getPostionScreen_lerped(global_pos_begin_draging);
-		float screen_end_pos_drag   = horizontalTransform->getPostionScreen_lerped(delta_end);
+		float screen_begin_pos_drag = ctx->horizontalTransform->getPostionScreen_lerped(global_pos_begin_draging);
+		float screen_end_pos_drag   = ctx->horizontalTransform->getPostionScreen_lerped(delta_end);
 
 
 		float begin = cursor_pos.x + (std::min)(screen_begin_pos_drag, screen_end_pos_drag);

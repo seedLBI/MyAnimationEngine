@@ -1,12 +1,8 @@
 ﻿#ifndef TIMELINE_RULER_H
 #define TIMELINE_RULER_H
 
-#include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
-#include "Core/Animation/Widgets/Panel/Transform/Horizontal/Timeline.Transform.Horizontal.h"
+#include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 #include "Core/Animation/Widgets/Panel/HorizontalTickRenderer/Horizontal.Tick.Renderer.h"
-#include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
-#include "Utils/Timer/Timer.Framerate.h"
-
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
 
 
@@ -16,10 +12,8 @@
 class Timeline_Ruler {
 public:
 	Timeline_Ruler(
+		TimelineContext* ctx,
 		Timeline_TimeCursor* timeCursor, 
-		TimelineController* timelineController, 
-		TimelineProviderData* timelineData, 
-		TimelineTransformHorizontal* timelineTransformHorizontal,
 		HorizontalTickRenderer* horizontalTickRenderer
 	);
 	~Timeline_Ruler();
@@ -31,13 +25,9 @@ public:
 	const float& getScreenMouse();
 
 private:
-	Timeline_TimeCursor* timeCursor = nullptr;
-
-	TimelineController* timelineController = nullptr;
-	TimelineProviderData* timelineData = nullptr;
-	TimelineTransformHorizontal* timelineTransformHorizontal = nullptr;
-
-	HorizontalTickRenderer* horizontalTickRenderer = nullptr;
+	TimelineContext* ctx;
+	Timeline_TimeCursor* timeCursor;
+	HorizontalTickRenderer* horizontalTickRenderer;
 
 	
 	float mouse_global;
