@@ -4,7 +4,6 @@
 
 #include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 #include "IconDrawer/Timeline.Layers.Icon.Drawer.h"
-
 #include "Utils/Timer/Timer.h"
 
 #include <vector>
@@ -26,8 +25,7 @@ public:
 private:
 	TimelineContext* ctx;
 
-	void DrawObject(LayerObject* object, uint64_t index);
-
+	void DrawLayer(LayerObject* object, uint64_t index, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer);
 	bool DrawToggle(LayerObject* object, uint64_t index);
 	void DrawLayerColor(LayerObject* object, uint64_t index);
 	void DrawLayerIndex(LayerObject* object, uint64_t index);
@@ -37,6 +35,18 @@ private:
 	void drawTriggerButton(bool& value, std::string index ,const char* symbol, float availableHeight);
 	bool drawAnimationEnabler(bool& value, std::string index, float availableHeight);
 
+
+	void DrawEmptyState(const ImVec2& center);
+	void HandleScroll(const ImVec2& p_min, const ImVec2& p_max, float itemHeight);
+	void HandleContextMenu(const ImVec2& p_min, const ImVec2& p_max);
+	void PrepareDragStaff();
+	void HandleSelectionLayer(uint64_t index, const ImVec2& p, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer, bool isHoveredName);
+	void HandleAreaSelectionStart(const ImVec2& p, const ImVec2& p_max);
+	void ProcessDragLogic(float itemHeight);
+
+	void DrawLayerProperties(LayerObject* layer, uint64_t index_layer, ImVec2& p, const ImVec2& p_min, const ImVec2& p_max, float itemHeight, float& heightContent);
+
+	void DrawDragAndDropIndicators(uint64_t index, const ImVec2& p, const ImVec2& p_max, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer);
 
 	enum TypeColumn {
 		INDEX,
@@ -68,17 +78,20 @@ private:
 
 	int getCountEnabledColumns();
 
-	uint64_t indexGrabbingLayer = 0;
-	bool isGrabingLayer = false;
-	bool isHoveredLayer = false;
-	std::vector<float> offsets_selected_while_grabing;
-	ImVec2 pos_grab_start;
-	Timer timer_AfterPress;
-	float time4enableDrag = 0.05f;
-	bool DragDrawedOnce = false;
-	bool IsDragUpper = false;
-	bool IsDragLower = false;
-	uint64_t index_layer_dragdrop = UINT64_MAX;
+	struct DragStaff {
+		uint64_t count_selected = 0;
+		uint64_t indexGrabbingLayer = 0;
+		bool isGrabingLayer = false;
+		bool isHoveredLayer = false;
+		std::vector<float> offsets_selected_while_grabing;
+		ImVec2 pos_grab_start;
+		Timer timer_AfterPress;
+		float time4enableDrag = 0.05f;
+		bool DragDrawedOnce = false;
+		bool IsDragUpper = false;
+		bool IsDragLower = false;
+		uint64_t index_layer_dragdrop = UINT64_MAX;
+	} dragStaff;
 
 	enum AV_SYMBOLS {
 		VISIBLE,

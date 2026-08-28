@@ -244,9 +244,15 @@ bool Timeline_Layers_List::drawAnimationEnabler(bool& value, std::string index, 
 }
 
 
-void Timeline_Layers_List::DrawObject(LayerObject* object, uint64_t index)
+void Timeline_Layers_List::DrawLayer(LayerObject* object, uint64_t index, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer)
 {
+    if (index == 0) ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 1.f);
+
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+    ImColor color_background = isSelectedLayer ? COLOR_BG_LAYER_CHOOSED : COLOR_BG_LAYER;
+    draw_list->AddRectFilled(layer_min, layer_max, color_background);
+
     std::string str_index = std::to_string(index);
     float height_object = ctx->verticalTransform->getScaledHeightOneObject();
 
@@ -501,6 +507,622 @@ bool Timeline_Layers_List::DrawLayerName(LayerObject* object, uint64_t index) {
     return false;
 }
 
+
+void Timeline_Layers_List::DrawEmptyState(const ImVec2& center) {
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    if (ctx->layersData->GetData().layers.empty()) {
+        Push_BoldFont();
+        const char* text = u8"Нажми по мне ПКМ!!";
+        ImVec2 size_text = ImGui::CalcTextSize(text);
+        ImVec2 pos_text = { center.x - size_text.x / 2.f, center.y - size_text.y / 2.f };
+        draw_list->AddText(pos_text, ImColor(1.f, 1.f, 1.f, 0.5f), text);
+        Pop_BoldFont();
+    }
+}
+void Timeline_Layers_List::HandleScroll(const ImVec2& p_min,const ImVec2& p_max, float itemHeight) {
+    if (ImGui::IsMouseHoveringRect(p_min, p_max)) {
+        float scrol_zoom = ImGui::GetIO().MouseWheel;
+        ctx->verticalTransform->addOffset(scrol_zoom * itemHeight);
+    }
+}
+void Timeline_Layers_List::HandleContextMenu(const ImVec2& p_min, const ImVec2& p_max) {
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right, false) && ImGui::IsMouseHoveringRect(p_min, p_max))
+        ImGui::OpenPopup("POPUP_LIST_MENU_CONTEXT");
+
+    Push_SmallFont();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.f, 12.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12.f, 12.f));
+    if (ImGui::BeginPopupContextItem("POPUP_LIST_MENU_CONTEXT")) {
+
+        if (ImGui::BeginMenu(u8"Создать слой")) {
+            if (ImGui::MenuItem(u8"Камера")) {
+
+            }
+            if (ImGui::MenuItem(u8"Сплошной")) {
+                ctx->layerFactory->CreateSolid();
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndPopup();
+    }
+    ImGui::PopStyleVar(2);
+    Pop_SmallFont();
+
+}
+void Timeline_Layers_List::PrepareDragStaff() {
+    if (dragStaff.offsets_selected_while_grabing.size() != ctx->selector->getLayers().size())
+        dragStaff.offsets_selected_while_grabing.resize(ctx->selector->getLayers().size());
+
+    if (dragStaff.DragDrawedOnce)
+        CursorManager::getInstance().SetCursor(TypeCursor::DISABLED);
+
+    dragStaff.IsDragUpper = false;
+    dragStaff.IsDragLower = false;
+    dragStaff.index_layer_dragdrop = UINT64_MAX;
+    dragStaff.count_selected = 0;
+}
+void Timeline_Layers_List::HandleSelectionLayer(uint64_t index, const ImVec2& p, const ImVec2& layer_min,const ImVec2& layer_max, bool isSelectedLayer, bool isHoveredName) {
+
+    dragStaff.isHoveredLayer = ImGui::IsMouseHoveringRect(layer_min, layer_max);
+
+    if (isSelectedLayer) {
+        dragStaff.offsets_selected_while_grabing[dragStaff.count_selected] = round(p.y + 1.f);
+        dragStaff.count_selected++;
+    }
+
+    if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && ctx->areaSelection->IsActive()) {
+        if (ctx->areaSelection->CheckAABB({ layer_min, layer_max }))
+            ctx->selector->AddMoreSelectedLayer({ index });
+        else if (!ctx->selector->HaveSelectedPropertiesInLayer({ index }))
+            ctx->selector->EraseLayer({ index });
+    }
+
+    if (dragStaff.isHoveredLayer && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+            ctx->selector->AddMoreSelectedLayer_Toggle({ index });
+        else if (ImGui::IsKeyDown(ImGuiKey_LeftShift) && ctx->selector->getLayers().empty() == false) {
+
+            uint64_t min_index = ctx->selector->GetMinSelectedLayer().value().index;
+            uint64_t max_index = ctx->selector->GetMaxSelectedLayer().value().index;
+
+            ctx->selector->UnsetAll();
+
+            uint64_t delta_min = index > min_index ? index - min_index : min_index - index;
+            uint64_t delta_max = index > max_index ? index - max_index : max_index - index;
+
+            uint64_t from = (std::min)(index, min_index);
+            uint64_t to = (std::max)(index, min_index);
+
+            if (delta_min <= delta_max) {
+                from = (std::min)(index, max_index);
+                to = (std::max)(index, max_index);
+            }
+
+            for (size_t i = from; i <= to; i++)
+                ctx->selector->AddMoreSelectedLayer({ i });
+
+        }
+        else if (!isSelectedLayer)
+            ctx->selector->SelectLayer({ index });
+
+        if (isHoveredName) {
+            dragStaff.indexGrabbingLayer = index;
+            dragStaff.pos_grab_start = ImGui::GetMousePos();
+            dragStaff.isGrabingLayer = true;
+            dragStaff.timer_AfterPress.start();
+        }
+
+    }
+}
+void Timeline_Layers_List::HandleAreaSelectionStart(const ImVec2& p, const ImVec2& p_max) {
+    if (ImGui::IsMouseHoveringRect(p, p_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        ctx->selector->UnsetAll();
+        ctx->areaSelection->SetStatus(true);
+        ctx->areaSelection->SetStartMousePosition(ImGui::GetMousePos());
+        ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_LIST);
+    }
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+        ctx->areaSelection->SetStatus(false);
+    }
+}
+void Timeline_Layers_List::DrawDragAndDropIndicators(uint64_t index, const ImVec2& p, const ImVec2& p_max, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer) {
+    if (dragStaff.DragDrawedOnce && index == ctx->layersData->GetData().layers.size() - 1 && ImGui::IsMouseHoveringRect(p, p_max)) {
+        CursorManager::getInstance().SetCursor(TypeCursor::COPY);
+        dragStaff.index_layer_dragdrop = index;
+        dragStaff.IsDragLower = true;
+    }
+    else if (dragStaff.DragDrawedOnce && isSelectedLayer == false && ImGui::IsMouseHoveringRect(layer_min, { layer_max.x, p.y })) {
+
+        CursorManager::getInstance().SetCursor(TypeCursor::COPY);
+
+        dragStaff.IsDragUpper = ImGui::IsMouseHoveringRect(layer_min, { layer_max.x, layer_min.y + (layer_max.y - layer_min.y) / 2.f });
+        dragStaff.IsDragLower = ImGui::IsMouseHoveringRect({ layer_min.x, layer_min.y + (layer_max.y - layer_min.y) / 2.f }, { layer_max.x, p.y });
+
+        dragStaff.index_layer_dragdrop = index;
+    }
+
+
+    if (dragStaff.index_layer_dragdrop == index) {
+        if (dragStaff.IsDragUpper)
+            ImGui::GetForegroundDrawList()->AddLine(layer_min, { layer_max.x, layer_min.y }, COLOR_LAYER_GRAB_LINE_COPY_POSITION, 5.f);
+        if (dragStaff.IsDragLower)
+            ImGui::GetForegroundDrawList()->AddLine({ layer_min.x, p.y }, { layer_max.x, p.y }, COLOR_LAYER_GRAB_LINE_COPY_POSITION, 5.f);
+    }
+
+}
+void Timeline_Layers_List::ProcessDragLogic(float itemHeight) {
+    if (dragStaff.isGrabingLayer && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+        dragStaff.timer_AfterPress.stop();
+
+        if (dragStaff.timer_AfterPress.elapsedSeconds() >= dragStaff.time4enableDrag) {
+            ImVec2 delta = { ImGui::GetMousePos().x - dragStaff.pos_grab_start.x, ImGui::GetMousePos().y - dragStaff.pos_grab_start.y };
+
+            if (delta.x > 0 || delta.y > 0 || dragStaff.DragDrawedOnce) {
+                dragStaff.DragDrawedOnce = true;
+                for (const auto& offset : dragStaff.offsets_selected_while_grabing) {
+                    ImVec2 grab_min = { columns[TypeColumn::NAME].startCursorPos + delta.x, offset + delta.y };
+                    ImVec2 grab_max = { columns[TypeColumn::NAME].startCursorPos + columns[TypeColumn::NAME].width + delta.x, offset + itemHeight + delta.y };
+
+                    ImGui::GetForegroundDrawList()->AddRect(grab_min, grab_max, COLOR_LAYER_GRAB_OUTLINE, 0, 0, 2.f);
+                }
+            }
+        }
+    }
+    else {
+        dragStaff.isGrabingLayer = false;
+        dragStaff.indexGrabbingLayer = UINT64_MAX;
+        dragStaff.DragDrawedOnce = false;
+        if ((dragStaff.IsDragUpper || dragStaff.IsDragLower) && dragStaff.index_layer_dragdrop != UINT64_MAX) {
+            auto new_set = ctx->layersData->MoveLayersBySet(ConvertToIndices(ctx->selector->getLayers()), dragStaff.index_layer_dragdrop, dragStaff.IsDragUpper);
+            ctx->selector->UnsetAll();
+            ctx->selector->AddSelectedLayersBySet(new_set);
+        }
+    }
+}
+void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t index_layer, ImVec2& p, const ImVec2& p_min, const ImVec2& p_max, float itemHeight, float& heightContent) {
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    auto& layerInfo = layer->GetLayerInfo();
+
+    auto& properties = layer->GetProperties();
+    properties.forEachUnwrapped([&](const std::string& name, auto& value) {
+
+        if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && ctx->areaSelection->IsActive()) {
+            if (ctx->areaSelection->CheckAABB({ { p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) } })) {
+                ctx->selector->AddMoreSelectedProperty({ index_layer, name });
+                ctx->selector->AddMoreSelectedLayer({ index_layer });
+            }
+            else {
+                ctx->selector->ErasePropertie({ index_layer, name });
+                if (!ctx->selector->HaveSelectedPropertiesInLayer({ index_layer }))
+                    ctx->selector->EraseLayer({ index_layer });
+            }
+        }
+
+
+
+
+        const auto& keyframes = value.kr.getKeyframes();
+
+        Push_SmallFont();
+
+        float textHeight = ImGui::GetTextLineHeight();
+        float offsetY = (itemHeight - textHeight) * 0.5f;
+
+        float offsetX = 0.f;
+        bool isHaveKeyframes = keyframes.empty() == false;
+        float eval_time = ctx->timelineData->GetData().currentTime - layerInfo.time.Begin;
+        auto evaluated_value = value.kr.evaluate(eval_time);
+
+
+
+
+
+        if (isHaveKeyframes) {
+            const float offset = 8.f;
+
+            const float ht = itemHeight / 2.3f;
+            const float wt = ht / 2.f;
+
+
+
+            ImVec2 T_1 = { offset + p.x + wt, p.y + itemHeight / 2.f - ht / 2.f };
+            ImVec2 T_2 = { offset + p.x + wt, p.y + itemHeight / 2.f + ht / 2.f };
+            ImVec2 T_3 = { offset + p.x, p.y + itemHeight / 2.f };
+            ImVec2 T_4 = { offset + p.x + wt * 2.f, p.y + itemHeight / 2.f };
+
+
+
+
+            ImVec2 TL[] = { T_1,T_2,T_3 };
+            ImVec2 TL_min = { T_1.x - wt - 5.f , T_1.y - 2.f };
+            ImVec2 TL_max = { T_1.x + 5.f - 2.f, T_1.y + ht + 2.f };
+            bool TL_hovered, TL_held;
+            bool TL_pressed = MyButtonBehavior(
+                TL_min,
+                TL_max,
+                (std::string("TL_PROPERTIE_") + name + std::to_string(index_layer)).c_str(),
+                TL_hovered,
+                TL_held
+            );
+            bool TL_disabled = eval_time <= keyframes.front().sample.time;
+
+
+
+
+            T_1.x += offset * 1.5f;
+            T_2.x += offset * 1.5f;
+            T_3.x += offset * 1.5f;
+            T_4.x += offset * 1.5f;
+
+
+            const float sc = -1.f;
+            const float oo = 0.5f * 1.2f;
+            const float qq = 1.f;
+            ImVec2 ROMB[] = {
+                {T_4.x + sc, T_4.y - oo},
+                {T_4.x + sc, T_4.y + oo},
+                {T_2.x + oo, T_2.y + sc},
+                {T_2.x - oo, T_2.y + sc},
+                {T_3.x - sc, T_3.y + oo},
+                {T_3.x - sc, T_3.y - oo},
+                {T_1.x - oo, T_1.y - sc},
+                {T_1.x + oo, T_1.y - sc}
+            };
+            ImVec2 ROMB_over[] = {
+                {T_4.x + sc + qq, T_4.y - oo},
+                {T_4.x + sc + qq, T_4.y + oo},
+                {T_2.x + oo, T_2.y + sc + qq},
+                {T_2.x - oo, T_2.y + sc + qq},
+                {T_3.x - sc - qq, T_3.y + oo},
+                {T_3.x - sc - qq, T_3.y - oo},
+                {T_1.x - oo, T_1.y - sc - qq},
+                {T_1.x + oo, T_1.y - sc - qq}
+            };
+            ImVec2 ROMB_min = { T_3.x - 2.f, T_1.y - 2.f };
+            ImVec2 ROMB_max = { T_4.x + 2.f, T_2.y + 2.f };
+            bool ROMB_hovered, ROMB_held;
+            bool ROMB_pressed = MyButtonBehavior(
+                ROMB_min,
+                ROMB_max,
+                (std::string("ROMB_PROPERTIE_") + name + std::to_string(index_layer)).c_str(),
+                ROMB_hovered,
+                ROMB_held
+            );
+
+            T_1.x += offset * 1.5f;
+            T_2.x += offset * 1.5f;
+            T_4.x += offset * 1.5f;
+
+
+
+            ImVec2 TR[] = { T_4,T_2,T_1 };
+            ImVec2 TR_min = { T_1.x - 2.f , T_1.y - 2.f };
+            ImVec2 TR_max = { T_1.x + wt + 5.f, T_1.y + ht + 2.f };
+            bool TR_hovered, TR_held;
+            bool TR_pressed = MyButtonBehavior(
+                TR_min,
+                TR_max,
+                (std::string("TR_PROPERTIE_") + name + std::to_string(index_layer)).c_str(),
+                TR_hovered,
+                TR_held
+            );
+            bool TR_disabled = eval_time >= keyframes.back().sample.time;
+
+            if (TL_pressed && TL_disabled == false) {
+
+                for (size_t j = keyframes.size() - 1; j >= 0; j--) {
+                    if (eval_time > keyframes[j].sample.time) {
+                        ctx->timelineData->GetData().currentTime = keyframes[j].sample.time + layerInfo.time.Begin;
+                        float left_border = ctx->horizontalTransform->getPostionScreen_real(ctx->horizontalTransform->getLeftBoundView_global_real());
+                        float need_border = ctx->horizontalTransform->getPostionScreen_real(ctx->timelineData->GetData().currentTime);
+
+                        if (need_border < left_border) {
+                            float dif = left_border - need_border;
+                            ctx->horizontalTransform->addOffset((dif + 100.f));
+                        }
+                        break;
+                    }
+                }
+
+            }
+
+            if (TR_pressed && TR_disabled == false) {
+
+                for (size_t j = 0; j < keyframes.size(); j++) {
+                    if (eval_time < keyframes[j].sample.time) {
+                        ctx->timelineData->GetData().currentTime = keyframes[j].sample.time + layerInfo.time.Begin;
+
+                        float right_border = ctx->horizontalTransform->getPostionScreen_real(ctx->horizontalTransform->getRightBoundView_global_real());
+                        float need_border = ctx->horizontalTransform->getPostionScreen_real(ctx->timelineData->GetData().currentTime);
+
+                        if (need_border > right_border) {
+                            float dif = need_border - right_border;
+                            ctx->horizontalTransform->addOffset(-(dif + 100.f));
+                        }
+
+                        break;
+                    }
+                }
+
+            }
+
+            bool isEqual = false;
+            uint64_t indexEqual = 0;
+            for (size_t j = 0; j < keyframes.size(); j++) {
+                if (keyframes[j].sample.time == eval_time) {
+                    isEqual = true;
+                    indexEqual = j;
+                    break;
+                }
+            }
+            if (ROMB_pressed) {
+                if (isEqual)
+                    value.kr.erase(indexEqual);
+                else
+                    value.kr.add(eval_time, evaluated_value);
+            }
+
+
+
+            ImColor color_tl = COLOR_DEFAULT;
+            if (TL_disabled)
+                color_tl = COLOR_DISABLED;
+            if (TL_hovered && !TL_disabled)
+                color_tl = COLOR_DEFAULT_HOVERED;
+
+
+
+            ImColor color_tr = COLOR_DEFAULT;
+            if (TR_disabled)
+                color_tr = COLOR_DISABLED;
+            if (TR_hovered && !TR_disabled)
+                color_tr = COLOR_DEFAULT_HOVERED;
+
+
+            ImColor color_romb = COLOR_DEFAULT;
+            ImColor color_romb_back = COLOR_BG_BUTTONS_HOVERED;
+            ImColor color_romb_bound = COLOR_DISABLED;
+
+
+            if (ROMB_hovered)
+                color_romb_bound = COLOR_DEFAULT_HOVERED;
+
+            if (isEqual) {
+                if (ROMB_hovered)
+                    color_romb = COLOR_CHANGEBLE_HOVERED;
+                else
+                    color_romb = COLOR_CHANGEBLE;
+
+                color_romb_back = color_romb;
+            }
+
+
+
+
+
+            if (TL_disabled == false && TL_hovered) {
+                draw_list->AddRectFilled({ TL_min.x - 0.5f, TL_min.y - 0.5f }, { TL_max.x + 0.5f, TL_max.y + 0.5f }, COLOR_DISABLED, 2.5f);
+                draw_list->AddRectFilled(TL_min, TL_max, COLOR_BG_BUTTONS, 2.5f);
+            }
+            draw_list->AddConvexPolyFilled(TL, 3, color_tl);
+
+            if (ROMB_hovered || isEqual) {
+                draw_list->AddRectFilled({ ROMB_min.x - 0.5f, ROMB_min.y - 0.5f }, { ROMB_max.x + 0.5f, ROMB_max.y + 0.5f }, color_romb_bound, 2.5f);
+                draw_list->AddRectFilled(ROMB_min, ROMB_max, COLOR_BG_BUTTONS, 2.5f);
+            }
+
+            draw_list->AddConvexPolyFilled(ROMB_over, 8, color_romb);
+            draw_list->AddConvexPolyFilled(ROMB, 8, color_romb_back);
+
+            if (TR_disabled == false && TR_hovered) {
+                draw_list->AddRectFilled({ TR_min.x - 0.5f, TR_min.y - 0.5f }, { TR_max.x + 0.5f, TR_max.y + 0.5f }, COLOR_DISABLED, 2.5f);
+                draw_list->AddRectFilled(TR_min, TR_max, COLOR_BG_BUTTONS, 2.5f);
+            }
+            draw_list->AddConvexPolyFilled(TR, 3, color_tr);
+
+        }
+
+
+        if (columns[MARKER].isDisable == false)
+            offsetX = columns[MARKER].startCursorPos;
+        else if (columns[INDEX].isDisable == false)
+            offsetX = columns[INDEX].startCursorPos;
+        else
+            offsetX = columns[NAME].startCursorPos;
+
+        ImGui::SetCursorScreenPos(ImVec2(p.x + offsetX, p.y - offsetY - 1.f));
+
+
+
+
+        if (drawAnimationEnabler(isHaveKeyframes, ("##PROPERTIES_TRIGGER_" + std::to_string(index_layer) + "_" + name).c_str(), itemHeight)) {
+            if (keyframes.empty())
+                value.kr.addFromDefaultValue(eval_time);
+            else
+                value.kr.clear();
+        }
+
+
+        ImGui::SameLine(0.f, 10.f);
+
+        ImVec2 propertie_min = { p.x + offsetX + 18.f, p.y + 1.f };
+        ImVec2 propertie_max = { p.x + offsetX + 22.f + (columns[TOGGLES].startCursorPos - offsetX - 22.f - itemHeight / 2.f - 8.f), p.y + itemHeight };
+
+
+        if (ImGui::IsMouseHoveringRect(propertie_min, propertie_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+                ctx->selector->AddMoreSelectedLayer({ index_layer });
+                ctx->selector->AddMoreSelectedProperty_Toggle({ index_layer, name });
+            }
+            else if (!ctx->selector->ContainsProperty({ index_layer, name })) {
+                ctx->selector->SelectLayer({ index_layer });
+                ctx->selector->SelectProperty({ index_layer, name });
+            }
+        }
+
+        if (ctx->selector->ContainsProperty({ index_layer, name })) {
+            draw_list->AddRectFilled(propertie_min, propertie_max, COLOR_BG_LAYER_CHOOSED);
+        }
+
+
+
+        draw_list->AddText({ p.x + offsetX + 22.f,p.y - offsetY + 1.f }, COLOR_DEFAULT, name.c_str());
+
+
+        //draw_list->
+        offsetX = columns[TOGGLES].startCursorPos;
+        ImGui::SetCursorScreenPos(ImVec2(p.x + offsetX, p.y - offsetY + 1.f));
+
+
+        float xxx = p.x;
+        float yyy = p.y;
+        p.y += offsetY + 1.f;
+        p.x += offsetX;
+
+
+
+        char text[32];
+        auto AddButtonAndAdvance = [&]() {
+
+            for (size_t j = 0; j < evaluated_value.size(); j++) {
+                snprintf(text, sizeof(text), "%.3f", evaluated_value[j]);
+
+                ImVec2 sizeText = ImGui::CalcTextSize(text);
+
+                bool hovered, held;
+                MyButtonBehavior(
+                    p,
+                    { p.x + sizeText.x, p.y + sizeText.y },
+                    (std::to_string(j) + std::string("PROPERTIE_") + name + std::to_string(index_layer)).c_str(),
+                    hovered,
+                    held
+                );
+
+                ImColor color = COLOR_CHANGEBLE;
+
+                if (hovered || held) {
+                    color = COLOR_CHANGEBLE_HOVERED;
+                    CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_HORIZONTAL);
+                }
+                if (held)
+                    color = COLOR_CHANGEBLE_HELD;
+
+                if (held) {
+                    if (ctx->timelineController->GetState() == TimelineRunState::PAUSE) {
+                        float delta = ImGui::GetIO().MouseDelta.x * 0.01;
+
+                        auto def_val = evaluated_value;
+                        def_val[j] += delta;
+                        value.kr.setDefaultValue(def_val);
+
+                        if (value.kr.getKeyframes().empty() == false) {
+                            value.kr.add(eval_time, def_val, TypeKeyframe::LINEAR);
+                        }
+                    }
+                }
+
+                draw_list->AddText(p, color, text);
+
+                p.x += ImGui::CalcTextSize(text).x + ImGui::GetStyle().ItemSpacing.x;
+
+                if (j != evaluated_value.size() - 1) {
+                    draw_list->AddText(p, COLOR_DEFAULT, ", ");
+                    p.x += ImGui::CalcTextSize(", ").x + ImGui::GetStyle().ItemSpacing.x;
+                }
+            }
+
+            };
+
+
+
+
+        using ValueType = std::decay_t<decltype(value)>;
+
+
+        static int choosed_index_for_color_picking = -1;
+
+        if  constexpr (std::is_same_v<ValueType, TPColor>) {
+
+            float size_rect_color = itemHeight / 2.f;
+            p.x -= size_rect_color + 5.f;
+
+            ImVec2 p_rect_min = { p.x,-1.f + p.y + itemHeight / 2.f - size_rect_color / 2.f };
+            ImVec2 p_rect_max = { p.x + size_rect_color,-1.f + p.y + itemHeight / 2.f + size_rect_color / 2.f };
+
+            ImRect bb(p_rect_min, p_rect_max);
+            ImGuiID id = ImGui::GetID((std::to_string(0) + std::string("COLOR_BUTTON_PROPERTIE_") + name + std::to_string(index_layer)).c_str());
+            bool hovered, held;
+            ImGui::ItemAdd(bb, id);
+            if (ImGui::ButtonBehavior(bb, id, &hovered, &held)) {
+                ImGui::OpenPopup(("POPUP_COLOR_SELECTOR_FOR_PROPERTIE" + std::to_string(index_layer)).c_str());
+                choosed_index_for_color_picking = index_layer;
+            }
+
+
+            ImColor color_show(evaluated_value[0], evaluated_value[1], evaluated_value[2], evaluated_value[3]);
+            ImColor color_border = COLOR_BG_BUTTONS;
+
+            if (hovered) {
+                color_border = COLOR_DISABLED;
+                CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
+            }
+
+            draw_list->AddRectFilled(p_rect_min, p_rect_max, color_show, 1.f);
+            p_rect_min.x -= 0.5f;
+            p_rect_min.y -= 0.5f;
+            p_rect_max.x += 0.5f;
+            p_rect_max.y += 0.5f;
+
+            draw_list->AddRect(p_rect_min, p_rect_max, color_border, 1.f, 0, 1.f);
+
+
+            p.x += size_rect_color + 5.f;
+        }
+
+        AddButtonAndAdvance();
+
+
+        if (choosed_index_for_color_picking == index_layer) {
+            if (ImGui::BeginPopupContextItem(("POPUP_COLOR_SELECTOR_FOR_PROPERTIE" + std::to_string(index_layer)).c_str())) {
+
+                if (ImGui::ColorPicker4(("##picker_color_for_propertie##" + std::to_string(index_layer)).c_str(),
+                    (float*)evaluated_value.data(),
+                    ImGuiColorEditFlags_NoSidePreview |
+                    ImGuiColorEditFlags_NoSmallPreview |
+                    ImGuiColorEditFlags_AlphaBar)) {
+
+
+                    if (ctx->timelineController->GetState() == TimelineRunState::PAUSE) {
+                        value.kr.setDefaultValue(evaluated_value);
+
+                        if (value.kr.getKeyframes().empty() == false) {
+                            value.kr.add(eval_time, evaluated_value, TypeKeyframe::LINEAR);
+                        }
+                    }
+
+                }
+
+
+                ImGui::EndPopup();
+            }
+        }
+
+
+        p.x = xxx;
+        p.y = yyy;
+        Pop_SmallFont();
+
+
+        p.y += itemHeight;
+        heightContent += itemHeight;
+        draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
+
+        ImGui::SetCursorScreenPos(p);
+    });
+}
+
+
 void Timeline_Layers_List::DrawColumnsHeader() {
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -521,7 +1143,7 @@ void Timeline_Layers_List::DrawColumnsHeader() {
 
     float textHeight = ImGui::GetTextLineHeight();
     float offsetY = (itemHeight - textHeight) * 0.5f + 2.f;
-    
+
 
     ImVec2 p = p_min;
 
@@ -551,97 +1173,97 @@ void Timeline_Layers_List::DrawColumnsHeader() {
         float x_before = p.x;
 
         switch (type) {
-            case TypeColumn::FUNCTION_AV: {
-                
-                av_symbols_cursor_pos[AV_SYMBOLS::VISIBLE] = p.x - 1.f;
-                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_EYE);
-                p.x += ImGui::CalcTextSize(ICON_FA_EYE).x;
-                p.x += 5.f;
+        case TypeColumn::FUNCTION_AV: {
 
-                av_symbols_cursor_pos[AV_SYMBOLS::VOLUME] = p.x - 1.f;
-                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_VOLUME_HIGH);
-                p.x += ImGui::CalcTextSize(ICON_FA_VOLUME_HIGH).x;
-                p.x += 5.f;
+            av_symbols_cursor_pos[AV_SYMBOLS::VISIBLE] = p.x - 1.f;
+            draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_EYE);
+            p.x += ImGui::CalcTextSize(ICON_FA_EYE).x;
+            p.x += 5.f;
 
-                av_symbols_cursor_pos[AV_SYMBOLS::ONLY] = p.x - 1.f;
-                draw_list->AddCircleFilled({ p.x + ImGui::CalcTextSize(ICON_FA_VOLUME_HIGH).x/2.f,p.y + itemHeight/2.f + 2.f }, 3.5f, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)));
-                p.x += ImGui::CalcTextSize(ICON_FA_CIRCLE).x;
-                p.x += 5.f;
+            av_symbols_cursor_pos[AV_SYMBOLS::VOLUME] = p.x - 1.f;
+            draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_VOLUME_HIGH);
+            p.x += ImGui::CalcTextSize(ICON_FA_VOLUME_HIGH).x;
+            p.x += 5.f;
 
-                av_symbols_cursor_pos[AV_SYMBOLS::LOCK] = p.x - 1.f;
-                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_LOCK);
-                p.x += ImGui::CalcTextSize(ICON_FA_LOCK).x;
+            av_symbols_cursor_pos[AV_SYMBOLS::ONLY] = p.x - 1.f;
+            draw_list->AddCircleFilled({ p.x + ImGui::CalcTextSize(ICON_FA_VOLUME_HIGH).x / 2.f,p.y + itemHeight / 2.f + 2.f }, 3.5f, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)));
+            p.x += ImGui::CalcTextSize(ICON_FA_CIRCLE).x;
+            p.x += 5.f;
 
-                break;
-            }
-            case TypeColumn::INDEX: {
-                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_HASHTAG);
-                p.x += ImGui::CalcTextSize(ICON_FA_HASHTAG).x;
+            av_symbols_cursor_pos[AV_SYMBOLS::LOCK] = p.x - 1.f;
+            draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_LOCK);
+            p.x += ImGui::CalcTextSize(ICON_FA_LOCK).x;
 
-                break;
-            }
-            case TypeColumn::NAME: {
-                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), u8"Имя источника");
-                p.x += ImGui::CalcTextSize(u8"Имя источника").x;
-                break;
-            }
-            case TypeColumn::PARENT: {
-
-                std::string Text = u8"Родительский элемент и ссылка";
-                float widthText = ImGui::CalcTextSize(Text.c_str()).x;
-
-                float availableWidth = columns[index_current_columns[i]].width;
-
-                if (availableWidth < widthText)
-                {
-                    float oneSymbol = 7.f;
-
-                    float dif = widthText - availableWidth;
-
-                    int countSymbolsRemove = int(round(dif / oneSymbol) + 3.f);
-
-                    UTF8_SPLITER_ERROR error;
-                    auto splitted = utf8_splitter(Text, error);
-                    splitted.erase(splitted.begin() + splitted.size() - 1 - countSymbolsRemove, splitted.end());
-                    std::string result = "";
-                    for (size_t i = 0; i < splitted.size(); i++){
-                        result += splitted[i];
-                    }
-                    result += "...";
-                    Text = result;
-                }
-
-
-                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), Text.c_str());
-                p.x += ImGui::CalcTextSize(Text.c_str()).x;
-
-                break;
-            }
-            case TypeColumn::TOGGLES: {
-                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), " ");
-                p.x += ImGui::CalcTextSize(" ").x;
-                break;
-            }
-            case TypeColumn::MARKER: {
-                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_TAG);
-                p.x += ImGui::CalcTextSize(ICON_FA_TAG).x;
-
-                break;
-            }
-            case TypeColumn::MODES: {
-                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), u8"Режим");
-                p.x += ImGui::CalcTextSize(u8"Режим").x;
-
-                break;
-            }
-            case TypeColumn::RENDER_TIME: {
-                draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), u8"Время рендеринга");
-                p.x += ImGui::CalcTextSize(u8"Время рендеринга").x;
-
-                break;
-            }
+            break;
         }
-        
+        case TypeColumn::INDEX: {
+            draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_HASHTAG);
+            p.x += ImGui::CalcTextSize(ICON_FA_HASHTAG).x;
+
+            break;
+        }
+        case TypeColumn::NAME: {
+            draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), u8"Имя источника");
+            p.x += ImGui::CalcTextSize(u8"Имя источника").x;
+            break;
+        }
+        case TypeColumn::PARENT: {
+
+            std::string Text = u8"Родительский элемент и ссылка";
+            float widthText = ImGui::CalcTextSize(Text.c_str()).x;
+
+            float availableWidth = columns[index_current_columns[i]].width;
+
+            if (availableWidth < widthText)
+            {
+                float oneSymbol = 7.f;
+
+                float dif = widthText - availableWidth;
+
+                int countSymbolsRemove = int(round(dif / oneSymbol) + 3.f);
+
+                UTF8_SPLITER_ERROR error;
+                auto splitted = utf8_splitter(Text, error);
+                splitted.erase(splitted.begin() + splitted.size() - 1 - countSymbolsRemove, splitted.end());
+                std::string result = "";
+                for (size_t i = 0; i < splitted.size(); i++) {
+                    result += splitted[i];
+                }
+                result += "...";
+                Text = result;
+            }
+
+
+            draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), Text.c_str());
+            p.x += ImGui::CalcTextSize(Text.c_str()).x;
+
+            break;
+        }
+        case TypeColumn::TOGGLES: {
+            draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), " ");
+            p.x += ImGui::CalcTextSize(" ").x;
+            break;
+        }
+        case TypeColumn::MARKER: {
+            draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), ICON_FA_TAG);
+            p.x += ImGui::CalcTextSize(ICON_FA_TAG).x;
+
+            break;
+        }
+        case TypeColumn::MODES: {
+            draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), u8"Режим");
+            p.x += ImGui::CalcTextSize(u8"Режим").x;
+
+            break;
+        }
+        case TypeColumn::RENDER_TIME: {
+            draw_list->AddText({ p.x,p.y + offsetY }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Text)), u8"Время рендеринга");
+            p.x += ImGui::CalcTextSize(u8"Время рендеринга").x;
+
+            break;
+        }
+        }
+
         // SEPARATOR BUTTON (dragable&resizable)
         float separator_pos = x_before + current_column.width + 5.f;
 
@@ -692,12 +1314,12 @@ void Timeline_Layers_List::DrawColumnsHeader() {
 
     Push_SmallFont();
 
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right,false) && ImGui::IsMouseHoveringRect(p_min,p_max))
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right, false) && ImGui::IsMouseHoveringRect(p_min, p_max))
         ImGui::OpenPopup("POPUP_COLUMNS_SET");
 
 
     if (ImGui::BeginPopupContextItem("POPUP_COLUMNS_SET")) {
-        for (auto& column: columns)
+        for (auto& column : columns)
         {
             if (column.isRemovebal == false)
                 ImGui::BeginDisabled();
@@ -724,664 +1346,53 @@ void Timeline_Layers_List::Draw() {
 
     ImVec2 region_max = ImGui::GetContentRegionAvail();
     ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
-
-    ctx->verticalTransform->updateAvailableHeight(region_max.y);
-
     ImVec2 mouse_pos = { ImGui::GetMousePos().x - cursor_pos.x,ImGui::GetMousePos().y - cursor_pos.y };
-    
-
-
-
     ImVec2 p_min = cursor_pos;
     ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
     ImVec2 p_center = { cursor_pos.x + region_max.x / 2.f, cursor_pos.y + region_max.y / 2.f };
     float itemHeight = ctx->verticalTransform->getScaledHeightOneObject();
 
-    
-    if (ctx->layersData->GetData().layers.empty()) {
-        Push_BoldFont();
-        const char* text = u8"Нажми по мне ПКМ!!";
-        ImVec2 size_text = ImGui::CalcTextSize(text);
-        ImVec2 pos_text = { p_center.x - size_text.x / 2.f, p_center.y - size_text.y / 2.f };
-        draw_list->AddText(pos_text, ImColor(1.f, 1.f, 1.f, 0.5f), text);
-        Pop_BoldFont();
-    }
-    
+    ctx->verticalTransform->updateAvailableHeight(region_max.y);
 
-
-    if (ImGui::IsMouseHoveringRect(p_min, p_max)) {
-        float scrol_zoom = ImGui::GetIO().MouseWheel;
-        ctx->verticalTransform->addOffset(scrol_zoom * itemHeight);
-    }
-
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right, false) && ImGui::IsMouseHoveringRect(p_min, p_max))
-        ImGui::OpenPopup("POPUP_LIST_MENU_CONTEXT");
-
-    Push_SmallFont();
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.f, 12.f));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12.f, 12.f));
-    if (ImGui::BeginPopupContextItem("POPUP_LIST_MENU_CONTEXT")) {
-        
-        if (ImGui::BeginMenu(u8"Создать слой")) {
-            if (ImGui::MenuItem(u8"Камера")) {
-
-            }
-            if (ImGui::MenuItem(u8"Сплошной")) {
-                ctx->layerFactory->CreateSolid();
-            }
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndPopup();
-    }
-    ImGui::PopStyleVar(2);
-    Pop_SmallFont();
-
-
+    DrawEmptyState(p_center);
+    HandleScroll(p_min, p_max, itemHeight);
+    HandleContextMenu(p_min, p_max);
+    PrepareDragStaff();
 
     ImVec2 p = ImGui::GetCursorScreenPos();
-
     p.y += ctx->verticalTransform->getOffset_lerped();
-
     float heightContent = 0.f;
 
-    if (offsets_selected_while_grabing.size() != ctx->selector->getLayers().size())
-        offsets_selected_while_grabing.resize(ctx->selector->getLayers().size());
-
-    
-    uint64_t count_selected = 0;
-
-    if (DragDrawedOnce)
-        CursorManager::getInstance().SetCursor(TypeCursor::DISABLED);
-
-    IsDragUpper = false;
-    IsDragLower = false;
-    index_layer_dragdrop = UINT64_MAX;
-
-    ctx->layersData->forEach([&](LayerObject* layer, uint64_t index) {
+    ctx->layersData->forEach([&](LayerObject* layer, uint64_t index_layer) {
         ImGui::SetCursorScreenPos(p);
         auto& layerInfo = layer->GetLayerInfo();
 
         ImVec2 rect_min = { p_min.x, round(p.y + 1.f) };
         ImVec2 rect_max = { p_max.x, round(p.y + itemHeight) };
-
         ImVec2 name_min = { columns[TypeColumn::NAME].startCursorPos, rect_min.y };
         ImVec2 name_max = { columns[TypeColumn::NAME].startCursorPos + columns[TypeColumn::NAME].width, rect_max.y };
 
-
-        isHoveredLayer = ImGui::IsMouseHoveringRect(rect_min, rect_max);
         bool isHoveredName = ImGui::IsMouseHoveringRect(name_min, name_max);
+        bool isSelectedLayer = ctx->selector->ContainsLayer({ index_layer });
 
-        bool isSelectedLayer = ctx->selector->ContainsLayer({ index });
-        ImColor color_background = COLOR_BG_LAYER;
-
-        if (isSelectedLayer) {
-            color_background = COLOR_BG_LAYER_CHOOSED; 
-
-            offsets_selected_while_grabing[count_selected] = round(p.y + 1.f);
-            count_selected++;
-        }
-
-
-
-
-
-        if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && ctx->areaSelection->IsActive()) {
-            if (ctx->areaSelection->CheckAABB({ rect_min, rect_max }))
-                ctx->selector->AddMoreSelectedLayer({ index });
-            else if (!ctx->selector->HaveSelectedPropertiesInLayer({index}))
-                ctx->selector->EraseLayer({ index });
-        }
-
-
-        if (isHoveredLayer && ImGui::IsMouseClicked(ImGuiMouseButton_Left)){
-            if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
-                ctx->selector->AddMoreSelectedLayer_Toggle({ index });
-            else if (ImGui::IsKeyDown(ImGuiKey_LeftShift) && ctx->selector->getLayers().empty() == false) {
-
-                uint64_t min_index = ctx->selector->GetMinSelectedLayer().value().index;
-                uint64_t max_index = ctx->selector->GetMaxSelectedLayer().value().index;
-
-                ctx->selector->UnsetAll();
-
-                uint64_t delta_min = index > min_index ? index - min_index : min_index - index;
-                uint64_t delta_max = index > max_index ? index - max_index : max_index - index;
-
-                uint64_t from = (std::min)(index, min_index);
-                uint64_t to = (std::max)(index, min_index);
-
-                if (delta_min <= delta_max) {
-                    from = (std::min)(index, max_index);
-                    to = (std::max)(index, max_index);
-                }
-
-                for (size_t i = from; i <= to; i++)
-                    ctx->selector->AddMoreSelectedLayer({ i });
-
-            }
-            else if (!isSelectedLayer)
-                ctx->selector->SelectLayer({ index });
-            
-            if (isHoveredName) {
-                indexGrabbingLayer = index;
-                pos_grab_start = ImGui::GetMousePos();
-                isGrabingLayer = true;
-                timer_AfterPress.start();
-            }
-            
-        }
-
-
-       
-
-        draw_list->AddRectFilled(rect_min, rect_max, color_background);
-
-
-        if (index == 0) ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 1.f);
-
-        DrawObject(layer, index);
+        
+        HandleSelectionLayer(index_layer, p, rect_min, rect_max, isSelectedLayer, isHoveredName);
+        DrawLayer(layer, index_layer, rect_min, rect_max, isSelectedLayer);
 
         p.y += itemHeight;
         heightContent += itemHeight;
         draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
 
-        if (layerInfo.isExpanded) {
 
-            auto& properties = layer->GetProperties();
-            properties.forEachUnwrapped([&](const std::string& name, auto& value) {
+        if (layerInfo.isExpanded)
+            DrawLayerProperties(layer, index_layer, p, p_min, p_max, itemHeight, heightContent);
 
-                if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && ctx->areaSelection->IsActive()) {
-                    if (ctx->areaSelection->CheckAABB({ { p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) } })) {
-                        ctx->selector->AddMoreSelectedProperty({ index, name });
-                        ctx->selector->AddMoreSelectedLayer({ index });
-                    }
-                    else {
-                        ctx->selector->ErasePropertie({ index, name });
-                        if (!ctx->selector->HaveSelectedPropertiesInLayer({index}))
-                            ctx->selector->EraseLayer({ index });
-                    }
-                }
-
-
-
-
-                const auto& keyframes = value.kr.getKeyframes();
-
-                Push_SmallFont();
-
-                float textHeight = ImGui::GetTextLineHeight();
-                float offsetY = (itemHeight - textHeight) * 0.5f;
-
-                float offsetX = 0.f;
-                bool isHaveKeyframes = keyframes.empty() == false;
-                float eval_time = ctx->timelineData->GetData().currentTime - layerInfo.time.Begin;
-                auto evaluated_value = value.kr.evaluate(eval_time);
-
-
-
-
-                
-                if (isHaveKeyframes) {
-                    const float offset = 8.f;
-
-                    const float ht = itemHeight / 2.3f;
-                    const float wt = ht / 2.f;
-
-
-
-                    ImVec2 T_1 = { offset + p.x + wt, p.y + itemHeight / 2.f - ht / 2.f };
-                    ImVec2 T_2 = { offset + p.x + wt, p.y + itemHeight / 2.f + ht / 2.f };
-                    ImVec2 T_3 = { offset + p.x, p.y + itemHeight / 2.f };
-                    ImVec2 T_4 = { offset + p.x + wt * 2.f, p.y + itemHeight / 2.f };
-
-
-
-
-                    ImVec2 TL[] = { T_1,T_2,T_3 };
-                    ImVec2 TL_min = { T_1.x - wt - 5.f , T_1.y - 2.f };
-                    ImVec2 TL_max = { T_1.x + 5.f - 2.f, T_1.y + ht + 2.f };
-                    bool TL_hovered, TL_held;
-                    bool TL_pressed = MyButtonBehavior(
-                        TL_min,
-                        TL_max,
-                        (std::string("TL_PROPERTIE_") + name + std::to_string(index)).c_str(),
-                        TL_hovered,
-                        TL_held
-                    );
-                    bool TL_disabled = eval_time <= keyframes.front().sample.time;
-
-
-
-
-                    T_1.x += offset * 1.5f;
-                    T_2.x += offset * 1.5f;
-                    T_3.x += offset * 1.5f;
-                    T_4.x += offset * 1.5f;
-
-
-                    const float sc = -1.f;
-                    const float oo = 0.5f * 1.2f;
-                    const float qq = 1.f;
-                    ImVec2 ROMB[] = {
-                        {T_4.x + sc, T_4.y - oo},
-                        {T_4.x + sc, T_4.y + oo},
-                        {T_2.x + oo, T_2.y + sc},
-                        {T_2.x - oo, T_2.y + sc},
-                        {T_3.x - sc, T_3.y + oo},
-                        {T_3.x - sc, T_3.y - oo},
-                        {T_1.x - oo, T_1.y - sc},
-                        {T_1.x + oo, T_1.y - sc}
-                    };
-                    ImVec2 ROMB_over[] = {
-                        {T_4.x + sc + qq, T_4.y - oo},
-                        {T_4.x + sc + qq, T_4.y + oo},
-                        {T_2.x + oo, T_2.y + sc + qq},
-                        {T_2.x - oo, T_2.y + sc + qq},
-                        {T_3.x - sc - qq, T_3.y + oo},
-                        {T_3.x - sc - qq, T_3.y - oo},
-                        {T_1.x - oo, T_1.y - sc - qq},
-                        {T_1.x + oo, T_1.y - sc - qq}
-                    };
-                    ImVec2 ROMB_min = { T_3.x - 2.f, T_1.y - 2.f };
-                    ImVec2 ROMB_max = { T_4.x + 2.f, T_2.y + 2.f };
-                    bool ROMB_hovered, ROMB_held;
-                    bool ROMB_pressed = MyButtonBehavior(
-                        ROMB_min,
-                        ROMB_max,
-                        (std::string("ROMB_PROPERTIE_") + name + std::to_string(index)).c_str(),
-                        ROMB_hovered,
-                        ROMB_held
-                    );
-
-                    T_1.x += offset * 1.5f;
-                    T_2.x += offset * 1.5f;
-                    T_4.x += offset * 1.5f;
-
-
-
-                    ImVec2 TR[] = { T_4,T_2,T_1 };
-                    ImVec2 TR_min = { T_1.x - 2.f , T_1.y - 2.f };
-                    ImVec2 TR_max = { T_1.x + wt + 5.f, T_1.y + ht + 2.f };
-                    bool TR_hovered, TR_held;
-                    bool TR_pressed = MyButtonBehavior(
-                        TR_min,
-                        TR_max,
-                        (std::string("TR_PROPERTIE_") + name + std::to_string(index)).c_str(),
-                        TR_hovered,
-                        TR_held
-                    );
-                    bool TR_disabled = eval_time >= keyframes.back().sample.time;
-
-                    if (TL_pressed && TL_disabled == false) {
-
-                        for (size_t j = keyframes.size() - 1; j >= 0; j--) {
-                            if (eval_time > keyframes[j].sample.time) {
-                                ctx->timelineData->GetData().currentTime = keyframes[j].sample.time + layerInfo.time.Begin;
-                                float left_border = ctx->horizontalTransform->getPostionScreen_real(ctx->horizontalTransform->getLeftBoundView_global_real());
-                                float need_border = ctx->horizontalTransform->getPostionScreen_real(ctx->timelineData->GetData().currentTime);
-
-                                if (need_border < left_border) {
-                                    float dif = left_border - need_border;
-                                    ctx->horizontalTransform->addOffset((dif + 100.f));
-                                }
-                                break;
-                            }
-                        }
-
-                    }
-
-                    if (TR_pressed && TR_disabled == false) {
-
-                        for (size_t j = 0; j < keyframes.size(); j++) {
-                            if (eval_time < keyframes[j].sample.time) {
-                                ctx->timelineData->GetData().currentTime = keyframes[j].sample.time + layerInfo.time.Begin;
-
-                                float right_border = ctx->horizontalTransform->getPostionScreen_real(ctx->horizontalTransform->getRightBoundView_global_real());
-                                float need_border = ctx->horizontalTransform->getPostionScreen_real(ctx->timelineData->GetData().currentTime);
-
-                                if (need_border > right_border) {
-                                    float dif = need_border - right_border;
-                                    ctx->horizontalTransform->addOffset(-(dif + 100.f));
-                                }
-
-                                break;
-                            }
-                        }
-
-                    }
-
-                    bool isEqual = false;
-                    uint64_t indexEqual = 0;
-                    for (size_t j = 0; j < keyframes.size(); j++) {
-                        if (keyframes[j].sample.time == eval_time) {
-                            isEqual = true;
-                            indexEqual = j;
-                            break;
-                        }
-                    }
-                    if (ROMB_pressed) {
-                        if (isEqual)
-                            value.kr.erase(indexEqual);
-                        else
-                            value.kr.add(eval_time, evaluated_value);
-                    }
-
-
-
-                    ImColor color_tl = COLOR_DEFAULT;
-                    if (TL_disabled)
-                        color_tl = COLOR_DISABLED;
-                    if (TL_hovered && !TL_disabled)
-                        color_tl = COLOR_DEFAULT_HOVERED;
-
-
-
-                    ImColor color_tr = COLOR_DEFAULT;
-                    if (TR_disabled)
-                        color_tr = COLOR_DISABLED;
-                    if (TR_hovered && !TR_disabled)
-                        color_tr = COLOR_DEFAULT_HOVERED;
-
-
-                    ImColor color_romb = COLOR_DEFAULT;
-                    ImColor color_romb_back = COLOR_BG_BUTTONS_HOVERED;
-                    ImColor color_romb_bound = COLOR_DISABLED;
-
-
-                    if (ROMB_hovered)
-                        color_romb_bound = COLOR_DEFAULT_HOVERED;
-
-                    if (isEqual) {
-                        if (ROMB_hovered)
-                            color_romb = COLOR_CHANGEBLE_HOVERED;
-                        else
-                            color_romb = COLOR_CHANGEBLE;
-
-                        color_romb_back = color_romb;
-                    }
-
-
-
-
-
-                    if (TL_disabled == false && TL_hovered) {
-                        draw_list->AddRectFilled({ TL_min.x - 0.5f, TL_min.y - 0.5f }, { TL_max.x + 0.5f, TL_max.y + 0.5f }, COLOR_DISABLED, 2.5f);
-                        draw_list->AddRectFilled(TL_min, TL_max, COLOR_BG_BUTTONS, 2.5f);
-                    }
-                    draw_list->AddConvexPolyFilled(TL, 3, color_tl);
-
-                    if (ROMB_hovered || isEqual) {
-                        draw_list->AddRectFilled({ ROMB_min.x - 0.5f, ROMB_min.y - 0.5f }, { ROMB_max.x + 0.5f, ROMB_max.y + 0.5f }, color_romb_bound, 2.5f);
-                        draw_list->AddRectFilled(ROMB_min, ROMB_max, COLOR_BG_BUTTONS, 2.5f);
-                    }
-
-                    draw_list->AddConvexPolyFilled(ROMB_over, 8, color_romb);
-                    draw_list->AddConvexPolyFilled(ROMB, 8, color_romb_back);
-
-                    if (TR_disabled == false && TR_hovered) {
-                        draw_list->AddRectFilled({ TR_min.x - 0.5f, TR_min.y - 0.5f }, { TR_max.x + 0.5f, TR_max.y + 0.5f }, COLOR_DISABLED, 2.5f);
-                        draw_list->AddRectFilled(TR_min, TR_max, COLOR_BG_BUTTONS, 2.5f);
-                    }
-                    draw_list->AddConvexPolyFilled(TR, 3, color_tr);
-
-                }
-
-
-                if (columns[MARKER].isDisable == false)
-                    offsetX = columns[MARKER].startCursorPos;
-                else if (columns[INDEX].isDisable == false)
-                    offsetX = columns[INDEX].startCursorPos;
-                else
-                    offsetX = columns[NAME].startCursorPos;
-
-                ImGui::SetCursorScreenPos(ImVec2(p.x + offsetX, p.y - offsetY - 1.f));
-
-
-
-
-                if (drawAnimationEnabler(isHaveKeyframes, ("##PROPERTIES_TRIGGER_" + std::to_string(index) + "_" + name).c_str(), itemHeight)) {
-                    if (keyframes.empty())
-                        value.kr.addFromDefaultValue(eval_time);
-                    else
-                        value.kr.clear();
-                }
-
-
-                ImGui::SameLine(0.f, 10.f);
-
-                ImVec2 propertie_min = { p.x + offsetX + 18.f, p.y + 1.f };
-                ImVec2 propertie_max = { p.x + offsetX + 22.f + (columns[TOGGLES].startCursorPos - offsetX - 22.f - itemHeight / 2.f - 8.f), p.y + itemHeight };
-
-
-                if (ImGui::IsMouseHoveringRect(propertie_min, propertie_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-                    if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
-                        ctx->selector->AddMoreSelectedLayer({ index });
-                        ctx->selector->AddMoreSelectedProperty_Toggle({ index, name });
-                    }
-                    else if (!ctx->selector->ContainsProperty({ index, name })) {
-                        ctx->selector->SelectLayer({ index });
-                        ctx->selector->SelectProperty({ index, name });
-                    }
-                }
-
-                if (ctx->selector->ContainsProperty({index, name})) {
-                    draw_list->AddRectFilled(propertie_min, propertie_max, COLOR_BG_LAYER_CHOOSED);
-                }
-                
-
-
-                draw_list->AddText({ p.x + offsetX + 22.f,p.y - offsetY + 1.f }, COLOR_DEFAULT, name.c_str());
-                 
-
-                //draw_list->
-                offsetX = columns[TOGGLES].startCursorPos;
-                ImGui::SetCursorScreenPos(ImVec2(p.x + offsetX, p.y - offsetY + 1.f));
-
-
-                float xxx = p.x;
-                float yyy = p.y;
-                p.y += offsetY + 1.f;
-                p.x += offsetX;
-
-
-
-                char text[32];
-                auto AddButtonAndAdvance = [&]() {
-
-                    for (size_t j = 0; j < evaluated_value.size(); j++) {
-                        snprintf(text, sizeof(text), "%.3f", evaluated_value[j]);
-
-                        ImVec2 sizeText = ImGui::CalcTextSize(text);
-
-                        bool hovered, held;
-                        MyButtonBehavior(
-                            p,
-                            { p.x + sizeText.x, p.y + sizeText.y },
-                            (std::to_string(j) + std::string("PROPERTIE_") + name + std::to_string(index)).c_str(),
-                            hovered,
-                            held
-                        );
-
-                        ImColor color = COLOR_CHANGEBLE;
-
-                        if (hovered || held) {
-                            color = COLOR_CHANGEBLE_HOVERED;
-                            CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_HORIZONTAL);
-                        }
-                        if (held)
-                            color = COLOR_CHANGEBLE_HELD;
-
-                        if (held) {
-                            if (ctx->timelineController->GetState() == TimelineRunState::PAUSE) {
-                                float delta = ImGui::GetIO().MouseDelta.x * 0.01;
-
-                                auto def_val = evaluated_value;
-                                def_val[j] += delta;
-                                value.kr.setDefaultValue(def_val);
-
-                                if (value.kr.getKeyframes().empty() == false) {
-                                    value.kr.add(eval_time, def_val, TypeKeyframe::LINEAR);
-                                }
-                            }
-                        }
-
-                        draw_list->AddText(p, color, text);
-
-                        p.x += ImGui::CalcTextSize(text).x + ImGui::GetStyle().ItemSpacing.x;
-
-                        if (j != evaluated_value.size() - 1) {
-                            draw_list->AddText(p, COLOR_DEFAULT, ", ");
-                            p.x += ImGui::CalcTextSize(", ").x + ImGui::GetStyle().ItemSpacing.x;
-                        }
-                    }
-
-                    };
-
-
-
-
-                using ValueType = std::decay_t<decltype(value)>;
-
-
-                static int choosed_index_for_color_picking = -1;
-
-                if  constexpr (std::is_same_v<ValueType, TPColor>) {
-
-                    float size_rect_color = itemHeight / 2.f;
-                    p.x -= size_rect_color + 5.f;
-
-                    ImVec2 p_rect_min = { p.x,-1.f + p.y + itemHeight / 2.f - size_rect_color / 2.f };
-                    ImVec2 p_rect_max = { p.x + size_rect_color,-1.f + p.y + itemHeight / 2.f + size_rect_color / 2.f };
-
-                    ImRect bb(p_rect_min, p_rect_max);
-                    ImGuiID id = ImGui::GetID((std::to_string(0) + std::string("COLOR_BUTTON_PROPERTIE_") + name + std::to_string(index)).c_str());
-                    bool hovered, held;
-                    ImGui::ItemAdd(bb, id);
-                    if (ImGui::ButtonBehavior(bb, id, &hovered, &held)) {
-                        ImGui::OpenPopup(("POPUP_COLOR_SELECTOR_FOR_PROPERTIE" + std::to_string(index)).c_str());
-                        choosed_index_for_color_picking = index;
-                    }
-
-
-                    ImColor color_show(evaluated_value[0], evaluated_value[1], evaluated_value[2], evaluated_value[3]);
-                    ImColor color_border = COLOR_BG_BUTTONS;
-
-                    if (hovered) {
-                        color_border = COLOR_DISABLED;
-                        CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
-                    }
-
-                    draw_list->AddRectFilled(p_rect_min, p_rect_max, color_show, 1.f);
-                    p_rect_min.x -= 0.5f;
-                    p_rect_min.y -= 0.5f;
-                    p_rect_max.x += 0.5f;
-                    p_rect_max.y += 0.5f;
-
-                    draw_list->AddRect(p_rect_min, p_rect_max, color_border, 1.f, 0, 1.f);
-
-
-                    p.x += size_rect_color + 5.f;
-                }
-
-                AddButtonAndAdvance();
-
-
-                if (choosed_index_for_color_picking == index) {
-                    if (ImGui::BeginPopupContextItem(("POPUP_COLOR_SELECTOR_FOR_PROPERTIE" + std::to_string(index)).c_str())) {
-
-                        if (ImGui::ColorPicker4(("##picker_color_for_propertie##" + std::to_string(index)).c_str(),
-                            (float*)evaluated_value.data(),
-                            ImGuiColorEditFlags_NoSidePreview |
-                            ImGuiColorEditFlags_NoSmallPreview |
-                            ImGuiColorEditFlags_AlphaBar)) {
-
-
-                            if (ctx->timelineController->GetState() == TimelineRunState::PAUSE) {
-                                value.kr.setDefaultValue(evaluated_value);
-
-                                if (value.kr.getKeyframes().empty() == false) {
-                                    value.kr.add(eval_time, evaluated_value, TypeKeyframe::LINEAR);
-                                }
-                            }
-
-                        }
-
-
-                        ImGui::EndPopup();
-                    }
-                }
-
-
-                p.x = xxx;
-                p.y = yyy;
-                Pop_SmallFont();
-
-
-                p.y += itemHeight;
-                heightContent += itemHeight;
-                draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
-
-                ImGui::SetCursorScreenPos(p);
-                });
-
-        }
-
-        if (DragDrawedOnce && isSelectedLayer == false && isHoveredLayer) {
-
-            CursorManager::getInstance().SetCursor(TypeCursor::COPY);
-
-            index_layer_dragdrop = index;
-
-            IsDragUpper = ImGui::IsMouseHoveringRect(rect_min, { rect_max.x, rect_min.y + (rect_max.y - rect_min.y) / 2.f });
-            IsDragLower = ImGui::IsMouseHoveringRect({ rect_min.x, rect_min.y + (rect_max.y - rect_min.y) / 2.f }, rect_max);
-
-            if (IsDragUpper)
-                ImGui::GetForegroundDrawList()->AddLine(rect_min, { rect_max.x, rect_min.y }, COLOR_LAYER_GRAB_LINE_COPY_POSITION, 5.f);
-            if (IsDragLower)
-                ImGui::GetForegroundDrawList()->AddLine({ rect_min.x, p.y }, { rect_max.x, p.y }, COLOR_LAYER_GRAB_LINE_COPY_POSITION, 5.f);
-        }
-
+        DrawDragAndDropIndicators(index_layer, p, p_max, rect_min, rect_max, isSelectedLayer);
     });
 
-    if (isGrabingLayer && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-        timer_AfterPress.stop();
 
-        if (timer_AfterPress.elapsedSeconds() >= time4enableDrag) {
-            ImVec2 delta = { ImGui::GetMousePos().x - pos_grab_start.x, ImGui::GetMousePos().y - pos_grab_start.y };
-
-            if (delta.x > 0 || delta.y > 0 || DragDrawedOnce) {
-                DragDrawedOnce = true;
-                for (const auto& offset : offsets_selected_while_grabing) {
-                    ImVec2 grab_min = { columns[TypeColumn::NAME].startCursorPos + delta.x, offset + delta.y };
-                    ImVec2 grab_max = { columns[TypeColumn::NAME].startCursorPos + columns[TypeColumn::NAME].width + delta.x, offset + itemHeight + delta.y };
-                    
-                    ImGui::GetForegroundDrawList()->AddRect(grab_min, grab_max, COLOR_LAYER_GRAB_OUTLINE, 0, 0, 2.f);
-                }
-            }
-        }
-    }
-    else {
-        isGrabingLayer = false;
-        indexGrabbingLayer = UINT64_MAX;
-        DragDrawedOnce = false;
-        if ((IsDragUpper || IsDragLower) && index_layer_dragdrop != UINT64_MAX) {
-            auto new_set = ctx->layersData->MoveLayersBySet(ConvertToIndices(ctx->selector->getLayers()), index_layer_dragdrop, IsDragUpper);
-            ctx->selector->UnsetAll();
-            ctx->selector->AddSelectedLayersBySet(new_set);
-        }
-    }
-
-    if (ImGui::IsMouseHoveringRect(p, p_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-        ctx->selector->UnsetAll();
-        ctx->areaSelection->SetStatus(true);
-        ctx->areaSelection->SetStartMousePosition(ImGui::GetMousePos());
-        ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_LIST);
-    }
-    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-        ctx->areaSelection->SetStatus(false);
-    }
-
-
+    ProcessDragLogic(itemHeight);
+    HandleAreaSelectionStart(p, p_max);
 
     ctx->verticalTransform->updateContentHeight(heightContent);
 }
