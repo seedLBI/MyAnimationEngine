@@ -43,10 +43,11 @@ private:
 	void HandleSelectionLayer(uint64_t index, const ImVec2& p, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer, bool isHoveredName);
 	void HandleAreaSelectionStart(const ImVec2& p, const ImVec2& p_max);
 	void ProcessDragLogic(float itemHeight);
+	void DrawDragAndDropIndicators(uint64_t index, const ImVec2& p, const ImVec2& p_max, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer);
+
 
 	void DrawLayerProperties(LayerObject* layer, uint64_t index_layer, ImVec2& p, const ImVec2& p_min, const ImVec2& p_max, float itemHeight, float& heightContent);
 
-	void DrawDragAndDropIndicators(uint64_t index, const ImVec2& p, const ImVec2& p_max, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer);
 
 	enum TypeColumn {
 		INDEX,

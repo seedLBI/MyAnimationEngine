@@ -63,6 +63,8 @@ public:
 	void changeDefaultSampleRate(uint32_t default_sample_rate);
 
 private:
+	static uint64_t keyframe_id_counter;
+
 	std::array<T,N> default_value;
 	std::vector<Keyframe<T, N>> keyframes;
 	std::vector<LerpedSample<T, N>> samples;
@@ -83,6 +85,10 @@ private:
 
 	uint64_t getCountForReserve();
 };
+
+template<typename T, uint8_t N>
+uint64_t KeyframeResolver<T, N>::keyframe_id_counter = 1;
+
 
 
 template<typename T, uint8_t N>
@@ -262,6 +268,9 @@ void KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
 	this->is_dirty = true;
 
 	auto keyframe_add = keyframe;
+	if (keyframe_add.id == 0) {
+		keyframe_add.id = this->keyframe_id_counter++;
+	}
 
 	if (range.has_value()) {
 		for (size_t i = 0; i < N; i++) {
@@ -269,8 +278,6 @@ void KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
 			keyframe_add.sample.value[i] = std::clamp(keyframe.sample.value[i], r.Min[i], r.Max[i]);
 		}
 	}
-
-
 
 	if (keyframes.empty()) {
 		keyframes.push_back(keyframe_add);

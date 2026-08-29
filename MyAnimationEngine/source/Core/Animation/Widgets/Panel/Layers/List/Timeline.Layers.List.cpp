@@ -627,7 +627,9 @@ void Timeline_Layers_List::HandleAreaSelectionStart(const ImVec2& p, const ImVec
     }
 }
 void Timeline_Layers_List::DrawDragAndDropIndicators(uint64_t index, const ImVec2& p, const ImVec2& p_max, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer) {
-    if (dragStaff.DragDrawedOnce && index == ctx->layersData->GetData().layers.size() - 1 && ImGui::IsMouseHoveringRect(p, p_max)) {
+    auto last_index_layer = ctx->layersData->GetData().layers.size() - 1;
+
+    if (dragStaff.DragDrawedOnce && index == last_index_layer && dragStaff.indexGrabbingLayer != last_index_layer && ImGui::IsMouseHoveringRect(p, p_max)) {
         CursorManager::getInstance().SetCursor(TypeCursor::COPY);
         dragStaff.index_layer_dragdrop = index;
         dragStaff.IsDragLower = true;
