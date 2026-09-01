@@ -1095,6 +1095,11 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                     ImGuiColorEditFlags_AlphaBar)) {
 
 
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone)) {
+                        ctx->areaSelection->SetStatus(false);
+                    }
+
+
                     if (ctx->timelineController->GetState() == TimelineRunState::PAUSE) {
                         value.kr.setDefaultValue(evaluated_value);
 

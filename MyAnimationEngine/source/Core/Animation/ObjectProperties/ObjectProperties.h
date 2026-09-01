@@ -42,7 +42,7 @@ public:
 	PropertyVariant& getVariant(const std::string& name) {
 		auto it = properties.find(name);
 		if (it == properties.end())
-			throw std::out_of_range("Property not found: " + name); // "pshel nahui" тоже подойдет :)
+			throw std::out_of_range("Property not found: " + name);
 		return it->second;
 	}
 
@@ -169,6 +169,18 @@ public:
 					}, it->second);
 			}
 		}
+	}
+
+	template<typename Func>
+	void applyToKr(const std::string& name, Func&& func) {
+		auto& variant = getVariant(name);
+
+		std::visit([&](auto& property) 
+			{
+				func(property.kr);
+			}, 
+			variant
+		);
 	}
 
 

@@ -142,21 +142,10 @@ void Timeline_Layers_Viewer::Draw() {
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-
-	ImVec2 ASize = ImGui::GetWindowSize();
-
-	ImVec2 SizeBody{ ASize.x, ASize.y - 1 };
-
-
-
-	auto& layers = ctx->layersData->GetData().layers;
-
 	ImVec2 region_max = ImGui::GetContentRegionAvail();
 	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
-
 	ImVec2 mouse_pos = { ImGui::GetMousePos().x - cursor_pos.x,ImGui::GetMousePos().y - cursor_pos.y };
-
-
+	float mouse_global_pos_x = ctx->horizontalTransform->getPostionGlobal_real(mouse_pos.x);
 
 	ImVec2 p_min = cursor_pos;
 	ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
@@ -164,19 +153,13 @@ void Timeline_Layers_Viewer::Draw() {
 
 	draw_list->AddRectFilled(p_min, p_max, ImColor(.15f, .15f, .15f, 1.f));
 
-
-
 	float itemHeight = ctx->verticalTransform->getScaledHeightOneObject();
 	float width_window = ImGui::GetWindowWidth();
 
-
-
-
+	auto& layers = ctx->layersData->GetData().layers;
 
 	ImVec2 p = p_min;
 	p.y += ctx->verticalTransform->getOffset_lerped();
-
-
 	ctx->layersData->forEach([&](LayerObject* layer, uint64_t index) {
 
 		auto& layerInfo = layer->GetLayerInfo();
@@ -192,7 +175,6 @@ void Timeline_Layers_Viewer::Draw() {
 
 		ImRect rect = ImRect{ rect_min, rect_max };
 
-
 		bool isLayerSelected = ctx->selector->ContainsLayer({ index });
 
 		ImColor bg_layer = COLOR_BG_LAYER;
@@ -201,10 +183,7 @@ void Timeline_Layers_Viewer::Draw() {
 
 		draw_list->AddRectFilled({ p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) }, bg_layer);
 
-
-
 		ImGui::SetCursorScreenPos({ rect_min.x - width_hover,rect_min.y });
-
 
 		ImGui::InvisibleButton(("Rect_LAYER##" + std::to_string(index)).c_str(), { rect.GetWidth() + width_hover * 2.f, rect.GetHeight() });
 
@@ -271,10 +250,8 @@ void Timeline_Layers_Viewer::Draw() {
 		}
 
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-			if (pressed_status != ObjectStatus::NOTHING) {
+			if (pressed_status != ObjectStatus::NOTHING)
 				draging_status = pressed_status;
-			}
-
 		}
 		else {
 			pressed_status = ObjectStatus::NOTHING;
@@ -317,6 +294,8 @@ void Timeline_Layers_Viewer::Draw() {
 
 
 
+
+
 		if (layerInfo.isExpanded) {
 
 			auto& properties = layer->GetProperties();
@@ -332,14 +311,19 @@ void Timeline_Layers_Viewer::Draw() {
 						auto& keyframe = keyframes[i];
 						auto& sample = keyframe.sample;
 
-						float pos_screen = ctx->horizontalTransform->getPostionScreen_lerped(layerInfo.time.Begin + sample.time + value.kr.getDelta());
+						float pos_screen = ctx->horizontalTransform->getPostionScreen_lerped(layerInfo.time.Begin + sample.time + value.kr.getDeltaTime());
 
 						ImVec2 min_hitbox = { p.x + pos_screen - textHeight / 2.f, p.y };
 						ImVec2 max_hitbox = { p.x + pos_screen + textHeight / 2.f, p.y + textHeight};
 
-						SelectedKeyframe current = { {index, name}, i };
+						
+						SelectedKeyframe current = { {index, name}, keyframe.id };
 
-						if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_VIEWER && ctx->areaSelection->IsActive()) {
+
+						if (
+							ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_VIEWER && 
+							ctx->areaSelection->IsActive()) 
+						{
 
 							if (ctx->areaSelection->CheckAABB({ min_hitbox, max_hitbox })) {
 								ctx->selector->AddMoreSelectedKeyframe(current);
@@ -358,7 +342,39 @@ void Timeline_Layers_Viewer::Draw() {
 							}
 						}
 
+						bool isHovered  = ImGui::IsMouseHoveringRect(min_hitbox, max_hitbox);
 						bool isSelected = ctx->selector->ContainsKeyframe(current);
+						
+						if (isHovered && ctx->selector->ContainsKeyframe(current)) {
+							CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
+							if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+								DragKeyframe.drag_started = true;
+								DragKeyframe.startedDrag_global_x = mouse_global_pos_x;
+
+								DragKeyframe.original_times.clear();
+
+								for (const auto& sel_kf : ctx->selector->getKeyframes()) {
+									auto& properties = layers[sel_kf.property.layer.index].get()->GetProperties();
+									properties.applyToKr(
+										sel_kf.property.name,
+										[&](auto& kr) {
+											auto* kf = kr.getKeyframeByID(sel_kf.index);
+											if (kf) {
+												DragKeyframe.original_times[sel_kf.index] = kf->sample.time;
+											}
+										}
+									);
+								}
+							}
+						}
+
+						if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !DragKeyframe.drag_started) {
+							ctx->selector->UnsetAll();
+							ctx->selector->AddMoreSelectedKeyframe(current);
+						}
+
+						
+
 
 						DrawRomb(
 							{
@@ -373,40 +389,74 @@ void Timeline_Layers_Viewer::Draw() {
 					}
 				}
 
-				/*
-				if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && ctx->areaSelection->IsActive()) {
-                    if (ctx->areaSelection->CheckAABB({ { p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) } })) {
-                        ctx->selector->AddMoreSelectedProperty({ index, name });
-                        ctx->selector->AddMoreSelectedLayer({ index });
-                    }
-                    else {
-                        ctx->selector->ErasePropertie({ index, name });
-                        if (!ctx->selector->HaveSelectedPropertiesInLayer({index}))
-                            ctx->selector->EraseLayer({ index });
-                    }
-                }
-				*/
-
 				p.y += itemHeight;
 				draw_list->AddLine({ p_min.x, round(p.y) }, { p_max.x, round(p.y) }, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 1.0f);
 
 				ImGui::SetCursorScreenPos(p);
-				});
+			});
 		}
+
+
 	});
 
 
-	if (index_drag == UINT64_MAX && ImGui::IsMouseHoveringRect(p_min,p_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+	DebugOverlay::AddText(std::string(std::string("AreaSelection : ") + std::string(ctx->areaSelection->IsActive() == true ? "TRUE" : "FALSE")).c_str(), ImColor(1.f, 1.f, 1.f, 1.f));
+
+
+	if (DragKeyframe.drag_started) {
+		float total_delta = mouse_global_pos_x - DragKeyframe.startedDrag_global_x;
+
+		float step_frame = 1.f / (float)ctx->timelineData->GetData().framerate;
+
+		auto snapToGrid = [step_frame](float value) -> float {
+			return ImGui::IsKeyDown(ImGuiKey_LeftShift) ? value : std::round(value / step_frame) * step_frame;
+		};
+
+		for (auto& keyframe : ctx->selector->getKeyframes()) {
+
+			if (DragKeyframe.original_times.find(keyframe.index) == DragKeyframe.original_times.end())
+				continue;
+
+			float orig_time = DragKeyframe.original_times[keyframe.index];
+			float target_time = snapToGrid(orig_time + total_delta);
+
+			if (target_time < 0.f) target_time = 0.f;
+
+			auto& properties = layers[keyframe.property.layer.index].get()->GetProperties();
+			properties.applyToKr(
+				keyframe.property.name, 
+				[&](auto& kr) {
+					auto* kf = kr.getKeyframeByID(keyframe.index);
+					if (kf) {
+						float delta_to_apply = target_time - kf->sample.time;
+						if (delta_to_apply != 0.f) {
+							kr.setDeltaTimeForKeyframeByID(delta_to_apply, keyframe.index);
+						}
+					}
+				}
+			);
+
+		}
+	}
+
+
+	if (index_drag == UINT64_MAX &&
+		ImGui::IsMouseHoveringRect(p_min, p_max) &&
+		ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+		!DragKeyframe.drag_started)
+	{
 		ctx->selector->UnsetAll();
 		ctx->areaSelection->SetStatus(true);
 		ctx->areaSelection->SetStartMousePosition(ImGui::GetMousePos());
 		ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_VIEWER);
+
 	}
 
-	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
-	{
+	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 		ctx->areaSelection->SetStatus(false);
+		DragKeyframe.drag_started = false;
 	}
+
 
 
 	float left_range = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().left_range_repeat);
@@ -417,13 +467,13 @@ void Timeline_Layers_Viewer::Draw() {
 
 	timeCursor->Draw(p_min, p_max);
 
+
 	float delta = ctx->horizontalTransform->getPostionGlobal_lerped(ImGui::GetMousePos().x - cursor_pos.x) - drag_start_mouse_global;
 	float step_frame = 1.f / (float)ctx->timelineData->GetData().framerate;
-	float count = std::floor(delta / step_frame);
-	float time = count * step_frame;
-	if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
-		time = delta;
-	delta = time;
+
+	auto snapToGrid = [step_frame](float value) -> float {
+		return ImGui::IsKeyDown(ImGuiKey_LeftShift) ? value : std::round(value / step_frame) * step_frame;
+	};
 
 	for (const auto& layer : ctx->selector->getLayers()) {
 		const auto& index = layer.index;
@@ -437,7 +487,8 @@ void Timeline_Layers_Viewer::Draw() {
 			CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_HORIZONTAL);
 
 			if (status == ObjectStatus::RIGHT_RESIZE) {
-				info.time.End = info.time.DragInfo.Prev_Begin + info.time.DragInfo.Prev_Length + delta;
+
+				info.time.End = snapToGrid(info.time.DragInfo.Prev_Begin + info.time.DragInfo.Prev_Length + delta);
 
 				if (info.time.End <= info.time.Begin) {
 					info.time.End = info.time.Begin + 0.1f;
@@ -449,7 +500,8 @@ void Timeline_Layers_Viewer::Draw() {
 
 			}
 			else {
-				info.time.Begin = info.time.DragInfo.Prev_Begin + delta;
+				float pos_begin = snapToGrid(info.time.DragInfo.Prev_Begin + delta);
+				info.time.Begin = pos_begin;
 
 				if (info.time.Begin >= info.time.End) {
 					info.time.Begin = info.time.End - 0.1f;
@@ -459,9 +511,12 @@ void Timeline_Layers_Viewer::Draw() {
 					info.time.Begin = ctx->timelineData->GetData().totalTime;
 				}
 
+
+				float tryingGetDelta = pos_begin - info.time.DragInfo.Prev_Begin;
+
 				auto& properties = layers[index].get()->GetProperties();
 				properties.forEachUnwrapped([&](const std::string& name, auto& value) {
-					value.kr.setDelta(-delta);
+					value.kr.setDeltaTime(-tryingGetDelta);
 				});
 
 			}
@@ -469,13 +524,13 @@ void Timeline_Layers_Viewer::Draw() {
 
 			break;
 
-		case ObjectStatus::BODY_MOVE:
-			CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
+		case ObjectStatus::BODY_MOVE: {
+			CursorManager::getInstance().SetCursor(TypeCursor::HAND_CLOSED);
 
+			float pos_begin = snapToGrid(info.time.DragInfo.Prev_Begin + delta);
 
-
-			info.time.Begin = info.time.DragInfo.Prev_Begin + delta;
-			info.time.End = info.time.DragInfo.Prev_Begin + info.time.DragInfo.Prev_Length + delta;
+			info.time.Begin = pos_begin;
+			info.time.End = pos_begin + info.time.DragInfo.Prev_Length;
 
 			if (info.time.End <= 0.f) {
 				info.time.End = 0.f;
@@ -488,10 +543,11 @@ void Timeline_Layers_Viewer::Draw() {
 			}
 
 			break;
+		}
 		case ObjectStatus::NOTHING:
 			auto& properties = layers[index].get()->GetProperties();
 			properties.forEachUnwrapped([&](const std::string& name, auto& value) {
-				value.kr.applyDelta();
+				value.kr.applyDeltaTime();
 			});
 			break;
 		}

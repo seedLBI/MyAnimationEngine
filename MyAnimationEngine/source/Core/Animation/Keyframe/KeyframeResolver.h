@@ -49,9 +49,9 @@ public:
 
 	void setDefaultValue(std::array<T, N>& value);
 
-	void setDelta(float delta);
-	void applyDelta();
-	float getDelta();
+	void  setDeltaTime(float deltaTime);
+	void  applyDeltaTime();
+	float getDeltaTime();
 
 	void addFromDefaultValue(float time);
 	void add(const Keyframe<T, N>& keyframe);
@@ -61,6 +61,9 @@ public:
 	void erase(uint64_t index);
 	void clear();
 	void changeDefaultSampleRate(uint32_t default_sample_rate);
+
+	Keyframe<T, N>* getKeyframeByID(uint64_t id);
+	void setDeltaTimeForKeyframeByID(float deltaTime, uint64_t id);
 
 private:
 	static uint64_t keyframe_id_counter;
@@ -72,7 +75,7 @@ private:
 
 	std::optional<RangeValueKeyframe<T, N>> range;
 
-	float delta = 0.f;
+	float deltaTime = 0.f;
 
 	uint32_t default_sample_rate = 24;
 	bool is_dirty = true;
@@ -84,11 +87,40 @@ private:
 	);
 
 	uint64_t getCountForReserve();
+	void sortKeyframes();
 };
 
 template<typename T, uint8_t N>
 uint64_t KeyframeResolver<T, N>::keyframe_id_counter = 1;
 
+
+template<typename T, uint8_t N>
+Keyframe<T, N>* KeyframeResolver<T, N>::getKeyframeByID(uint64_t id) {
+	auto it = std::find_if(keyframes.begin(), keyframes.end(),
+		[id](const auto& k) { return k.id == id; });
+	return it != keyframes.end() ? &(*it) : nullptr;
+}
+
+template<typename T, uint8_t N>
+void KeyframeResolver<T, N>::setDeltaTimeForKeyframeByID(float deltaTime, uint64_t id) {
+	auto* keyframe = getKeyframeByID(id);
+	if (!keyframe) return;
+	is_dirty = true;
+
+	keyframe->sample.time += deltaTime;
+
+	sortKeyframes();
+}
+
+
+template<typename T, uint8_t N>
+void KeyframeResolver<T, N>::sortKeyframes() {
+	is_dirty = true;
+	std::sort(keyframes.begin(), keyframes.end(),
+		[](const Keyframe<T, N>& a, const Keyframe<T, N>& b) {
+			return a.sample.time < b.sample.time;
+	});
+}
 
 
 template<typename T, uint8_t N>
@@ -156,29 +188,29 @@ KeyframeResolver<T, N>::~KeyframeResolver()
 }
 
 template<typename T, uint8_t N>
-void KeyframeResolver<T, N>::setDelta(float delta) {
-	this->delta = delta;
+void KeyframeResolver<T, N>::setDeltaTime(float deltaTime) {
+	this->deltaTime = deltaTime;
 }
 template<typename T, uint8_t N>
-void KeyframeResolver<T, N>::applyDelta() {
-	if (this->delta == 0.f) return;
+void KeyframeResolver<T, N>::applyDeltaTime() {
+	if (this->deltaTime == 0.f) return;
 	is_dirty = true;
 
 	for (auto& keyframe : keyframes) {
-		keyframe.sample.time += this->delta;
+		keyframe.sample.time += this->deltaTime;
 		for (size_t i = 0; i < N; i++) {
 			if (keyframe.anchors.in.has_value())
-				keyframe.anchors.in.value().time[i] += this->delta;
+				keyframe.anchors.in.value().time[i] += this->deltaTime;
 			if (keyframe.anchors.out.has_value())
-				keyframe.anchors.out.value().time[i] += this->delta;
+				keyframe.anchors.out.value().time[i] += this->deltaTime;
 		}
 	}
 
-	this->delta = 0.f;
+	this->deltaTime = 0.f;
 }
 template<typename T, uint8_t N>
-float KeyframeResolver<T, N>::getDelta() {
-	return this->delta;
+float KeyframeResolver<T, N>::getDeltaTime() {
+	return this->deltaTime;
 }
 
 
@@ -294,7 +326,9 @@ void KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
 			return;
 		}
 		else if (keyframe.sample.time == keyframes[i].sample.time || diff < eps) {
+			keyframe_add.id = keyframes[i].id;
 			keyframes[i] = keyframe_add;
+
 			return;
 		}
 	}
@@ -442,6 +476,8 @@ void KeyframeResolver<T, N>::precompute()
 template<typename T, uint8_t N>
 std::array<T, N> KeyframeResolver<T, N>::evaluate(float time)
 {
+	time += this->deltaTime;
+
 	if (is_dirty)
 		precompute();
 

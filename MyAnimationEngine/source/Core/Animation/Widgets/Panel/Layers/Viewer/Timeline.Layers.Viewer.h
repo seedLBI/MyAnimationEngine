@@ -35,6 +35,14 @@ private:
 	ObjectStatus pressed_status;
 	ObjectStatus draging_status;
 
+
+	struct DragKeyframeInfo {
+		bool drag_started = false;
+		float startedDrag_global_x;
+		std::unordered_map<uint64_t, float> original_times;
+	} DragKeyframe;
+
+
 	long double drag_start_mouse_global;
 
 	void DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered, bool isSelected);
