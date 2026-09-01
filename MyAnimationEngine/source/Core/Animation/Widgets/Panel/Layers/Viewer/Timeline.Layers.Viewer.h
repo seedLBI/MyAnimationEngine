@@ -39,7 +39,7 @@ private:
 	struct DragKeyframeInfo {
 		bool drag_started = false;
 		float startedDrag_global_x;
-		std::unordered_map<uint64_t, float> original_times;
+		std::unordered_map<std::string, float> original_times;
 	} DragKeyframe;
 
 

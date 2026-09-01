@@ -347,12 +347,14 @@ void Timeline_Layers_Viewer::Draw() {
 						
 						if (isHovered && ctx->selector->ContainsKeyframe(current)) {
 							CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
-							if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-								DragKeyframe.drag_started = true;
-								DragKeyframe.startedDrag_global_x = mouse_global_pos_x;
+						}
 
-								DragKeyframe.original_times.clear();
+						if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+							DragKeyframe.drag_started = true;
+							DragKeyframe.startedDrag_global_x = mouse_global_pos_x;
+							DragKeyframe.original_times.clear();
 
+							if (ctx->selector->ContainsKeyframe(current)) {
 								for (const auto& sel_kf : ctx->selector->getKeyframes()) {
 									auto& properties = layers[sel_kf.property.layer.index].get()->GetProperties();
 									properties.applyToKr(
@@ -360,13 +362,41 @@ void Timeline_Layers_Viewer::Draw() {
 										[&](auto& kr) {
 											auto* kf = kr.getKeyframeByID(sel_kf.index);
 											if (kf) {
-												DragKeyframe.original_times[sel_kf.index] = kf->sample.time;
+												std::string uid = std::to_string(sel_kf.property.layer.index) + "_" +
+													sel_kf.property.name + "_" +
+													std::to_string(sel_kf.index);
+												DragKeyframe.original_times[uid] = kf->sample.time;
 											}
 										}
 									);
 								}
 							}
+							else {
+								ctx->selector->UnsetAll();
+								ctx->selector->AddMoreSelectedKeyframe(current);
+								ctx->selector->AddMoreSelectedProperty({ index, name });
+								ctx->selector->AddMoreSelectedLayer({ index });
+
+								auto& properties = layers[index].get()->GetProperties();
+								properties.applyToKr(
+									name,
+									[&](auto& kr) {
+										auto* kf = kr.getKeyframeByID(current.index);
+										if (kf) {
+											std::string uid = std::to_string(index) + "_" +
+												name + "_" +
+												std::to_string(current.index);
+											DragKeyframe.original_times[uid] = kf->sample.time;
+										}
+									}
+								);
+
+
+							}
+
+
 						}
+
 
 						if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !DragKeyframe.drag_started) {
 							ctx->selector->UnsetAll();
@@ -386,6 +416,18 @@ void Timeline_Layers_Viewer::Draw() {
 							isSelected,
 							COLOR_KEYFRAME_OUTLINE
 						);
+
+						/*
+						draw_list->AddText(
+							{
+								p.x + pos_screen,
+								p.y + textHeight / 2.f
+							},
+							ImColor(1.f, 0.f, 0.f, 1.f),
+							std::to_string(keyframe.id).c_str()
+						);
+						*/
+
 					}
 				}
 
@@ -404,8 +446,9 @@ void Timeline_Layers_Viewer::Draw() {
 
 
 	if (DragKeyframe.drag_started) {
-		float total_delta = mouse_global_pos_x - DragKeyframe.startedDrag_global_x;
+		CursorManager::getInstance().SetCursor(TypeCursor::HAND_CLOSED);
 
+		float total_delta = mouse_global_pos_x - DragKeyframe.startedDrag_global_x;
 		float step_frame = 1.f / (float)ctx->timelineData->GetData().framerate;
 
 		auto snapToGrid = [step_frame](float value) -> float {
@@ -414,13 +457,15 @@ void Timeline_Layers_Viewer::Draw() {
 
 		for (auto& keyframe : ctx->selector->getKeyframes()) {
 
-			if (DragKeyframe.original_times.find(keyframe.index) == DragKeyframe.original_times.end())
+			std::string uid = std::to_string(keyframe.property.layer.index) + "_" +
+				keyframe.property.name + "_" +
+				std::to_string(keyframe.index);
+
+			if (DragKeyframe.original_times.find(uid) == DragKeyframe.original_times.end())
 				continue;
 
-			float orig_time = DragKeyframe.original_times[keyframe.index];
+			float orig_time = DragKeyframe.original_times[uid];
 			float target_time = snapToGrid(orig_time + total_delta);
-
-			if (target_time < 0.f) target_time = 0.f;
 
 			auto& properties = layers[keyframe.property.layer.index].get()->GetProperties();
 			properties.applyToKr(
@@ -455,6 +500,7 @@ void Timeline_Layers_Viewer::Draw() {
 	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 		ctx->areaSelection->SetStatus(false);
 		DragKeyframe.drag_started = false;
+		DragKeyframe.original_times.clear();
 	}
 
 

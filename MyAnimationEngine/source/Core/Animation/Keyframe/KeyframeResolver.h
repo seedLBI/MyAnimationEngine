@@ -135,6 +135,7 @@ KeyframeResolver<T, N>::KeyframeResolver(
 	default_value({})
 {
 	this->is_dirty = true;
+	this->keyframe_id_counter = 0;
 }
 
 
@@ -153,6 +154,8 @@ KeyframeResolver<T, N>::KeyframeResolver(
 	default_value({})
 {
 	this->is_dirty = true;
+	this->keyframe_id_counter = 0;
+
 }
 
 
@@ -169,6 +172,8 @@ KeyframeResolver<T, N>::KeyframeResolver(
 	default_value({})
 {
 	this->is_dirty = true;
+	this->keyframe_id_counter = 0;
+
 }
 
 template<typename T, uint8_t N>
@@ -179,6 +184,8 @@ KeyframeResolver<T, N>::KeyframeResolver(uint32_t default_sample_rate)
 	default_value({})
 {
 	this->is_dirty = true;
+	this->keyframe_id_counter = 0;
+
 }
 
 template<typename T, uint8_t N>
@@ -300,9 +307,7 @@ void KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
 	this->is_dirty = true;
 
 	auto keyframe_add = keyframe;
-	if (keyframe_add.id == 0) {
-		keyframe_add.id = this->keyframe_id_counter++;
-	}
+
 
 	if (range.has_value()) {
 		for (size_t i = 0; i < N; i++) {
@@ -312,6 +317,7 @@ void KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
 	}
 
 	if (keyframes.empty()) {
+		keyframe_add.id = this->keyframe_id_counter++;
 		keyframes.push_back(keyframe_add);
 		return;
 	}
@@ -322,6 +328,8 @@ void KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
 		float diff = std::abs(keyframe.sample.time - keyframes[i].sample.time);
 
 		if (keyframe.sample.time < keyframes[i].sample.time) {
+			if (keyframe_add.id == 0)
+				keyframe_add.id = this->keyframe_id_counter++;
 			keyframes.insert(keyframes.begin() + i, keyframe_add);
 			return;
 		}
@@ -333,7 +341,9 @@ void KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
 		}
 	}
 
-	keyframes.push_back(keyframe);
+
+	keyframe_add.id = this->keyframe_id_counter++;
+	keyframes.push_back(keyframe_add);
 }
 
 
