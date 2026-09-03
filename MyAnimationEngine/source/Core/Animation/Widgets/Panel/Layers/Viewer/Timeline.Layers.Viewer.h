@@ -52,7 +52,14 @@ private:
 	bool IsHovered_RightResize(const ImRect& rect);
 	bool IsHovered_BodyMove(const ImRect& rect);
 
-	void DrawRomb(const ImVec2& pos_center, float size, ImColor color, bool isSelected = false, ImColor colorSelected = ImColor(0.f,0.f,0.f,0.f));
+	void DrawRomb(
+		const ImVec2& pos_center, 
+		float size, 
+		ImColor color,
+		ImColor color_side,
+		bool isLeft, bool isMiddle, bool isRight, bool isOnlyOne,
+		bool isSelected = false, 
+		ImColor colorSelected = ImColor(0.f,0.f,0.f,0.f));
 
 
 };

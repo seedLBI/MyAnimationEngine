@@ -551,8 +551,8 @@ void Timeline_Layers_List::HandleContextMenu(const ImVec2& p_min, const ImVec2& 
 
 }
 void Timeline_Layers_List::PrepareDragStaff() {
-    if (dragStaff.offsets_selected_while_grabing.size() != ctx->selector->getLayers().size())
-        dragStaff.offsets_selected_while_grabing.resize(ctx->selector->getLayers().size());
+    if (dragStaff.offsets_selected_while_grabing.size() <= ctx->selector->getLayers().size())
+        dragStaff.offsets_selected_while_grabing.resize(ctx->selector->getLayers().size() * 2.f);
 
     if (dragStaff.DragDrawedOnce)
         CursorManager::getInstance().SetCursor(TypeCursor::DISABLED);
@@ -662,7 +662,10 @@ void Timeline_Layers_List::ProcessDragLogic(float itemHeight) {
 
             if (delta.x > 0 || delta.y > 0 || dragStaff.DragDrawedOnce) {
                 dragStaff.DragDrawedOnce = true;
-                for (const auto& offset : dragStaff.offsets_selected_while_grabing) {
+
+                for (size_t i = 0; i < dragStaff.count_selected; i++) {
+                    const auto& offset = dragStaff.offsets_selected_while_grabing[i];
+
                     ImVec2 grab_min = { columns[TypeColumn::NAME].startCursorPos + delta.x, offset + delta.y };
                     ImVec2 grab_max = { columns[TypeColumn::NAME].startCursorPos + columns[TypeColumn::NAME].width + delta.x, offset + itemHeight + delta.y };
 
@@ -939,10 +942,25 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
 
 
         if (drawAnimationEnabler(isHaveKeyframes, ("##PROPERTIES_TRIGGER_" + std::to_string(index_layer) + "_" + name).c_str(), itemHeight)) {
-            if (keyframes.empty())
-                value.kr.addFromDefaultValue(eval_time);
-            else
+            if (keyframes.empty()) {
+                SelectedLayer selectedLayer;
+                SelectedProperty selectedProperty;
+                SelectedKeyframe selectedKeyframe;
+
+                selectedLayer.index = index_layer;
+                selectedProperty.layer = selectedLayer;
+                selectedProperty.name = name;
+                selectedKeyframe.index = value.kr.addFromDefaultValue(eval_time);
+                selectedKeyframe.property = selectedProperty;
+
+                ctx->selector->SelectLayer(selectedLayer);
+                ctx->selector->SelectProperty(selectedProperty);
+                ctx->selector->SelectKeyframe(selectedKeyframe);
+            }
+            else {
                 value.kr.clear();
+
+            }
         }
 
 
@@ -1019,7 +1037,21 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                         value.kr.setDefaultValue(def_val);
 
                         if (value.kr.getKeyframes().empty() == false) {
-                            value.kr.add(eval_time, def_val, TypeKeyframe::LINEAR);
+
+                            SelectedLayer selectedLayer;
+                            SelectedProperty selectedProperty;
+                            SelectedKeyframe selectedKeyframe;
+
+                            selectedLayer.index = index_layer;
+                            selectedProperty.layer = selectedLayer;
+                            selectedProperty.name = name;
+                            selectedKeyframe.index = value.kr.add(eval_time, def_val, TypeKeyframe::LINEAR);
+                            selectedKeyframe.property = selectedProperty;
+
+                            ctx->selector->SelectLayer(selectedLayer);
+                            ctx->selector->SelectProperty(selectedProperty);
+                            ctx->selector->SelectKeyframe(selectedKeyframe);
+                            
                         }
                     }
                 }
@@ -1099,12 +1131,24 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                         ctx->areaSelection->SetStatus(false);
                     }
 
-
                     if (ctx->timelineController->GetState() == TimelineRunState::PAUSE) {
                         value.kr.setDefaultValue(evaluated_value);
 
                         if (value.kr.getKeyframes().empty() == false) {
-                            value.kr.add(eval_time, evaluated_value, TypeKeyframe::LINEAR);
+                            SelectedLayer selectedLayer;
+                            SelectedProperty selectedProperty;
+                            SelectedKeyframe selectedKeyframe;
+
+                            selectedLayer.index = index_layer;
+                            selectedProperty.layer = selectedLayer;
+                            selectedProperty.name = name;
+                            selectedKeyframe.index = value.kr.add(eval_time, evaluated_value, TypeKeyframe::LINEAR);
+                            selectedKeyframe.property = selectedProperty;
+
+
+                            ctx->selector->SelectLayer(selectedLayer);
+                            ctx->selector->SelectProperty(selectedProperty);
+                            ctx->selector->SelectKeyframe(selectedKeyframe);
                         }
                     }
 

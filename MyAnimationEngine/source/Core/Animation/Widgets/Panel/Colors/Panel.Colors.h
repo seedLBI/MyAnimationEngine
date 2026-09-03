@@ -38,6 +38,7 @@
 #define COLOR_TIMELINE_CURSOR				 ImColor(.25f, .59f, .95f, 1.f)
 
 #define COLOR_KEYFRAME						 ImColor(.42f, .42f, .42f, 1.f)
+#define COLOR_KEYFRAME_SIDE					 ImColor(.69f, .69f, .69f, 1.f)
 #define COLOR_KEYFRAME_OUTLINE				 ImColor(.25f, .57f, .92f, 1.f)
 
 #define COLOR_LAYER_GRAB_OUTLINE			 ImColor(.22f, .47f, .74f, 1.f)

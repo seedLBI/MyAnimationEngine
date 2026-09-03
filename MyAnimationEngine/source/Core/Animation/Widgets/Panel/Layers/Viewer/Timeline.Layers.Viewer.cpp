@@ -104,17 +104,21 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 }
 
 
-void Timeline_Layers_Viewer::DrawRomb(const ImVec2& pos_center, float size, ImColor color, bool isSelected, ImColor colorSelected) {
+void Timeline_Layers_Viewer::DrawRomb(
+	const ImVec2& pos_center, 
+	float size, 
+	ImColor color, 
+	ImColor color_side, 
+	bool isLeft, 
+	bool isMiddle, 
+	bool isRight, 
+	bool isOnlyOne, 
+	bool isSelected, 
+	ImColor colorSelected) {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 
-	ImVec2 vertexs_main[] = {
-		{pos_center.x, pos_center.y - size},
-		{pos_center.x + size, pos_center.y},
-		{pos_center.x, pos_center.y + size},
-		{pos_center.x - size, pos_center.y},
-		{pos_center.x, pos_center.y - size},
-	};
+
 
 	if (isSelected)	{
 		float upsize = size / 3.f;
@@ -133,7 +137,40 @@ void Timeline_Layers_Viewer::DrawRomb(const ImVec2& pos_center, float size, ImCo
 		draw_list->AddConvexPolyFilled(vertexs_outline, 8, colorSelected);
 	}
 
+	ImVec2 vertexs_main[] = {
+		{pos_center.x, pos_center.y - size},
+		{pos_center.x + size, pos_center.y},
+		{pos_center.x, pos_center.y + size},
+		{pos_center.x - size, pos_center.y},
+		{pos_center.x, pos_center.y - size},
+	};
+
 	draw_list->AddConvexPolyFilled(vertexs_main, 4, color);
+
+	if (!isOnlyOne) {
+		if (isLeft) {
+			ImVec2 vertexs_left_main[] = {
+				{pos_center.x, pos_center.y + size},
+				{pos_center.x - size, pos_center.y},
+				{pos_center.x, pos_center.y - size}
+			};
+
+			draw_list->AddConvexPolyFilled(vertexs_left_main, 3, color_side);
+		}
+		else if (isRight) {
+			ImVec2 vertexs_right_main[] = {
+				{pos_center.x, pos_center.y - size},
+				{pos_center.x + size, pos_center.y},
+				{pos_center.x, pos_center.y + size}
+			};
+
+			draw_list->AddConvexPolyFilled(vertexs_right_main, 3, color_side);
+		}
+		else if (isMiddle) {
+			draw_list->AddConvexPolyFilled(vertexs_main, 4, color_side);
+		}
+	}
+
 
 }
 
@@ -397,14 +434,15 @@ void Timeline_Layers_Viewer::Draw() {
 
 						}
 
-
 						if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !DragKeyframe.drag_started) {
 							ctx->selector->UnsetAll();
 							ctx->selector->AddMoreSelectedKeyframe(current);
 						}
 
-						
-
+						bool isLeftKeyframe   = i == 0;
+						bool isRightKeyframe  = i == keyframes.size() - 1;
+						bool isMiddleKeyframe = !isLeftKeyframe && !isRightKeyframe;
+						bool isOnlyOneKeyframe = keyframes.size() == 1;
 
 						DrawRomb(
 							{
@@ -413,20 +451,11 @@ void Timeline_Layers_Viewer::Draw() {
 							},
 							textHeight / 4.f,
 							COLOR_KEYFRAME,
+							COLOR_KEYFRAME_SIDE,
+							isLeftKeyframe, isMiddleKeyframe, isRightKeyframe, isOnlyOneKeyframe,
 							isSelected,
 							COLOR_KEYFRAME_OUTLINE
 						);
-
-						/*
-						draw_list->AddText(
-							{
-								p.x + pos_screen,
-								p.y + textHeight / 2.f
-							},
-							ImColor(1.f, 0.f, 0.f, 1.f),
-							std::to_string(keyframe.id).c_str()
-						);
-						*/
 
 					}
 				}

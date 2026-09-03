@@ -53,9 +53,9 @@ public:
 	void  applyDeltaTime();
 	float getDeltaTime();
 
-	void addFromDefaultValue(float time);
-	void add(const Keyframe<T, N>& keyframe);
-	void add(float time, std::array<T,N>& value, TypeKeyframe type = TypeKeyframe::LINEAR);
+	uint64_t addFromDefaultValue(float time);
+	uint64_t add(const Keyframe<T, N>& keyframe);
+	uint64_t add(float time, std::array<T,N>& value, TypeKeyframe type = TypeKeyframe::LINEAR);
 	void changeKeyframe(uint64_t index, const Keyframe<T, N>& keyframe);
 	void changeType(uint64_t index, TypeKeyframe type);
 	void erase(uint64_t index);
@@ -295,15 +295,15 @@ void KeyframeResolver<T, N>::clear() {
 }
 
 template<typename T, uint8_t N>
-void KeyframeResolver<T, N>::addFromDefaultValue(float time) {
+uint64_t KeyframeResolver<T, N>::addFromDefaultValue(float time) {
 	Keyframe<T, N> keyframe;
 	keyframe.sample = {time, getDefaultValue() };
 	keyframe.type = TypeKeyframe::LINEAR;
-	add(keyframe);
+	return add(keyframe);
 }
 
 template<typename T, uint8_t N>
-void KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
+uint64_t KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
 	this->is_dirty = true;
 
 	auto keyframe_add = keyframe;
@@ -319,7 +319,7 @@ void KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
 	if (keyframes.empty()) {
 		keyframe_add.id = this->keyframe_id_counter++;
 		keyframes.push_back(keyframe_add);
-		return;
+		return keyframe_add.id;
 	}
 
 	for (size_t i = 0; i < keyframes.size(); i++) {
@@ -331,31 +331,32 @@ void KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
 			if (keyframe_add.id == 0)
 				keyframe_add.id = this->keyframe_id_counter++;
 			keyframes.insert(keyframes.begin() + i, keyframe_add);
-			return;
+			return keyframe_add.id;
 		}
 		else if (keyframe.sample.time == keyframes[i].sample.time || diff < eps) {
 			keyframe_add.id = keyframes[i].id;
 			keyframes[i] = keyframe_add;
 
-			return;
+			return keyframe_add.id;
 		}
 	}
 
 
 	keyframe_add.id = this->keyframe_id_counter++;
 	keyframes.push_back(keyframe_add);
+	return keyframe_add.id;
 }
 
 
 template<typename T, uint8_t N>
-void KeyframeResolver<T, N>::add(float time, std::array<T, N>& value, TypeKeyframe type) {
+uint64_t KeyframeResolver<T, N>::add(float time, std::array<T, N>& value, TypeKeyframe type) {
 
 	Keyframe<T, N> keyframe;
 	keyframe.sample.time = time;
 	keyframe.sample.value = value;
 	keyframe.type = type;
 
-	add(keyframe);
+	return add(keyframe);
 }
 
 

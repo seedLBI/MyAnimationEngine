@@ -15,7 +15,7 @@ Timeline_Graph::Timeline_Graph(
 {
 	
 	ctx->graphTransformVertical->setBaseStep(-100.f);
-	ctx->graphTransformVertical->setBoundsOffset(-1.f - 0.01f, 2.f + 0.01f);
+	ctx->graphTransformVertical->setBoundsOffset(-10.f - 0.01f, 10.f + 0.01f);
 	ctx->graphTransformVertical->setBoundsScale(1.f, 100.f);
 	
 
@@ -159,7 +159,7 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 	if (ctx->layersData->GetData().layers.empty() ||
 		ctx->selector->getProperties().empty()) {
-		timeCursor->Draw(p_min, p_max);
+		
 		return;
 	}
 
@@ -198,9 +198,6 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 			);
 
 		}
-
-
-
 
 		float size_keyframe = 10.f;
 
@@ -278,8 +275,6 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 
 	}, variant_prop);
-
-	timeCursor->Draw(p_min, p_max);
 }
 
 
@@ -306,7 +301,7 @@ void Timeline_Graph::Draw() {
 	ImGui::SetCursorScreenPos(cursor_pos);
 
 	DrawTicks(p_min, p_max);
-	
+	timeCursor->Draw(p_min, p_max);
 	DrawGraphs(p_min, p_max);
 
 	float left_range = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().left_range_repeat);
@@ -316,10 +311,10 @@ void Timeline_Graph::Draw() {
 	
 
 	if (ImGui::IsKeyDown(ImGuiKey_LeftShift) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-		ctx->selector->UnsetAll();
+		//ctx->selector->UnsetAll();
 		ctx->areaSelection->SetStatus(true);
 		ctx->areaSelection->SetStartMousePosition(ImGui::GetMousePos());
-		ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_LIST);
+		ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_VIEWER);
 	}
 	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 		ctx->areaSelection->SetStatus(false);
@@ -370,7 +365,11 @@ void Timeline_Graph::Update(const float& dt) {
 		isDraging = true;
 	}
 
+	// TODO: fit graph with padding
 	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+
+
+
 		ctx->graphTransformVertical->centerize((min_graph + max_graph)*0.5f);
 	}
 
