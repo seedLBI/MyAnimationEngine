@@ -100,6 +100,7 @@ private:
 		VOLUME,
 		LOCK
 	};
+
 	std::vector<float> av_symbols_cursor_pos;
 };
 

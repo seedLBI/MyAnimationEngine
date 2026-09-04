@@ -8,7 +8,8 @@
 enum class TypeKeyframe {
 	LINEAR,
 	BINARY,
-	BEZIER
+	BEZIER,
+	AUTOBEZIER
 };
 
 template<typename T, uint8_t N>

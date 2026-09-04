@@ -65,6 +65,9 @@ public:
 	Keyframe<T, N>* getKeyframeByID(uint64_t id);
 	void setDeltaTimeForKeyframeByID(float deltaTime, uint64_t id);
 
+	bool hasAnyOverlaps() const;
+	void resolveOverlaps(uint64_t priority_id);
+
 private:
 	static uint64_t keyframe_id_counter;
 
@@ -93,6 +96,41 @@ private:
 template<typename T, uint8_t N>
 uint64_t KeyframeResolver<T, N>::keyframe_id_counter = 1;
 
+
+
+template<typename T, uint8_t N>
+bool KeyframeResolver<T, N>::hasAnyOverlaps() const {
+	if (keyframes.size() < 2) return false;
+	float eps = 0.00001f;
+
+	for (size_t i = 0; i < keyframes.size() - 1; ++i) {
+		if (std::abs(keyframes[i].sample.time - keyframes[i + 1].sample.time) < eps) {
+			return true;
+		}
+	}
+	return false;
+}
+
+template<typename T, uint8_t N>
+void KeyframeResolver<T, N>::resolveOverlaps(uint64_t priority_id) {
+	auto* keyframe = getKeyframeByID(priority_id);
+	if (!keyframe)
+		return;
+
+	float target_time = keyframe->sample.time;
+
+	float eps = 0.00001f;
+
+	auto it = std::remove_if(keyframes.begin(), keyframes.end(),
+		[priority_id, target_time, eps](const Keyframe<T, N>& kf) {
+			return kf.id != priority_id && std::abs(kf.sample.time - target_time) < eps;
+		});
+
+	if (it != keyframes.end()) {
+		keyframes.erase(it, keyframes.end());
+		is_dirty = true;
+	}
+}
 
 template<typename T, uint8_t N>
 Keyframe<T, N>* KeyframeResolver<T, N>::getKeyframeByID(uint64_t id) {

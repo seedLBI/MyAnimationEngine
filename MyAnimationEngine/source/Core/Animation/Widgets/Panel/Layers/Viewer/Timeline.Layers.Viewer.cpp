@@ -104,75 +104,283 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 }
 
 
-void Timeline_Layers_Viewer::DrawRomb(
-	const ImVec2& pos_center, 
-	float size, 
-	ImColor color, 
-	ImColor color_side, 
-	bool isLeft, 
-	bool isMiddle, 
-	bool isRight, 
-	bool isOnlyOne, 
-	bool isSelected, 
-	ImColor colorSelected) {
+
+
+
+
+
+void Timeline_Layers_Viewer::DrawKeyframe_Uniform(
+	TypeKeyframe type, TypeKeyframe type_left, TypeKeyframe type_right,
+	const ImVec2& pos_center,
+	float size,
+	ImColor color,
+	ImColor color_side,
+	bool isLeft, bool isMiddle, bool isRight, bool isOnlyOne,
+	bool isSelected,
+	ImColor colorSelected
+) {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
+	const float x_l = pos_center.x - size;
+	const float x_m = pos_center.x;
+	const float x_r = pos_center.x + size;
+	
+	const float y_u = pos_center.y - size;
+	const float y_m = pos_center.y;
+	const float y_d = pos_center.y + size;
 
+	// LU--MU--RU
+	// |   |   |
+	// LM--MM--RM
+	// |   |   |
+	// LD--MD--RD
 
+	const ImVec2 LU{ x_l, y_u };
+	const ImVec2 LM{ x_l, y_m };
+	const ImVec2 LD{ x_l, y_d };
 
-	if (isSelected)	{
-		float upsize = size / 3.f;
-		float roundness_offset = size / 4.f;
-		ImVec2 vertexs_outline[] = {
-			{pos_center.x - roundness_offset, pos_center.y - size - upsize},
-			{pos_center.x + roundness_offset, pos_center.y - size - upsize},
-			{pos_center.x + size + upsize, pos_center.y - roundness_offset},
-			{pos_center.x + size + upsize, pos_center.y + roundness_offset},
-			{pos_center.x + roundness_offset, pos_center.y + size + upsize},
-			{pos_center.x - roundness_offset, pos_center.y + size + upsize},
-			{pos_center.x - size - upsize, pos_center.y + roundness_offset},
-			{pos_center.x - size - upsize, pos_center.y - roundness_offset},
-			{pos_center.x - roundness_offset, pos_center.y - size - upsize},
-		};
-		draw_list->AddConvexPolyFilled(vertexs_outline, 8, colorSelected);
+	const ImVec2 MU{ x_m, y_u };
+	const ImVec2 MM{ x_m, y_m };
+	const ImVec2 MD{ x_m, y_d };
+
+	const ImVec2 RU{ x_r, y_u };
+	const ImVec2 RM{ x_r, y_m };
+	const ImVec2 RD{ x_r, y_d };
+
+	const float smooth = size / 3.f;
+	const float offset_center = smooth * 1.2f;
+	const float overlap = 1.0f;
+
+	// b_ - means bezier, (hourglass shape) 
+	// _o - overlap for fix anti aliasing
+
+	const ImVec2 b_LU = { LU.x, LU.y + smooth };
+	const ImVec2 b_RU = { RU.x, RU.y + smooth };
+	const ImVec2 b_RD = { RD.x, RD.y - smooth };
+	const ImVec2 b_LD = { LD.x, LD.y - smooth };
+
+	const ImVec2 b_MM_L_U = { MM.x - offset_center, MM.y - smooth / 2.f };
+	const ImVec2 b_MM_R_U = { MM.x + offset_center, MM.y - smooth / 2.f };
+	const ImVec2 b_MM_L_D = { MM.x - offset_center, MM.y + smooth / 2.f };
+	const ImVec2 b_MM_R_D = { MM.x + offset_center, MM.y + smooth / 2.f };
+
+	const ImVec2 b_MM_U = { MM.x, MM.y - smooth / 2.f };
+	const ImVec2 b_MM_D = { MM.x, MM.y + smooth / 2.f };
+
+	const ImVec2 b_MM_U_o = { MM.x, b_MM_U.y - overlap };
+	const ImVec2 b_MM_D_o = { MM.x, b_MM_D.y + overlap };
+
+	const ImVec2 b_MM_L_U_o = { b_MM_L_U.x, b_MM_L_U.y - overlap };
+	const ImVec2 b_MM_R_U_o = { b_MM_R_U.x, b_MM_R_U.y - overlap };
+	const ImVec2 b_MM_L_D_o = { b_MM_L_D.x, b_MM_L_D.y + overlap };
+	const ImVec2 b_MM_R_D_o = { b_MM_R_D.x, b_MM_R_D.y + overlap };
+
+	type      = TypeKeyframe::BEZIER;
+	type_left = TypeKeyframe::BEZIER;
+	isMiddle  = true;
+
+	switch (type)
+	{
+	case TypeKeyframe::LINEAR: {
+
+		if (isMiddle && type_left == TypeKeyframe::BEZIER) {
+			if (isSelected) {
+				const ImVec2 bezier_linear_pts_path_cw[9] = {
+					LU, MU, RM, MD, LD, b_LD, b_MM_L_D, b_MM_L_U, b_LU
+				};
+				draw_list->AddPolyline(bezier_linear_pts_path_cw, 9, colorSelected, ImDrawFlags_Closed, 3.2f);
+			}
+			const ImVec2 bl_top[5]    = { LU, MU, RM, b_MM_L_U, b_LU };
+			const ImVec2 bl_middle[3] = { RM, b_MM_L_D_o, b_MM_L_U_o };
+			const ImVec2 bl_bottom[5] = { RM, MD, LD, b_LD, b_MM_L_D };
+
+			draw_list->AddConvexPolyFilled(bl_bottom, 5, color_side);
+			draw_list->AddConvexPolyFilled(bl_top, 5, color_side);
+			draw_list->AddConvexPolyFilled(bl_middle, 3, color_side);
+		}
+		else if (isMiddle && type_left == TypeKeyframe::BINARY) {
+			const ImVec2 binary_linear_pts_path_cw[5] = { LU, MU, RM, MD, LD };
+			if (isSelected)
+				draw_list->AddPolyline(binary_linear_pts_path_cw, 5, colorSelected, ImDrawFlags_Closed, 3.2f);
+			draw_list->AddConvexPolyFilled(binary_linear_pts_path_cw, 5, color);
+		}
+		else {
+			if (isSelected) {
+				const float out_size = size + (size / 3.f);
+				const float r_offset = size / 4.f;
+
+				const ImVec2 outline[8] = {
+					{pos_center.x - r_offset, pos_center.y - out_size},
+					{pos_center.x + r_offset, pos_center.y - out_size},
+					{pos_center.x + out_size, pos_center.y - r_offset},
+					{pos_center.x + out_size, pos_center.y + r_offset},
+					{pos_center.x + r_offset, pos_center.y + out_size},
+					{pos_center.x - r_offset, pos_center.y + out_size},
+					{pos_center.x - out_size, pos_center.y + r_offset},
+					{pos_center.x - out_size, pos_center.y - r_offset}
+				};
+				draw_list->AddConvexPolyFilled(outline, 8, colorSelected);
+			}
+
+			draw_list->AddQuadFilled(MU, RM, MD, LM, color);
+
+			if (!isOnlyOne) {
+				if (isLeft)
+					draw_list->AddTriangleFilled(MU, RM, MD, color_side);
+				else if (isRight)
+					draw_list->AddTriangleFilled(MD, LM, MU, color_side);
+				else if (isMiddle)
+					draw_list->AddQuadFilled(MU, RM, MD, LM, color_side);
+			}
+		}
+
+		break;
 	}
+	case TypeKeyframe::BINARY: {
 
-	ImVec2 vertexs_main[] = {
-		{pos_center.x, pos_center.y - size},
-		{pos_center.x + size, pos_center.y},
-		{pos_center.x, pos_center.y + size},
-		{pos_center.x - size, pos_center.y},
-		{pos_center.x, pos_center.y - size},
-	};
-
-	draw_list->AddConvexPolyFilled(vertexs_main, 4, color);
-
-	if (!isOnlyOne) {
-		if (isLeft) {
-			ImVec2 vertexs_left_main[] = {
-				{pos_center.x, pos_center.y + size},
-				{pos_center.x - size, pos_center.y},
-				{pos_center.x, pos_center.y - size}
-			};
-
-			draw_list->AddConvexPolyFilled(vertexs_left_main, 3, color_side);
+		if (isMiddle && type_left == TypeKeyframe::LINEAR) {
+			//linear-binary
+			const ImVec2 linear_binary_pts_path_cw[5] = { LM, MU, RU, RD, MD };
+			if (isSelected)
+				draw_list->AddPolyline(linear_binary_pts_path_cw, 5, colorSelected, ImDrawFlags_Closed, 3.2f);
+			draw_list->AddConvexPolyFilled(linear_binary_pts_path_cw, 5, color);
 		}
-		else if (isRight) {
-			ImVec2 vertexs_right_main[] = {
-				{pos_center.x, pos_center.y - size},
-				{pos_center.x + size, pos_center.y},
-				{pos_center.x, pos_center.y + size}
-			};
+		else if (isMiddle && type_left == TypeKeyframe::BEZIER) {
+			//bezier-binary
+			if (isSelected) {
+				const ImVec2 bezier_binary_pts_path_cw[8] = {
+					LU, RU, RD, LD, b_LD, b_MM_L_D, b_MM_L_U, b_LU
+				};
+				draw_list->AddPolyline(bezier_binary_pts_path_cw, 8, colorSelected, ImDrawFlags_Closed, 3.2f);
+			}
 
-			draw_list->AddConvexPolyFilled(vertexs_right_main, 3, color_side);
+			draw_list->AddQuadFilled(LU, RU, b_MM_L_U, b_LU, color_side);
+			draw_list->AddQuadFilled(RU, RD, b_MM_L_D_o, b_MM_L_U_o, color_side);
+			draw_list->AddQuadFilled(b_MM_L_D, RD, LD, b_LD, color_side);
 		}
-		else if (isMiddle) {
-			draw_list->AddConvexPolyFilled(vertexs_main, 4, color_side);
+		else {
+			draw_list->AddRectFilled(LU, RD, color);
 		}
+
+		break;
 	}
+	case TypeKeyframe::BEZIER: {
 
+		if (isMiddle && type_left == TypeKeyframe::LINEAR) {
+
+			// linear-bezier
+
+			if (isSelected) {
+				const ImVec2 linear_bezier_pts_path_cw[9] = {
+					LM, MU, RU, b_RU, b_MM_R_U, b_MM_R_D, b_RD, RD, MD
+				};
+				draw_list->AddPolyline(linear_bezier_pts_path_cw, 9, colorSelected, ImDrawFlags_Closed, 3.2f);
+			}
+			const ImVec2 lb_top[5]    = { LM, MU, RU, b_RU, b_MM_R_U };
+			const ImVec2 lb_middle[3] = { LM, b_MM_R_U_o, b_MM_R_D_o};
+			const ImVec2 lb_bottom[5] = { b_MM_R_D, b_RD, RD, MD, LM };
+
+			draw_list->AddConvexPolyFilled(lb_bottom, 5, color_side);
+			draw_list->AddConvexPolyFilled(lb_top, 5, color_side);
+			draw_list->AddConvexPolyFilled(lb_middle, 3, color_side);
+
+
+		}
+		else if (isMiddle && type_left == TypeKeyframe::BINARY) {
+
+			// binary-bezier
+
+			if (isSelected) {
+				const ImVec2 binary_bezier_pts_path_cw[8] = {
+					LU, RU, b_RU, b_MM_R_U, b_MM_R_D, b_RD, RD, LD 
+				};
+				draw_list->AddPolyline(binary_bezier_pts_path_cw, 8, colorSelected, ImDrawFlags_Closed, 3.2f);
+			}
+
+			draw_list->AddQuadFilled(LU, RU, b_RU, b_MM_R_U, color_side);
+			draw_list->AddQuadFilled(LU, b_MM_R_U_o, b_MM_R_D_o, LD, color_side);
+			draw_list->AddQuadFilled(b_MM_R_D, b_RD, RD, LD, color_side);
+
+		}
+		else {
+			// bezier
+
+			if (isSelected) {
+				const ImVec2 bezier_pts_path_cw[12] = {
+					LU, RU, b_RU, b_MM_R_U, b_MM_R_D, b_RD, RD, LD, b_LD, b_MM_L_D, b_MM_L_U, b_LU
+				};
+				draw_list->AddPolyline(bezier_pts_path_cw, 12, colorSelected, ImDrawFlags_Closed, 3.2f);
+			}
+
+			const ImVec2 b_top[6] = { LU, RU, b_RU, b_MM_R_U, b_MM_L_U, b_LU };
+			const ImVec2 b_bottom[6] = { b_MM_R_D, b_RD, RD, LD, b_LD,  b_MM_L_D };
+			ImColor color_full_body = (isMiddle && !isOnlyOne) == false ? color : color_side;
+
+			draw_list->AddConvexPolyFilled(b_top, 6, color_full_body);
+			draw_list->AddQuadFilled(b_MM_R_U_o, b_MM_R_D_o, b_MM_L_D_o, b_MM_L_U_o, color_full_body);
+			draw_list->AddConvexPolyFilled(b_bottom, 6, color_full_body);
+
+
+			if (!isOnlyOne && (isLeft || isRight)) {
+
+				if (isLeft) {
+					const ImVec2 b_top_right[5] = { MU, RU, b_RU, b_MM_R_U, b_MM_U };
+					const ImVec2 b_bottom_right[5] = { b_MM_D, b_MM_R_D, b_RD, RD, MD };
+					const ImVec2 b_connect_right[4] = { b_MM_U_o, b_MM_R_U_o, b_MM_R_D_o, b_MM_D_o };
+
+					draw_list->AddConvexPolyFilled(b_top_right, 5, color_side);
+					draw_list->AddConvexPolyFilled(b_connect_right, 4, color_side);
+					draw_list->AddConvexPolyFilled(b_bottom_right, 5, color_side);
+
+				}
+				else if (isRight) {
+					const ImVec2 b_top_left[5] = { MU, b_MM_U, b_MM_L_U, b_LU, LU };
+					const ImVec2 b_connect_left[4] = { b_MM_U_o, b_MM_D_o, b_MM_L_D_o, b_MM_L_U_o };
+					const ImVec2 b_bottom_left[5] = { b_MM_D, MD, LD, b_LD, b_MM_L_D };
+
+					draw_list->AddConvexPolyFilled(b_top_left, 5, color_side);
+					draw_list->AddConvexPolyFilled(b_connect_left, 4, color_side);
+					draw_list->AddConvexPolyFilled(b_bottom_left, 5, color_side);
+				}
+
+			}
+		}
+
+		break;
+	}
+	case TypeKeyframe::AUTOBEZIER: {
+		if (isSelected) {
+			const float out_size = size + (size / 3.f);
+			draw_list->AddCircleFilled(pos_center, out_size, colorSelected);
+		}
+
+		draw_list->AddCircleFilled(pos_center, size, color);
+
+		if (!isOnlyOne) {
+			if (isMiddle) {
+				draw_list->AddCircleFilled(pos_center, size, color_side);
+			}
+			else if (isLeft) {
+				draw_list->PathArcTo(pos_center, size, -IM_PI / 2.0f, IM_PI / 2.0f, 0);
+				draw_list->PathFillConvex(color_side);
+			}
+			else if (isRight) {
+				draw_list->PathArcTo(pos_center, size, IM_PI / 2.0f, IM_PI * 1.5f, 0);
+				draw_list->PathFillConvex(color_side);
+			}
+		}
+		break;
+	}
+	default:
+		break;
+	}
 
 }
+
+
+
+
+
 
 
 void Timeline_Layers_Viewer::Draw() {
@@ -444,7 +652,11 @@ void Timeline_Layers_Viewer::Draw() {
 						bool isMiddleKeyframe = !isLeftKeyframe && !isRightKeyframe;
 						bool isOnlyOneKeyframe = keyframes.size() == 1;
 
-						DrawRomb(
+
+						DrawKeyframe_Uniform(
+							keyframe.type,
+							i == 0 ? TypeKeyframe::LINEAR : keyframes[i - 1].type,
+							i == keyframes.size() - 1 ? TypeKeyframe::LINEAR : keyframes[i + 1].type,
 							{
 								p.x + pos_screen,
 								p.y + textHeight / 2.f
@@ -527,6 +739,25 @@ void Timeline_Layers_Viewer::Draw() {
 	}
 
 	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+		if (DragKeyframe.drag_started) {
+			for (const auto& keyframe : ctx->selector->getKeyframes()) {
+				std::string uid = 
+					std::to_string(keyframe.property.layer.index) + "_" +
+					keyframe.property.name + "_" +
+					std::to_string(keyframe.index);
+
+				if (DragKeyframe.original_times.find(uid) != DragKeyframe.original_times.end()) {
+					auto& properties = layers[keyframe.property.layer.index].get()->GetProperties();
+					properties.applyToKr(
+						keyframe.property.name,
+						[&](auto& kr) {
+							kr.resolveOverlaps(keyframe.index);
+						}
+					);
+				}
+			}
+		}
+
 		ctx->areaSelection->SetStatus(false);
 		DragKeyframe.drag_started = false;
 		DragKeyframe.original_times.clear();

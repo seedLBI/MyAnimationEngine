@@ -199,7 +199,7 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 		}
 
-		float size_keyframe = 10.f;
+		float size_keyframe = 6.f;
 
 		ImColor colors[3] = {
 			ImColor(1.f,0.3f,0.3f,1.f),
@@ -269,7 +269,8 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 				drawlist->AddRectFilled(
 					{ pos_x - size_keyframe / 2.f, pos_y - size_keyframe / 2.f },
 					{ pos_x + size_keyframe / 2.f, pos_y + size_keyframe / 2.f },
-					ImColor(1.f, 1.f, 0.f, 1.f));
+					(j <= 2 ? colors[j] : ImColor(0.5f, 0.5f, 0.2f, 1.f))
+				);
 			}
 		}
 
@@ -301,8 +302,8 @@ void Timeline_Graph::Draw() {
 	ImGui::SetCursorScreenPos(cursor_pos);
 
 	DrawTicks(p_min, p_max);
-	timeCursor->Draw(p_min, p_max);
 	DrawGraphs(p_min, p_max);
+	timeCursor->Draw(p_min, p_max);
 
 	float left_range = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().left_range_repeat);
 	float right_range = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().right_range_repeat);
