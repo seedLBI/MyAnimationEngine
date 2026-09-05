@@ -52,9 +52,8 @@ private:
 	bool IsHovered_RightResize(const ImRect& rect);
 	bool IsHovered_BodyMove(const ImRect& rect);
 
-
 	void DrawKeyframe_Uniform(
-		TypeKeyframe type, TypeKeyframe type_left, TypeKeyframe type_right,
+		TypeKeyframe type_out, TypeKeyframe type_in,
 		const ImVec2& pos_center,
 		float size,
 		ImColor color,

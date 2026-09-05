@@ -110,7 +110,7 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 
 
 void Timeline_Layers_Viewer::DrawKeyframe_Uniform(
-	TypeKeyframe type, TypeKeyframe type_left, TypeKeyframe type_right,
+	TypeKeyframe type_out, TypeKeyframe type_in,
 	const ImVec2& pos_center,
 	float size,
 	ImColor color,
@@ -175,15 +175,10 @@ void Timeline_Layers_Viewer::DrawKeyframe_Uniform(
 	const ImVec2 b_MM_L_D_o = { b_MM_L_D.x, b_MM_L_D.y + overlap };
 	const ImVec2 b_MM_R_D_o = { b_MM_R_D.x, b_MM_R_D.y + overlap };
 
-	type      = TypeKeyframe::BEZIER;
-	type_left = TypeKeyframe::BEZIER;
-	isMiddle  = true;
 
-	switch (type)
-	{
+	switch (type_out) {
 	case TypeKeyframe::LINEAR: {
-
-		if (isMiddle && type_left == TypeKeyframe::BEZIER) {
+		if (type_in == TypeKeyframe::BEZIER && !isLeft) {
 			if (isSelected) {
 				const ImVec2 bezier_linear_pts_path_cw[9] = {
 					LU, MU, RM, MD, LD, b_LD, b_MM_L_D, b_MM_L_U, b_LU
@@ -194,15 +189,35 @@ void Timeline_Layers_Viewer::DrawKeyframe_Uniform(
 			const ImVec2 bl_middle[3] = { RM, b_MM_L_D_o, b_MM_L_U_o };
 			const ImVec2 bl_bottom[5] = { RM, MD, LD, b_LD, b_MM_L_D };
 
-			draw_list->AddConvexPolyFilled(bl_bottom, 5, color_side);
-			draw_list->AddConvexPolyFilled(bl_top, 5, color_side);
-			draw_list->AddConvexPolyFilled(bl_middle, 3, color_side);
+
+			ImColor color_full_body = isRight ? color : color_side;
+			
+			draw_list->AddConvexPolyFilled(bl_bottom, 5, color_full_body);
+			draw_list->AddConvexPolyFilled(bl_top, 5, color_full_body);
+			draw_list->AddConvexPolyFilled(bl_middle, 3, color_full_body);
+
+			if (isRight) {
+				const ImVec2 b_top_left[5] = { MU, b_MM_U, b_MM_L_U, b_LU, LU };
+				const ImVec2 b_connect_left[4] = { b_MM_U_o, b_MM_D_o, b_MM_L_D_o, b_MM_L_U_o };
+				const ImVec2 b_bottom_left[5] = { b_MM_D, MD, LD, b_LD, b_MM_L_D };
+
+				draw_list->AddConvexPolyFilled(b_top_left, 5, color_side);
+				draw_list->AddConvexPolyFilled(b_connect_left, 4, color_side);
+				draw_list->AddConvexPolyFilled(b_bottom_left, 5, color_side);
+			}
 		}
-		else if (isMiddle && type_left == TypeKeyframe::BINARY) {
+		else if (type_in == TypeKeyframe::BINARY && !isLeft) {
 			const ImVec2 binary_linear_pts_path_cw[5] = { LU, MU, RM, MD, LD };
+
 			if (isSelected)
 				draw_list->AddPolyline(binary_linear_pts_path_cw, 5, colorSelected, ImDrawFlags_Closed, 3.2f);
+
 			draw_list->AddConvexPolyFilled(binary_linear_pts_path_cw, 5, color);
+
+			if (isMiddle) {
+				draw_list->AddTriangleFilled(MU, RM, MD, color_side);
+			}
+
 		}
 		else {
 			if (isSelected) {
@@ -233,19 +248,22 @@ void Timeline_Layers_Viewer::DrawKeyframe_Uniform(
 					draw_list->AddQuadFilled(MU, RM, MD, LM, color_side);
 			}
 		}
-
 		break;
 	}
 	case TypeKeyframe::BINARY: {
-
-		if (isMiddle && type_left == TypeKeyframe::LINEAR) {
+		if (type_in == TypeKeyframe::LINEAR && !isLeft) {
 			//linear-binary
 			const ImVec2 linear_binary_pts_path_cw[5] = { LM, MU, RU, RD, MD };
 			if (isSelected)
 				draw_list->AddPolyline(linear_binary_pts_path_cw, 5, colorSelected, ImDrawFlags_Closed, 3.2f);
-			draw_list->AddConvexPolyFilled(linear_binary_pts_path_cw, 5, color);
+
+			draw_list->AddConvexPolyFilled(linear_binary_pts_path_cw, 5, color_side);
+
+			if (isRight)
+				draw_list->AddRectFilled(MU, RD, color);
+
 		}
-		else if (isMiddle && type_left == TypeKeyframe::BEZIER) {
+		else if (type_in == TypeKeyframe::BEZIER && !isLeft) {
 			//bezier-binary
 			if (isSelected) {
 				const ImVec2 bezier_binary_pts_path_cw[8] = {
@@ -257,19 +275,23 @@ void Timeline_Layers_Viewer::DrawKeyframe_Uniform(
 			draw_list->AddQuadFilled(LU, RU, b_MM_L_U, b_LU, color_side);
 			draw_list->AddQuadFilled(RU, RD, b_MM_L_D_o, b_MM_L_U_o, color_side);
 			draw_list->AddQuadFilled(b_MM_L_D, RD, LD, b_LD, color_side);
+
+			if (isRight)
+				draw_list->AddRectFilled(MU, RD, color);
+
 		}
 		else {
+			//binary-binary
 			draw_list->AddRectFilled(LU, RD, color);
+			if (isMiddle)
+				draw_list->AddRectFilled(MU, RD, color_side);
 		}
-
 		break;
 	}
 	case TypeKeyframe::BEZIER: {
 
-		if (isMiddle && type_left == TypeKeyframe::LINEAR) {
-
+		if (type_in == TypeKeyframe::LINEAR && !isLeft) {
 			// linear-bezier
-
 			if (isSelected) {
 				const ImVec2 linear_bezier_pts_path_cw[9] = {
 					LM, MU, RU, b_RU, b_MM_R_U, b_MM_R_D, b_RD, RD, MD
@@ -284,12 +306,18 @@ void Timeline_Layers_Viewer::DrawKeyframe_Uniform(
 			draw_list->AddConvexPolyFilled(lb_top, 5, color_side);
 			draw_list->AddConvexPolyFilled(lb_middle, 3, color_side);
 
+			if (isRight) {
+				const ImVec2 b_top_right[5] = { MU, RU, b_RU, b_MM_R_U, b_MM_U };
+				const ImVec2 b_bottom_right[5] = { b_MM_D, b_MM_R_D, b_RD, RD, MD };
+				const ImVec2 b_connect_right[4] = { b_MM_U_o, b_MM_R_U_o, b_MM_R_D_o, b_MM_D_o };
 
+				draw_list->AddConvexPolyFilled(b_top_right, 5, color);
+				draw_list->AddConvexPolyFilled(b_connect_right, 4, color);
+				draw_list->AddConvexPolyFilled(b_bottom_right, 5, color);
+			}
 		}
-		else if (isMiddle && type_left == TypeKeyframe::BINARY) {
-
+		else if (type_in == TypeKeyframe::BINARY && !isLeft) {
 			// binary-bezier
-
 			if (isSelected) {
 				const ImVec2 binary_bezier_pts_path_cw[8] = {
 					LU, RU, b_RU, b_MM_R_U, b_MM_R_D, b_RD, RD, LD 
@@ -297,14 +325,18 @@ void Timeline_Layers_Viewer::DrawKeyframe_Uniform(
 				draw_list->AddPolyline(binary_bezier_pts_path_cw, 8, colorSelected, ImDrawFlags_Closed, 3.2f);
 			}
 
-			draw_list->AddQuadFilled(LU, RU, b_RU, b_MM_R_U, color_side);
-			draw_list->AddQuadFilled(LU, b_MM_R_U_o, b_MM_R_D_o, LD, color_side);
-			draw_list->AddQuadFilled(b_MM_R_D, b_RD, RD, LD, color_side);
+			ImColor color_full_body = isRight ? color : color_side;
+
+			draw_list->AddQuadFilled(LU, RU, b_RU, b_MM_R_U, color_full_body);
+			draw_list->AddQuadFilled(LU, b_MM_R_U_o, b_MM_R_D_o, LD, color_full_body);
+			draw_list->AddQuadFilled(b_MM_R_D, b_RD, RD, LD, color_full_body);
+
+			if (!isRight)
+				draw_list->AddRectFilled(LU, MD, color);
 
 		}
 		else {
-			// bezier
-
+			// bezier-bezier
 			if (isSelected) {
 				const ImVec2 bezier_pts_path_cw[12] = {
 					LU, RU, b_RU, b_MM_R_U, b_MM_R_D, b_RD, RD, LD, b_LD, b_MM_L_D, b_MM_L_U, b_LU
@@ -312,7 +344,7 @@ void Timeline_Layers_Viewer::DrawKeyframe_Uniform(
 				draw_list->AddPolyline(bezier_pts_path_cw, 12, colorSelected, ImDrawFlags_Closed, 3.2f);
 			}
 
-			const ImVec2 b_top[6] = { LU, RU, b_RU, b_MM_R_U, b_MM_L_U, b_LU };
+			const ImVec2 b_top[6]    = { LU, RU, b_RU, b_MM_R_U, b_MM_L_U, b_LU };
 			const ImVec2 b_bottom[6] = { b_MM_R_D, b_RD, RD, LD, b_LD,  b_MM_L_D };
 			ImColor color_full_body = (isMiddle && !isOnlyOne) == false ? color : color_side;
 
@@ -324,8 +356,8 @@ void Timeline_Layers_Viewer::DrawKeyframe_Uniform(
 			if (!isOnlyOne && (isLeft || isRight)) {
 
 				if (isLeft) {
-					const ImVec2 b_top_right[5] = { MU, RU, b_RU, b_MM_R_U, b_MM_U };
-					const ImVec2 b_bottom_right[5] = { b_MM_D, b_MM_R_D, b_RD, RD, MD };
+					const ImVec2 b_top_right[5]     = { MU, RU, b_RU, b_MM_R_U, b_MM_U };
+					const ImVec2 b_bottom_right[5]  = { b_MM_D, b_MM_R_D, b_RD, RD, MD };
 					const ImVec2 b_connect_right[4] = { b_MM_U_o, b_MM_R_U_o, b_MM_R_D_o, b_MM_D_o };
 
 					draw_list->AddConvexPolyFilled(b_top_right, 5, color_side);
@@ -334,9 +366,9 @@ void Timeline_Layers_Viewer::DrawKeyframe_Uniform(
 
 				}
 				else if (isRight) {
-					const ImVec2 b_top_left[5] = { MU, b_MM_U, b_MM_L_U, b_LU, LU };
+					const ImVec2 b_top_left[5]     = { MU, b_MM_U, b_MM_L_U, b_LU, LU };
 					const ImVec2 b_connect_left[4] = { b_MM_U_o, b_MM_D_o, b_MM_L_D_o, b_MM_L_U_o };
-					const ImVec2 b_bottom_left[5] = { b_MM_D, MD, LD, b_LD, b_MM_L_D };
+					const ImVec2 b_bottom_left[5]  = { b_MM_D, MD, LD, b_LD, b_MM_L_D };
 
 					draw_list->AddConvexPolyFilled(b_top_left, 5, color_side);
 					draw_list->AddConvexPolyFilled(b_connect_left, 4, color_side);
@@ -656,7 +688,6 @@ void Timeline_Layers_Viewer::Draw() {
 						DrawKeyframe_Uniform(
 							keyframe.type,
 							i == 0 ? TypeKeyframe::LINEAR : keyframes[i - 1].type,
-							i == keyframes.size() - 1 ? TypeKeyframe::LINEAR : keyframes[i + 1].type,
 							{
 								p.x + pos_screen,
 								p.y + textHeight / 2.f
