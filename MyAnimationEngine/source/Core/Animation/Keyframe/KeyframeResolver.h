@@ -65,6 +65,9 @@ public:
 	Keyframe<T, N>* getKeyframeByID(uint64_t id);
 	void setDeltaTimeForKeyframeByID(float deltaTime, uint64_t id);
 
+	uint64_t GetIndexByID(uint64_t id);
+	void EraseByID(uint64_t id);
+
 	bool hasAnyOverlaps() const;
 	void resolveOverlaps(uint64_t priority_id);
 
@@ -109,6 +112,27 @@ bool KeyframeResolver<T, N>::hasAnyOverlaps() const {
 		}
 	}
 	return false;
+}
+
+template<typename T, uint8_t N>
+uint64_t KeyframeResolver<T, N>::GetIndexByID(uint64_t id) {
+	for (uint64_t i = 0; i < keyframes.size(); i++)
+		if (keyframes[i].id == id)
+			return i;
+
+	return UINT64_MAX;
+}
+
+template<typename T, uint8_t N>
+void KeyframeResolver<T, N>::EraseByID(uint64_t id) {
+
+	auto index = GetIndexByID(id);
+
+	if (index != UINT64_MAX) {
+		keyframes.erase(keyframes.begin() + index);
+		is_dirty = true;
+	}
+
 }
 
 template<typename T, uint8_t N>

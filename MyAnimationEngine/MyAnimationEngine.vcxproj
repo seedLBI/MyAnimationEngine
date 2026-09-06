@@ -26,6 +26,7 @@
     <ClCompile Include="source\Core\Animation\Layer\Factory\Layer.Factory.cpp" />
     <ClCompile Include="source\Core\Animation\Layer\Object\Layer.Object.cpp" />
     <ClCompile Include="source\Core\Animation\Layer\Objects\Solid\Layer.Object.Solid.cpp" />
+    <ClCompile Include="source\Core\Animation\Layer\ProviderData\Layers.Data.Provider.cpp" />
     <ClCompile Include="source\Core\Animation\Renderer\Renderer.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\Controller\Timeline.Controller.cpp" />
     <ClCompile Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.cpp" />
@@ -33,6 +34,7 @@
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Graph\Timeline.Graph.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\List\IconDrawer\Timeline.Layers.Icon.Drawer.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Viewer\KeyframeRenderer\KeyframeRenderer.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Textures\Noise\Texture.Noise.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.cpp" />
@@ -68,7 +70,13 @@
     <ClCompile Include="source\Utils\File\File.cpp" />
     <ClCompile Include="source\Utils\ImGui\Utils.ImGui.cpp" />
     <ClCompile Include="source\Utils\Keyboard\Keyboard.cpp" />
+    <ClCompile Include="source\Utils\Math\AABB\AABB.cpp" />
+    <ClCompile Include="source\Utils\Math\Math.cpp" />
     <ClCompile Include="source\Utils\Math\Math.Lerp.cpp" />
+    <ClCompile Include="source\Utils\Math\Segment\Segment.cpp" />
+    <ClCompile Include="source\Utils\Math\Triangle\Triangle.cpp" />
+    <ClCompile Include="source\Utils\Math\Triangulation\EarClipping\Triangulation.EarClipping.cpp" />
+    <ClCompile Include="source\Utils\Math\Triangulation\Greedy\Triangulation.Greedy.cpp" />
     <ClCompile Include="source\Utils\OpenGL\Framebuffer\Framebuffer.cpp" />
     <ClCompile Include="source\Utils\OpenGL\Renderbuffer\Renderbuffer.cpp" />
     <ClCompile Include="source\Utils\OpenGL\Shaders\Shader.cpp" />
@@ -111,6 +119,7 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Graph\Timeline.Graph.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\List\IconDrawer\Timeline.Layers.Icon.Drawer.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Viewer\KeyframeRenderer\KeyframeRenderer.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Textures\Noise\Texture.Noise.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.h" />
@@ -151,7 +160,13 @@
     <ClInclude Include="source\Utils\ImGui\Utils.ImGui.h" />
     <ClInclude Include="source\Utils\Keyboard\Keyboard.h" />
     <ClInclude Include="source\Utils\LerpedValue\LerpedValue.h" />
+    <ClInclude Include="source\Utils\Math\AABB\AABB.h" />
+    <ClInclude Include="source\Utils\Math\Math.h" />
     <ClInclude Include="source\Utils\Math\Math.Lerp.h" />
+    <ClInclude Include="source\Utils\Math\Segment\Segment.h" />
+    <ClInclude Include="source\Utils\Math\Triangle\Triangle.h" />
+    <ClInclude Include="source\Utils\Math\Triangulation\EarClipping\Triangulation.EarClipping.h" />
+    <ClInclude Include="source\Utils\Math\Triangulation\Greedy\Triangulation.Greedy.h" />
     <ClInclude Include="source\Utils\OpenGL\Enums\OpenGL.Enums.h" />
     <ClInclude Include="source\Utils\OpenGL\Framebuffer\Framebuffer.h" />
     <ClInclude Include="source\Utils\OpenGL\Renderbuffer\Renderbuffer.h" />

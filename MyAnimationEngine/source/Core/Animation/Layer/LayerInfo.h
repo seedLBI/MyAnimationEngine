@@ -19,6 +19,7 @@ struct TimeSector {
 };
 
 struct LayerInfo {
+	uint64_t id;
 	std::string name;
 	colorRGB color;
 	TimeSector time;

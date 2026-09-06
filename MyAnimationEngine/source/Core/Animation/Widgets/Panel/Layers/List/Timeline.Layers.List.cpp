@@ -489,10 +489,12 @@ bool Timeline_Layers_List::DrawLayerName(LayerObject* object, uint64_t index) {
 
     ImColor color_text = COLOR_DEFAULT;
 
-    if (ctx->selector->HaveSelectedPropertiesInLayer({ index })) {
+    uint64_t id_layer = object->GetLayerInfo().id;
+
+    if (ctx->selector->HaveSelectedPropertiesInLayer({ id_layer })) {
         draw_list->AddRect(min_text, max_text, COLOR_BG_LAYER_NAME_CHOOSED, 0.f, 0, 2.f);
     }
-    else if (ctx->selector->ContainsLayer({ index })) {
+    else if (ctx->selector->ContainsLayer({ id_layer })) {
         color_text.Value.x = 1.f - color_text.Value.x;
         color_text.Value.y = 1.f - color_text.Value.y;
         color_text.Value.z = 1.f - color_text.Value.z;
@@ -562,7 +564,10 @@ void Timeline_Layers_List::PrepareDragStaff() {
     dragStaff.index_layer_dragdrop = UINT64_MAX;
     dragStaff.count_selected = 0;
 }
-void Timeline_Layers_List::HandleSelectionLayer(uint64_t index, const ImVec2& p, const ImVec2& layer_min,const ImVec2& layer_max, bool isSelectedLayer, bool isHoveredName) {
+void Timeline_Layers_List::HandleSelectionLayer(LayerObject* layerlayer, uint64_t index, const ImVec2& p, const ImVec2& layer_min,const ImVec2& layer_max, bool isSelectedLayer, bool isHoveredName) {
+    uint64_t id_layer = layerlayer->GetLayerInfo().id;
+    uint64_t index_layer = ctx->layersData->GetIndexByID(id_layer);
+    
 
     dragStaff.isHoveredLayer = ImGui::IsMouseHoveringRect(layer_min, layer_max);
 
@@ -573,38 +578,48 @@ void Timeline_Layers_List::HandleSelectionLayer(uint64_t index, const ImVec2& p,
 
     if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && ctx->areaSelection->IsActive()) {
         if (ctx->areaSelection->CheckAABB({ layer_min, layer_max }))
-            ctx->selector->AddMoreSelectedLayer({ index });
-        else if (!ctx->selector->HaveSelectedPropertiesInLayer({ index }))
-            ctx->selector->EraseLayer({ index });
+            ctx->selector->AddMoreSelectedLayer({ id_layer });
+        else if (!ctx->selector->HaveSelectedPropertiesInLayer({ id_layer }))
+            ctx->selector->EraseLayer({ id_layer });
     }
 
     if (dragStaff.isHoveredLayer && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
         if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
-            ctx->selector->AddMoreSelectedLayer_Toggle({ index });
+            ctx->selector->AddMoreSelectedLayer_Toggle({ id_layer });
         else if (ImGui::IsKeyDown(ImGuiKey_LeftShift) && ctx->selector->getLayers().empty() == false) {
 
-            uint64_t min_index = ctx->selector->GetMinSelectedLayer().value().index;
-            uint64_t max_index = ctx->selector->GetMaxSelectedLayer().value().index;
+            uint64_t min_index = UINT64_MAX;
+            uint64_t max_index = 0;
+
+            for (const auto& layer: ctx->selector->getLayers()) {
+                uint64_t c_index = ctx->layersData->GetIndexByID(layer.id);
+                min_index = (std::min)(min_index, c_index);
+                max_index = (std::max)(max_index, c_index);
+            }
 
             ctx->selector->UnsetAll();
 
-            uint64_t delta_min = index > min_index ? index - min_index : min_index - index;
-            uint64_t delta_max = index > max_index ? index - max_index : max_index - index;
+            uint64_t delta_min = index_layer > min_index ? index_layer - min_index : min_index - index_layer;
+            uint64_t delta_max = index_layer > max_index ? index_layer - max_index : max_index - index_layer;
 
-            uint64_t from = (std::min)(index, min_index);
-            uint64_t to = (std::max)(index, min_index);
+            uint64_t from = (std::min)(index_layer, min_index);
+            uint64_t to = (std::max)(index_layer, min_index);
 
             if (delta_min <= delta_max) {
-                from = (std::min)(index, max_index);
-                to = (std::max)(index, max_index);
+                from = (std::min)(index_layer, max_index);
+                to = (std::max)(index_layer, max_index);
             }
 
             for (size_t i = from; i <= to; i++)
-                ctx->selector->AddMoreSelectedLayer({ i });
+                ctx->selector->AddMoreSelectedLayer(
+                    { 
+                        ctx->layersData->GetData().layers[i].get()->GetLayerInfo().id 
+                    }
+                );
 
         }
         else if (!isSelectedLayer)
-            ctx->selector->SelectLayer({ index });
+            ctx->selector->SelectLayer({ id_layer });
 
         if (isHoveredName) {
             dragStaff.indexGrabbingLayer = index;
@@ -688,19 +703,23 @@ void Timeline_Layers_List::ProcessDragLogic(float itemHeight) {
 void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t index_layer, ImVec2& p, const ImVec2& p_min, const ImVec2& p_max, float itemHeight, float& heightContent) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     auto& layerInfo = layer->GetLayerInfo();
+    auto& id_layer = layerInfo.id;
+
 
     auto& properties = layer->GetProperties();
     properties.forEachUnwrapped([&](const std::string& name, auto& value) {
 
+        
+
         if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && ctx->areaSelection->IsActive()) {
             if (ctx->areaSelection->CheckAABB({ { p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) } })) {
-                ctx->selector->AddMoreSelectedProperty({ index_layer, name });
-                ctx->selector->AddMoreSelectedLayer({ index_layer });
+                ctx->selector->AddMoreSelectedProperty({ id_layer, name });
+                ctx->selector->AddMoreSelectedLayer({ id_layer });
             }
             else {
-                ctx->selector->ErasePropertie({ index_layer, name });
-                if (!ctx->selector->HaveSelectedPropertiesInLayer({ index_layer }))
-                    ctx->selector->EraseLayer({ index_layer });
+                ctx->selector->ErasePropertie({ id_layer, name });
+                if (!ctx->selector->HaveSelectedPropertiesInLayer({ id_layer }))
+                    ctx->selector->EraseLayer({ id_layer });
             }
         }
 
@@ -947,10 +966,10 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                 SelectedProperty selectedProperty;
                 SelectedKeyframe selectedKeyframe;
 
-                selectedLayer.index = index_layer;
+                selectedLayer.id = id_layer;
                 selectedProperty.layer = selectedLayer;
                 selectedProperty.name = name;
-                selectedKeyframe.index = value.kr.addFromDefaultValue(eval_time);
+                selectedKeyframe.id = value.kr.addFromDefaultValue(eval_time);
                 selectedKeyframe.property = selectedProperty;
 
                 ctx->selector->SelectLayer(selectedLayer);
@@ -959,7 +978,6 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
             }
             else {
                 value.kr.clear();
-
             }
         }
 
@@ -972,16 +990,16 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
 
         if (ImGui::IsMouseHoveringRect(propertie_min, propertie_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
             if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
-                ctx->selector->AddMoreSelectedLayer({ index_layer });
-                ctx->selector->AddMoreSelectedProperty_Toggle({ index_layer, name });
+                ctx->selector->AddMoreSelectedLayer({ id_layer });
+                ctx->selector->AddMoreSelectedProperty_Toggle({ id_layer, name });
             }
-            else if (!ctx->selector->ContainsProperty({ index_layer, name })) {
-                ctx->selector->SelectLayer({ index_layer });
-                ctx->selector->SelectProperty({ index_layer, name });
+            else if (!ctx->selector->ContainsProperty({ id_layer, name })) {
+                ctx->selector->SelectLayer({ id_layer });
+                ctx->selector->SelectProperty({ id_layer, name });
             }
         }
 
-        if (ctx->selector->ContainsProperty({ index_layer, name })) {
+        if (ctx->selector->ContainsProperty({ id_layer, name })) {
             draw_list->AddRectFilled(propertie_min, propertie_max, COLOR_BG_LAYER_CHOOSED);
         }
 
@@ -1042,10 +1060,10 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                             SelectedProperty selectedProperty;
                             SelectedKeyframe selectedKeyframe;
 
-                            selectedLayer.index = index_layer;
+                            selectedLayer.id = id_layer;
                             selectedProperty.layer = selectedLayer;
                             selectedProperty.name = name;
-                            selectedKeyframe.index = value.kr.add(eval_time, def_val, TypeKeyframe::LINEAR);
+                            selectedKeyframe.id = value.kr.add(eval_time, def_val, TypeKeyframe::LINEAR);
                             selectedKeyframe.property = selectedProperty;
 
                             ctx->selector->SelectLayer(selectedLayer);
@@ -1139,10 +1157,10 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                             SelectedProperty selectedProperty;
                             SelectedKeyframe selectedKeyframe;
 
-                            selectedLayer.index = index_layer;
+                            selectedLayer.id = id_layer;
                             selectedProperty.layer = selectedLayer;
                             selectedProperty.name = name;
-                            selectedKeyframe.index = value.kr.add(eval_time, evaluated_value, TypeKeyframe::LINEAR);
+                            selectedKeyframe.id = value.kr.add(eval_time, evaluated_value, TypeKeyframe::LINEAR);
                             selectedKeyframe.property = selectedProperty;
 
 
@@ -1414,9 +1432,11 @@ void Timeline_Layers_List::Draw() {
     p.y += ctx->verticalTransform->getOffset_lerped();
     float heightContent = 0.f;
 
-    ctx->layersData->forEach([&](LayerObject* layer, uint64_t index_layer) {
+    ctx->layersData->forEach([&](LayerObject* layer, uint64_t number_layer) {
         ImGui::SetCursorScreenPos(p);
         auto& layerInfo = layer->GetLayerInfo();
+        const auto& id_layer = layerInfo.id;
+
 
         ImVec2 rect_min = { p_min.x, round(p.y + 1.f) };
         ImVec2 rect_max = { p_max.x, round(p.y + itemHeight) };
@@ -1424,11 +1444,11 @@ void Timeline_Layers_List::Draw() {
         ImVec2 name_max = { columns[TypeColumn::NAME].startCursorPos + columns[TypeColumn::NAME].width, rect_max.y };
 
         bool isHoveredName = ImGui::IsMouseHoveringRect(name_min, name_max);
-        bool isSelectedLayer = ctx->selector->ContainsLayer({ index_layer });
+        bool isSelectedLayer = ctx->selector->ContainsLayer({ id_layer });
 
         
-        HandleSelectionLayer(index_layer, p, rect_min, rect_max, isSelectedLayer, isHoveredName);
-        DrawLayer(layer, index_layer, rect_min, rect_max, isSelectedLayer);
+        HandleSelectionLayer(layer, number_layer, p, rect_min, rect_max, isSelectedLayer, isHoveredName);
+        DrawLayer(layer, number_layer, rect_min, rect_max, isSelectedLayer);
 
         p.y += itemHeight;
         heightContent += itemHeight;
@@ -1436,9 +1456,9 @@ void Timeline_Layers_List::Draw() {
 
 
         if (layerInfo.isExpanded)
-            DrawLayerProperties(layer, index_layer, p, p_min, p_max, itemHeight, heightContent);
+            DrawLayerProperties(layer, number_layer, p, p_min, p_max, itemHeight, heightContent);
 
-        DrawDragAndDropIndicators(index_layer, p, p_max, rect_min, rect_max, isSelectedLayer);
+        DrawDragAndDropIndicators(number_layer, p, p_max, rect_min, rect_max, isSelectedLayer);
     });
 
 

@@ -18,7 +18,6 @@ public:
 	~Timeline_Layers_Viewer();
 
 	void Draw();
-	void Update();
 
 private:
 	TimelineContext* ctx;
@@ -39,38 +38,53 @@ private:
 	struct DragKeyframeInfo {
 		bool drag_started = false;
 		float startedDrag_global_x;
-		std::unordered_map<std::string, float> original_times;
+
+		struct DragData {
+			SelectedKeyframe keyframe;
+			float original_time;
+		};
+
+		std::vector<DragData> original_times;
 	} DragKeyframe;
+
+
+	struct UIInfo {
+		ImDrawList* draw_list;
+		ImVec2 p_min, p_max;
+		bool   isHoveredArea;
+		ImVec2 relative_mouse_pos;
+		float  relative_mouse_global_pos_x;
+	} ui_info;
 
 
 	long double drag_start_mouse_global;
 
+	
+	void DrawBackground();
+	void DrawRange();
+
 	void DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered, bool isSelected);
+	void DrawLayerOverlays();
+
+	void ProcessLayers();
+	void ProcessLayerProperties();
+
+	void ProcessLayerInput(const ImRect& rect, const LayerInfo& layerInfo, uint64_t index, bool& outHovered, bool& outActive, ObjectStatus& outStatus);
+	void ProcessKeyframeInput(const SelectedKeyframe& current, const ImVec2& min_hitbox, const ImVec2& max_hitbox);
+
 
 	const float width_hover = 5.f;
 	bool IsHovered_LeftResize(const ImRect& rect);
 	bool IsHovered_RightResize(const ImRect& rect);
 	bool IsHovered_BodyMove(const ImRect& rect);
+	ObjectStatus GetHoveredStatus(const ImRect& rect);
 
-	void DrawKeyframe_Uniform(
-		TypeKeyframe type_out, TypeKeyframe type_in,
-		const ImVec2& pos_center,
-		float size,
-		ImColor color,
-		ImColor color_side,
-		bool isLeft, bool isMiddle, bool isRight, bool isOnlyOne,
-		bool isSelected = false,
-		ImColor colorSelected = ImColor(0.f, 0.f, 0.f, 0.f)
-	);
+	void HandleGlobalInput();
+	void HandleKeyframeDragging();
+	void HandleLayerDragging();
 
-
-
-
+	float SnapToGrid(float value) const;
 
 };
-
-
-
-
 
 #endif

@@ -4,7 +4,6 @@
 #include "Core/Animation/Layer/ProviderData/Layers.Data.Provider.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 
-
 #include <vector>
 
 class LayerFactory {
@@ -16,8 +15,12 @@ public:
 	void CreateSolid(const float& begin,const float& time);
 
 private:
+	static uint64_t layers_id_counter;
+
 	LayersDataProvider* layers;
 	TimelineProviderData* timeline;
 };
+
+
 
 #endif

@@ -3,6 +3,9 @@
 #include "Core/Animation/Layer/Object/Layer.Object.h"
 #include "Core/Animation/Layer/Objects/Solid/Layer.Object.Solid.h"
 
+
+uint64_t LayerFactory::layers_id_counter = 0;
+
 LayerFactory::~LayerFactory()
 {
 
@@ -22,6 +25,8 @@ void LayerFactory::CreateSolid()
 			count++;
 
 	}
+
+	newLayerInfo.id = layers_id_counter;
 	newLayerInfo.name += " " + std::to_string(count);
 
 
@@ -37,7 +42,8 @@ void LayerFactory::CreateSolid()
 	newLayerInfo.color.g = 0.f;
 	newLayerInfo.color.b = 0.2f;
 
-	layers->GetData().layers.emplace_back(std::make_shared<LayerObject_Solid>(newLayerInfo));
+	layers->AddLayer(std::make_shared<LayerObject_Solid>(newLayerInfo));
+	layers_id_counter++;
 }
 
 void LayerFactory::CreateSolid(const float& begin, const float& time) {
@@ -51,6 +57,8 @@ void LayerFactory::CreateSolid(const float& begin, const float& time) {
 			count++;
 
 	}
+
+	newLayerInfo.id = layers_id_counter;
 
 	newLayerInfo.name += " " + std::to_string(count);
 
@@ -72,11 +80,11 @@ void LayerFactory::CreateSolid(const float& begin, const float& time) {
 	newLayerInfo.color.g = 0.f;
 	newLayerInfo.color.b = 0.2f;
 
-
-	layers->GetData().layers.emplace_back(std::make_shared<LayerObject_Solid>(newLayerInfo));
+	layers->AddLayer(std::make_shared<LayerObject_Solid>(newLayerInfo));
+	layers_id_counter++;
 }
 
 
 LayerFactory::LayerFactory(TimelineProviderData* timeline, LayersDataProvider* layers) : timeline(timeline), layers(layers) {
-
+	this->layers_id_counter = 0;
 }

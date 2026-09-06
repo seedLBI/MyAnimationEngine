@@ -10,12 +10,12 @@
 #include <optional>
 
 struct SelectedLayer {
-	uint64_t index;
+	uint64_t id;
 	bool operator==(const SelectedLayer& other) const {
-		return index == other.index;
+		return id == other.id;
 	}
 	bool operator<(const SelectedLayer& other) const {
-		return index < other.index;
+		return id < other.id;
 	}
 };
 
@@ -34,12 +34,12 @@ struct SelectedProperty {
 
 struct SelectedKeyframe {
 	SelectedProperty property;
-	uint64_t index;
+	uint64_t id;
 	bool operator==(const SelectedKeyframe& other) const {
-		return property == other.property && index == other.index;
+		return property == other.property && id == other.id;
 	}
 	bool operator<(const SelectedKeyframe& other) const {
-		return std::tie(property, index) < std::tie(other.property, other.index);
+		return std::tie(property, id) < std::tie(other.property, other.id);
 	}
 };
 
@@ -49,6 +49,7 @@ public:
 	~Timeline_Selector() = default;
 
 	void UnsetAll();
+	void UnsetAll_Keyframes();
 
 	void SelectLayer(SelectedLayer layer);
 	void SelectProperty(const SelectedProperty& propertу);
@@ -70,9 +71,6 @@ public:
 	void AddMoreSelectedProperty_Toggle(const SelectedProperty& propertу);
 	void AddMoreSelectedKeyframe_Toggle(const SelectedKeyframe& keyframe);
 
-	std::optional<SelectedLayer> GetMinSelectedLayer() const;
-	std::optional<SelectedLayer> GetMaxSelectedLayer() const;
-
 	void AddMoreSelectedLayer(SelectedLayer layer);
 	void AddMoreSelectedProperty(const SelectedProperty& propertу);
 	void AddMoreSelectedKeyframe(const SelectedKeyframe& keyframe);
@@ -80,6 +78,10 @@ public:
 	bool ContainsLayer(SelectedLayer layer) const;
 	bool ContainsProperty(const SelectedProperty& propertу) const;
 	bool ContainsKeyframe(const SelectedKeyframe& keyframe) const;
+
+	bool HasKeyframes() const;
+	bool HasProperties() const;
+	bool HasLayers() const; 
 
 	const std::set<SelectedKeyframe>& getKeyframes() const;
 	const std::set<SelectedProperty>& getProperties() const;

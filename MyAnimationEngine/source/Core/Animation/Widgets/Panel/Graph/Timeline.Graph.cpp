@@ -16,7 +16,7 @@ Timeline_Graph::Timeline_Graph(
 	
 	ctx->graphTransformVertical->setBaseStep(-100.f);
 	ctx->graphTransformVertical->setBoundsOffset(-10.f - 0.01f, 10.f + 0.01f);
-	ctx->graphTransformVertical->setBoundsScale(1.f, 100.f);
+	ctx->graphTransformVertical->setBoundsScale(0.1f, 100.f);
 	
 
 }
@@ -163,11 +163,12 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 		return;
 	}
 
-	auto index_selector = ctx->selector->getProperties().begin()->layer.index;
-	auto name_property  = ctx->selector->getProperties().begin()->name;
-
-	auto* layerObject = ctx->layersData->GetData().layers[index_selector].get();
-	float time_begin = layerObject->GetLayerInfo().time.Begin;
+	
+	auto id_selected_layer = ctx->selector->getProperties().begin()->layer.id;
+	auto name_property     = ctx->selector->getProperties().begin()->name;
+	
+	auto* layerObject = ctx->layersData->GetLayerByID(id_selected_layer).get();
+	float time_begin  = layerObject->GetLayerInfo().time.Begin;
 
 	auto& variant_prop = layerObject->GetProperties().getVariant(name_property);
 

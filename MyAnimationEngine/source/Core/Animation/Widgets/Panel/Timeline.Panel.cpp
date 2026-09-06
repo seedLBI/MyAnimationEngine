@@ -93,7 +93,7 @@ void Timeline_Panel::Draw() {
 
 		std::string str_s_mouse = "screen: " + std::to_string(timelineRuler->getScreenMouse());
 		std::string str_g_mouse = "global: " + std::to_string(timelineRuler->getGlobalMouse());
-		std::string str_offset = "offset: " + std::to_string(timelineTransformHorizontal->getOffset().GetReal());
+		std::string str_offset =  "offset: " + std::to_string(timelineTransformHorizontal->getOffset().GetReal());
 
 		std::string str_left_range =  std::to_string(timelineTransformHorizontal->getLeftBoundView_global_real());
 		std::string str_right_range = std::to_string(timelineTransformHorizontal->getRightBoundView_global_real());
@@ -127,6 +127,16 @@ void Timeline_Panel::Draw() {
 			}
 
 		);
+
+		DebugOverlay::AddText(
+
+			{
+				{u8"AreaSelection : ", ImColor(1.f, 1.f, 1.f, 1.f)},
+				{std::string(timelineContext->areaSelection->IsActive() == true ? "TRUE" : "FALSE"), timelineContext->areaSelection->IsActive() == true ? ImColor(0.5f, 0.5f, 1.f, 1.f) : ImColor(1.f, 0.5f, 0.5f, 1.f)   }
+			}
+
+		);
+
 
 	
 	ImGui::End();
@@ -338,7 +348,6 @@ void Timeline_Panel::Update() {
 	timelineRange->Update();
 	layersList->Update();
 
-	layersViewer->Update();
 	graph->Update(delta_time);
 
 

@@ -40,7 +40,7 @@ private:
 	void HandleScroll(const ImVec2& p_min, const ImVec2& p_max, float itemHeight);
 	void HandleContextMenu(const ImVec2& p_min, const ImVec2& p_max);
 	void PrepareDragStaff();
-	void HandleSelectionLayer(uint64_t index, const ImVec2& p, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer, bool isHoveredName);
+	void HandleSelectionLayer(LayerObject* layerlayer, uint64_t index, const ImVec2& p, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer, bool isHoveredName);
 	void HandleAreaSelectionStart(const ImVec2& p, const ImVec2& p_max);
 	void ProcessDragLogic(float itemHeight);
 	void DrawDragAndDropIndicators(uint64_t index, const ImVec2& p, const ImVec2& p_max, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer);
