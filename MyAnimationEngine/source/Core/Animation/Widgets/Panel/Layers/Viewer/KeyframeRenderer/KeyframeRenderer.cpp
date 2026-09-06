@@ -146,15 +146,24 @@ void KeyframeRenderer::Private::DrawOutline(ImDrawList* draw_list, TypeKeyframe 
 		original_border.push_back(glm::vec2(path[i].x, path[i].y));
 
 	float outline_radius = 1.5f;
-	std::vector<glm::vec2> smoothed_border = GenerateRadiusBorder(original_border, outline_radius, false);
+	std::vector<glm::vec2> smoothed_border_color = GenerateRadiusBorder(original_border, 1.f, false);
+	std::vector<glm::vec2> smoothed_border_side = GenerateRadiusBorder(original_border, 2.2f, false);
 
-	std::vector<ImVec2> draw_path;
-	draw_path.reserve(smoothed_border.size());
-	for (const auto& p : smoothed_border)
-		draw_path.push_back(ImVec2(p.x, p.y));
+	std::vector<ImVec2> draw_path_color;
+	draw_path_color.reserve(smoothed_border_color.size());
+	for (const auto& p : smoothed_border_color)
+		draw_path_color.push_back(ImVec2(p.x, p.y));
 
-	if (!draw_path.empty())
-		draw_list->AddPolyline(draw_path.data(), draw_path.size(), params.outline, ImDrawFlags_Closed, 1.5f);
+	std::vector<ImVec2> draw_path_side;
+	draw_path_side.reserve(smoothed_border_side.size());
+	for (const auto& p : smoothed_border_side)
+		draw_path_side.push_back(ImVec2(p.x, p.y));
+
+	if (!draw_path_color.empty())
+		draw_list->AddPolyline(draw_path_color.data(), draw_path_color.size(), params.color, ImDrawFlags_Closed, 2.7f);
+
+	if (!draw_path_side.empty())
+		draw_list->AddPolyline(draw_path_side.data(), draw_path_side.size(), params.outline, ImDrawFlags_Closed, 1.5f);
 }
 
 KeyframeRenderer::Private::KeyframePoints

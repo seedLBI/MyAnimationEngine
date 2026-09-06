@@ -434,6 +434,7 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 						);
 
 					}
+
 				}
 
 				p.y += itemHeight;

@@ -59,9 +59,9 @@ namespace KeyframeRenderer {
         if (params.isLeft)
             type_in = type_out;
 
-        if (params.isSelected)
+        if (params.isSelected) 
             DrawOutline(draw_list, type_in, type_out, pos_center, params, pts);
-
+        
         DrawHalf(draw_list, Side::LEFT,  pos_center, type_in, type_out, params, pts);
         DrawHalf(draw_list, Side::RIGHT, pos_center, type_in, type_out, params, pts);
 
