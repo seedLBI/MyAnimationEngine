@@ -33,6 +33,7 @@
     <ClCompile Include="source\Core\Animation\Widgets\Panel\AreaSelection\Timeline.AreaSelection.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Graph\Timeline.Graph.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\ContextMenuManager\Layers.ContextMenu.Manager.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\List\IconDrawer\Timeline.Layers.Icon.Drawer.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Viewer\KeyframeRenderer\KeyframeRenderer.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.cpp" />
@@ -118,6 +119,7 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Context\Timeline.Context.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Graph\Timeline.Graph.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\ContextMenuManager\Layers.ContextMenu.Manager.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\List\IconDrawer\Timeline.Layers.Icon.Drawer.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Viewer\KeyframeRenderer\KeyframeRenderer.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.h" />

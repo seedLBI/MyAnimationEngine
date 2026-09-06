@@ -9,7 +9,7 @@
 #include "Utils/ImGui/Utils.ImGui.h"
 #include <cstring>
 
-Timeline_Layers_List::Timeline_Layers_List(TimelineContext* ctx) : ctx(ctx)
+Timeline_Layers_List::Timeline_Layers_List(TimelineContext* ctx, LayersContextMenu_Manager* layers_ctx_menu) : ctx(ctx), layers_ctx_menu(layers_ctx_menu)
 {
 
     columns.resize(8);
@@ -349,7 +349,6 @@ void Timeline_Layers_List::DrawLayer(LayerObject* object, uint64_t index, const 
 
 
 }
-
 bool Timeline_Layers_List::DrawToggle(LayerObject* object, uint64_t index) {
     std::string str_index = std::to_string(index);
     std::string label = "toggle_btn##" + str_index;
@@ -526,31 +525,6 @@ void Timeline_Layers_List::HandleScroll(const ImVec2& p_min,const ImVec2& p_max,
         float scrol_zoom = ImGui::GetIO().MouseWheel;
         ctx->verticalTransform->addOffset(scrol_zoom * itemHeight);
     }
-}
-void Timeline_Layers_List::HandleContextMenu(const ImVec2& p_min, const ImVec2& p_max) {
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right, false) && ImGui::IsMouseHoveringRect(p_min, p_max))
-        ImGui::OpenPopup("POPUP_LIST_MENU_CONTEXT");
-
-    Push_SmallFont();
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.f, 12.f));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12.f, 12.f));
-    if (ImGui::BeginPopupContextItem("POPUP_LIST_MENU_CONTEXT")) {
-
-        if (ImGui::BeginMenu(u8"Создать слой")) {
-            if (ImGui::MenuItem(u8"Камера")) {
-
-            }
-            if (ImGui::MenuItem(u8"Сплошной")) {
-                ctx->layerFactory->CreateSolid();
-            }
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndPopup();
-    }
-    ImGui::PopStyleVar(2);
-    Pop_SmallFont();
-
 }
 void Timeline_Layers_List::PrepareDragStaff() {
     if (dragStaff.offsets_selected_while_grabing.size() <= ctx->selector->getLayers().size())
@@ -1425,7 +1399,10 @@ void Timeline_Layers_List::Draw() {
 
     DrawEmptyState(p_center);
     HandleScroll(p_min, p_max, itemHeight);
-    HandleContextMenu(p_min, p_max);
+
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right, false) && ImGui::IsMouseHoveringRect(p_min, p_max))
+        layers_ctx_menu->OpenMenu_Creation();
+
     PrepareDragStaff();
 
     ImVec2 p = ImGui::GetCursorScreenPos();
@@ -1443,9 +1420,14 @@ void Timeline_Layers_List::Draw() {
         ImVec2 name_min = { columns[TypeColumn::NAME].startCursorPos, rect_min.y };
         ImVec2 name_max = { columns[TypeColumn::NAME].startCursorPos + columns[TypeColumn::NAME].width, rect_max.y };
 
+        bool isHoveredLayer = ImGui::IsMouseHoveringRect(rect_min, rect_max);
         bool isHoveredName = ImGui::IsMouseHoveringRect(name_min, name_max);
         bool isSelectedLayer = ctx->selector->ContainsLayer({ id_layer });
 
+        if (isHoveredLayer && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+            layers_ctx_menu->OpenMenu_LayerSetting(id_layer);
+            ctx->selector->AddMoreSelectedLayer({ id_layer });
+        }
         
         HandleSelectionLayer(layer, number_layer, p, rect_min, rect_max, isSelectedLayer, isHoveredName);
         DrawLayer(layer, number_layer, rect_min, rect_max, isSelectedLayer);

@@ -22,6 +22,7 @@
 #include "Scroll/Vertical/Timeline.Scroll.Vertical.h"
 #include "Layers/List/Timeline.Layers.List.h"
 #include "Layers/Viewer/Timeline.Layers.Viewer.h"
+#include "Layers/ContextMenuManager/Layers.ContextMenu.Manager.h"
 #include "UpperControls/Timeline.UpperControls.h"
 #include "Graph/Timeline.Graph.h"
 #include "HorizontalTickRenderer/Horizontal.Tick.Renderer.h"
@@ -47,18 +48,19 @@ public:
 	void Update();
 
 private:
-	FPS_Timer* deltaTime = nullptr;
+	FPS_Timer* deltaTime;
 
-	TimelineContext* timelineContext = nullptr;
+	TimelineContext* timelineContext;
 
-	TimelineController*			 timelineController = nullptr;
-	TimelineProviderData*		 timelineData = nullptr;
-	LayersDataProvider*			 layersData = nullptr;
-	LayerFactory*				 layerFactory = nullptr;
-	TimelineTransformHorizontal* timelineTransformHorizontal = nullptr;
-	TimelineTransformVertical*   timelineTransformVertical = nullptr;
-	TransformScaled*			 graphTransformVertical = nullptr;
-	Timeline_Selector*			 selector = nullptr;
+	TimelineController*			 timelineController;
+	TimelineProviderData*		 timelineData;
+	LayersDataProvider*			 layersData;
+	LayerFactory*				 layerFactory;
+	TimelineTransformHorizontal* timelineTransformHorizontal;
+	TimelineTransformVertical*   timelineTransformVertical;
+	TransformScaled*			 graphTransformVertical;
+	Timeline_Selector*			 selector;
+	LayersContextMenu_Manager*	 layers_ctx_menu;
 
 	// gui
 	HorizontalTickRenderer*		horizontalTickRenderer;

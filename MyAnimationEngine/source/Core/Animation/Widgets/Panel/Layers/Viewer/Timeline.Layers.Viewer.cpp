@@ -9,10 +9,12 @@
 
 Timeline_Layers_Viewer::Timeline_Layers_Viewer(
 	TimelineContext* ctx,
-	Timeline_TimeCursor* timeCursor)
+	Timeline_TimeCursor* timeCursor,
+	LayersContextMenu_Manager* layers_ctx_menu)
 	: 
 	ctx(ctx),
-	timeCursor(timeCursor)
+	timeCursor(timeCursor),
+	layers_ctx_menu(layers_ctx_menu)
 {
 
 }
@@ -64,9 +66,7 @@ Timeline_Layers_Viewer::ObjectStatus Timeline_Layers_Viewer::GetHoveredStatus(co
 	return ObjectStatus::NOTHING;
 }
 
-
-
-void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered, bool isSelected) {
+void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered, bool isSelected, bool isBodyDragging) {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
@@ -78,8 +78,6 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 	
 	if (isSelected)
 		body = info.color;
-
-
 
 	bool isLight = getLuminance(info.color) > 0.6f;
 
@@ -95,19 +93,27 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 
 	colorRGB underline = lerp(body, colorRGB{ 0,0,0 }, 0.55f);
 
-
-
-
 	const float SIZE_TEX = 512.f;
 
+	auto hash_uint64 = [](uint64_t x) -> uint64_t {
+		x ^= x >> 30;
+		x *= 0xbf58476d1ce4e5b9ULL;
+		x ^= x >> 27;
+		x *= 0x94d049bb133111ebULL;
+		x ^= x >> 31;
+		return x;
+	};
+	float some_rand = float(hash_uint64(info.id) % 10000ULL);
+
+
 	// вот именно с таким width классно выглядит
-	float width		= ctx->horizontalTransform->getPostionScreen_real(info.time.End) - ctx->horizontalTransform->getPostionScreen_real(info.time.Begin);
+	float width		= ctx->horizontalTransform->getPostionScreen_real(info.time.End) - ctx->horizontalTransform->getPostionScreen_real(info.time.Begin) + some_rand;
 	float height	= rect.Max.y - rect.Min.y;
 
 	float uv_width = width / SIZE_TEX;
 	float uv_height = height / SIZE_TEX;
 	
-	ImVec2 uv_min = { 0.f, 0.f };
+	ImVec2 uv_min = { some_rand / SIZE_TEX , 0.f };
 	ImVec2 uv_max = { uv_width, uv_height };
 
 
@@ -123,10 +129,30 @@ void Timeline_Layers_Viewer::DrawLayerBox(const ImRect& rect, const LayerInfo& i
 			ImColor(1.f, 1.f, 1.f, 0.45f));
 	
 
-
 	draw_list->AddRect({ rect.Min.x - 0.5f,rect.Min.y + 2.f }, { rect.Max.x + 0.5f, round(rect.Max.y) }, ImColor(outline.r, outline.g, outline.b, 1.f), 0.f, 0, 1.f);
 	if (!hovered)
 		draw_list->AddRect({ rect.Min.x-1.2f, rect.Max.y-2.f }, { rect.Max.x + 1.2f, round(rect.Max.y) }, ImColor(underline.r, underline.g, underline.b, 1.f), 1.f);
+
+
+	if (isBodyDragging) {
+		float screen_pos_x = ui_info.p_min.x + ctx->horizontalTransform->getPostionScreen_lerped(info.time.Begin + info.time.DragInfo.OffsetFromBegin);
+		const int count = 4;
+		const float gap = 3.f;
+		const float offset = -gap * float(count) / 2.f;
+		for (size_t index_line = 0; index_line < count; index_line++) {
+			float g = gap * (float)index_line;
+			draw_list->AddLine(
+				{ std::round(screen_pos_x + offset + g), rect.Min.y + 4.f },
+				{ std::round(screen_pos_x + offset + g), rect.Max.y - 4.f },
+				ImColor(1.f, 1.f, 1.f, 0.5f)
+			);
+			draw_list->AddLine(
+				{ std::round(screen_pos_x + 1.f + offset + g), rect.Min.y + 4.f },
+				{ std::round(screen_pos_x + 1.f + offset + g), rect.Max.y - 4.f },
+				ImColor(0.f, 0.f, 0.f, 0.35f)
+			);
+		}
+	}
 
 }
 
@@ -167,12 +193,18 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 		float screen_time_begin = ctx->horizontalTransform->getPostionScreen_lerped(time_begin);
 		float screen_time_end = ctx->horizontalTransform->getPostionScreen_lerped(time_end);
 
+		ImVec2 full_rect_min = p;
+		ImVec2 full_rect_max = {p.x + width_window, p.y + itemHeight};
+
 		ImVec2 rect_min = { p.x + screen_time_begin, p.y };
 		ImVec2 rect_max = { p.x + screen_time_end,	 p.y + itemHeight };
 
 		ImRect rect = ImRect{ rect_min, rect_max };
 
 		bool isLayerSelected = ctx->selector->ContainsLayer({ id_layer });
+		bool isHoveredLayerLine = ImGui::IsMouseHoveringRect(full_rect_min, full_rect_max);
+
+
 
 		ImColor bg_layer = COLOR_BG_LAYER;
 		if (isLayerSelected)
@@ -189,10 +221,9 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 		bool hovered = ImGui::IsItemHovered();
 		bool active = ImGui::IsItemActive();
 
-		DrawLayerBox(rect, layerInfo, hovered || active, isLayerSelected);
+		
 
 		ObjectStatus isHovered = GetHoveredStatus(rect);
-
 
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Left) == false) {
 			switch (isHovered) {
@@ -205,7 +236,6 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 				break;
 			}
 		}
-
 
 		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && isHovered == ObjectStatus::BODY_MOVE)
 			ctx->horizontalTransform->fitToRanges(time_begin - 0.1f, time_end + 0.1f);
@@ -249,27 +279,14 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 			index_drag = UINT64_MAX;
 		}
 
-
-		if (draging_status == ObjectStatus::BODY_MOVE && index_drag == index) {
-			float screen_pos_x = ui_info.p_min.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + layerInfo.time.DragInfo.OffsetFromBegin);
-			const int count = 4;
-			const float gap = 3.f;
-			const float offset = -gap * float(count) / 2.f;
-			for (size_t index_line = 0; index_line < count; index_line++) {
-				float g = gap * (float)index_line;
-				draw_list->AddLine(
-					{ std::round(screen_pos_x + offset + g), rect_min.y + 4.f },
-					{ std::round(screen_pos_x + offset + g), rect_max.y - 4.f },
-					ImColor(1.f, 1.f, 1.f, 0.5f)
-				);
-				draw_list->AddLine(
-					{ std::round(screen_pos_x + 1.f + offset + g), rect_min.y + 4.f },
-					{ std::round(screen_pos_x + 1.f + offset + g), rect_max.y - 4.f },
-					ImColor(0.f, 0.f, 0.f, 0.35f)
-				);
-			}
+		if (isHoveredLayerLine && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+			layers_ctx_menu->OpenMenu_LayerSetting( id_layer );
+			ctx->selector->AddMoreSelectedLayer({ id_layer });
 		}
 
+		bool isBodyDragging = draging_status == ObjectStatus::BODY_MOVE && index_drag == index;
+
+		DrawLayerBox(rect, layerInfo, hovered || active, isLayerSelected, isBodyDragging);
 
 		if (layerInfo.isVisible == false) {
 			draw_list->AddRectFilled(
@@ -297,6 +314,8 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 		if (layerInfo.isExpanded) {
 
 			auto& properties = layer->GetProperties();
+
+			ImVec2 p_prop_begin = p;
 
 			properties.forEachUnwrapped([&](const std::string& name_propertie, auto& value) {
 
@@ -392,6 +411,7 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 							ctx->selector->AddMoreSelectedKeyframe(current);
 						}
 
+
 						KeyframeRenderer::Parameters params;
 						params.color = COLOR_KEYFRAME;
 						params.color_side = COLOR_KEYFRAME_SIDE;
@@ -425,39 +445,25 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 				);
 
 				ImGui::SetCursorScreenPos(p);
-				});
+			});
+
+			ImVec2 p_prop_end = p;
+
+			if (ImGui::IsMouseHoveringRect(p_prop_begin, { ui_info.p_max.x, p_prop_end.y }) &&  ImGui::IsMouseClicked(ImGuiMouseButton_Right) && layer->GetProperties().isEmpty() == false) {
+				layers_ctx_menu->OpenMenu_Creation();
+			}
+
+
 		}
 
 
 	});
+
+	if (ImGui::IsMouseHoveringRect(p, ui_info.p_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+		layers_ctx_menu->OpenMenu_Creation();
+	}
+
 }
-
-void Timeline_Layers_Viewer::Draw() {
-
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-	ImVec2 region_max = ImGui::GetContentRegionAvail();
-	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
-
-	ui_info.draw_list = draw_list;
-	ui_info.relative_mouse_pos = { ImGui::GetMousePos().x - cursor_pos.x,ImGui::GetMousePos().y - cursor_pos.y };
-	ui_info.relative_mouse_global_pos_x = ctx->horizontalTransform->getPostionGlobal_real(ui_info.relative_mouse_pos.x);
-	ui_info.p_min = cursor_pos;
-	ui_info.p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
-	ui_info.isHoveredArea = ImGui::IsMouseHoveringRect(ui_info.p_min, ui_info.p_max);
-
-	DrawBackground();
-
-	ProcessLayers();
-
-	HandleGlobalInput();
-	HandleKeyframeDragging();
-	HandleLayerDragging();
-
-	DrawRange();
-	timeCursor->Draw(ui_info.p_min, ui_info.p_max);
-}
-
 
 void Timeline_Layers_Viewer::HandleGlobalInput() {
 
@@ -646,3 +652,30 @@ void Timeline_Layers_Viewer::HandleLayerDragging() {
 	}
 
 }
+
+void Timeline_Layers_Viewer::Draw() {
+
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	ImVec2 region_max = ImGui::GetContentRegionAvail();
+	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+
+	ui_info.draw_list = draw_list;
+	ui_info.relative_mouse_pos = { ImGui::GetMousePos().x - cursor_pos.x,ImGui::GetMousePos().y - cursor_pos.y };
+	ui_info.relative_mouse_global_pos_x = ctx->horizontalTransform->getPostionGlobal_real(ui_info.relative_mouse_pos.x);
+	ui_info.p_min = cursor_pos;
+	ui_info.p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
+	ui_info.isHoveredArea = ImGui::IsMouseHoveringRect(ui_info.p_min, ui_info.p_max);
+
+	DrawBackground();
+
+	ProcessLayers();
+
+	HandleGlobalInput();
+	HandleKeyframeDragging();
+	HandleLayerDragging();
+
+	DrawRange();
+	timeCursor->Draw(ui_info.p_min, ui_info.p_max);
+}
+

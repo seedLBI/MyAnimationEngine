@@ -2,6 +2,7 @@
 #define TIMELINE_LAYERS_LIST_TIMELINE_H
 
 #include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
+#include "Core/Animation/Widgets/Panel/Layers/ContextMenuManager/Layers.ContextMenu.Manager.h"
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
 
 
@@ -12,7 +13,8 @@ class Timeline_Layers_Viewer
 public:
 	Timeline_Layers_Viewer(
 		TimelineContext* ctx,
-		Timeline_TimeCursor* timeCursor
+		Timeline_TimeCursor* timeCursor,
+		LayersContextMenu_Manager* layers_ctx_menu
 	);
 
 	~Timeline_Layers_Viewer();
@@ -22,6 +24,7 @@ public:
 private:
 	TimelineContext* ctx;
 	Timeline_TimeCursor* timeCursor;
+	LayersContextMenu_Manager* layers_ctx_menu;
 
 	enum class ObjectStatus : uint8_t {
 		NOTHING = 0,
@@ -63,7 +66,7 @@ private:
 	void DrawBackground();
 	void DrawRange();
 
-	void DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered, bool isSelected);
+	void DrawLayerBox(const ImRect& rect, const LayerInfo& info, const bool& hovered, bool isSelected, bool isBodyDragging);
 	void DrawLayerOverlays();
 
 	void ProcessLayers();

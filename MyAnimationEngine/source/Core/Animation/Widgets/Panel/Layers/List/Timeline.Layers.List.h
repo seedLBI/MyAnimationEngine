@@ -3,6 +3,7 @@
 
 
 #include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
+#include "Core/Animation/Widgets/Panel/Layers/ContextMenuManager/Layers.ContextMenu.Manager.h"
 #include "IconDrawer/Timeline.Layers.Icon.Drawer.h"
 #include "Utils/Timer/Timer.h"
 
@@ -11,7 +12,7 @@
 
 class Timeline_Layers_List {
 public:
-	Timeline_Layers_List(TimelineContext* ctx);
+	Timeline_Layers_List(TimelineContext* ctx, LayersContextMenu_Manager* layers_ctx_menu);
 	~Timeline_Layers_List();
 
 	void Draw();
@@ -24,6 +25,7 @@ public:
 
 private:
 	TimelineContext* ctx;
+	LayersContextMenu_Manager* layers_ctx_menu;
 
 	void DrawLayer(LayerObject* object, uint64_t index, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer);
 	bool DrawToggle(LayerObject* object, uint64_t index);
@@ -38,7 +40,6 @@ private:
 
 	void DrawEmptyState(const ImVec2& center);
 	void HandleScroll(const ImVec2& p_min, const ImVec2& p_max, float itemHeight);
-	void HandleContextMenu(const ImVec2& p_min, const ImVec2& p_max);
 	void PrepareDragStaff();
 	void HandleSelectionLayer(LayerObject* layerlayer, uint64_t index, const ImVec2& p, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer, bool isHoveredName);
 	void HandleAreaSelectionStart(const ImVec2& p, const ImVec2& p_max);

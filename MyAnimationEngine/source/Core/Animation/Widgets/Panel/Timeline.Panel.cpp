@@ -45,8 +45,10 @@ Timeline_Panel::Timeline_Panel(
 	timelineRuler = new Timeline_Ruler(timelineContext, timelineTimeCursor, horizontalTickRenderer);
 	timelineRange = new Timeline_Range(timelineContext, timelineTimeCursor);
 
-	layersViewer = new Timeline_Layers_Viewer(timelineContext, timelineTimeCursor);
-	layersList = new Timeline_Layers_List(timelineContext);
+	layers_ctx_menu = new LayersContextMenu_Manager(timelineContext);
+
+	layersViewer = new Timeline_Layers_Viewer(timelineContext, timelineTimeCursor, layers_ctx_menu);
+	layersList = new Timeline_Layers_List(timelineContext, layers_ctx_menu);
 
 	graph = new Timeline_Graph(timelineContext, timelineTimeCursor, horizontalTickRenderer);
 	graph->NeedCenterize();
@@ -89,7 +91,7 @@ void Timeline_Panel::Draw() {
 		ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal, thickness_separator);
 		Draw_4Level(thickness_separator);
 
-
+		layers_ctx_menu->Draw();
 
 		std::string str_s_mouse = "screen: " + std::to_string(timelineRuler->getScreenMouse());
 		std::string str_g_mouse = "global: " + std::to_string(timelineRuler->getGlobalMouse());
@@ -137,6 +139,7 @@ void Timeline_Panel::Draw() {
 
 		);
 
+		
 
 	
 	ImGui::End();
