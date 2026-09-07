@@ -98,6 +98,7 @@
     <ClCompile Include="source\WindowManager\WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="source\Application\Application.h" />
     <ClInclude Include="source\Core\Animation\Camera\Animation.Camera.h" />
     <ClInclude Include="source\Core\Animation\Camera\Global\Global.Camera.h" />
@@ -194,6 +195,12 @@
     <None Include="packages.config" />
     <None Include="source\Core\Animation\Shaders\quad_instanced_fs.glsl" />
     <None Include="source\Core\Animation\Shaders\quad_instanced_vs.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="LOGO.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MyAnimationEngine.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

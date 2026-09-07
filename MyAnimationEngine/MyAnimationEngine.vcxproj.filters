@@ -671,10 +671,23 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\ContextMenuManager\Layers.ContextMenu.Manager.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="source\Core\Animation\Shaders\quad_instanced_vs.glsl" />
     <None Include="source\Core\Animation\Shaders\quad_instanced_fs.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="LOGO.ico">
+      <Filter>Файлы ресурсов</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MyAnimationEngine.rc">
+      <Filter>Файлы ресурсов</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
