@@ -811,7 +811,14 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
 
                 for (size_t j = keyframes.size() - 1; j >= 0; j--) {
                     if (eval_time > keyframes[j].sample.time) {
-                        ctx->timelineData->GetData().currentTime = keyframes[j].sample.time + layerInfo.time.Begin;
+
+                        long double time = keyframes[j].sample.time + layerInfo.time.Begin;
+
+                        ctx->timelineData->GetData().SetTime(
+                            time,
+                            ctx->timelineController->GetState() == TimelineRunState::RUNNING_CYCLE
+                        );
+
                         float left_border = ctx->horizontalTransform->getPostionScreen_real(ctx->horizontalTransform->getLeftBoundView_global_real());
                         float need_border = ctx->horizontalTransform->getPostionScreen_real(ctx->timelineData->GetData().currentTime);
 
@@ -829,10 +836,16 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
 
                 for (size_t j = 0; j < keyframes.size(); j++) {
                     if (eval_time < keyframes[j].sample.time) {
-                        ctx->timelineData->GetData().currentTime = keyframes[j].sample.time + layerInfo.time.Begin;
+
+                        long double time = keyframes[j].sample.time + layerInfo.time.Begin;
+
+                        ctx->timelineData->GetData().SetTime(
+                            time,
+                            ctx->timelineController->GetState() == TimelineRunState::RUNNING_CYCLE
+                        );
 
                         float right_border = ctx->horizontalTransform->getPostionScreen_real(ctx->horizontalTransform->getRightBoundView_global_real());
-                        float need_border = ctx->horizontalTransform->getPostionScreen_real(ctx->timelineData->GetData().currentTime);
+                        float need_border  = ctx->horizontalTransform->getPostionScreen_real(ctx->timelineData->GetData().currentTime);
 
                         if (need_border > right_border) {
                             float dif = need_border - right_border;
@@ -848,17 +861,27 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
             bool isEqual = false;
             uint64_t indexEqual = 0;
             for (size_t j = 0; j < keyframes.size(); j++) {
-                if (keyframes[j].sample.time == eval_time) {
+                
+                if (std::abs(keyframes[j].sample.time - eval_time) < 0.0001f) {
                     isEqual = true;
                     indexEqual = j;
                     break;
                 }
             }
             if (ROMB_pressed) {
+                ctx->selector->UnsetAll_Keyframes();
+
                 if (isEqual)
                     value.kr.erase(indexEqual);
-                else
-                    value.kr.add(eval_time, evaluated_value);
+                else {
+                    uint64_t id_keyframe = value.kr.add(eval_time, evaluated_value);
+                    SelectedKeyframe sel_kf;
+                    sel_kf.id = id_keyframe;
+                    sel_kf.property.name = name;
+                    sel_kf.property.layer.id = id_layer;
+
+                    ctx->selector->SelectKeyframe(sel_kf);
+                }
             }
 
 

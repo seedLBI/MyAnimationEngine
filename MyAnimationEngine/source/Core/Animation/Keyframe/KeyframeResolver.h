@@ -104,7 +104,7 @@ uint64_t KeyframeResolver<T, N>::keyframe_id_counter = 1;
 template<typename T, uint8_t N>
 bool KeyframeResolver<T, N>::hasAnyOverlaps() const {
 	if (keyframes.size() < 2) return false;
-	float eps = 0.00001f;
+	float eps = 0.0001f;
 
 	for (size_t i = 0; i < keyframes.size() - 1; ++i) {
 		if (std::abs(keyframes[i].sample.time - keyframes[i + 1].sample.time) < eps) {
@@ -143,7 +143,7 @@ void KeyframeResolver<T, N>::resolveOverlaps(uint64_t priority_id) {
 
 	float target_time = keyframe->sample.time;
 
-	float eps = 0.00001f;
+	float eps = 0.0001f;
 
 	auto it = std::remove_if(keyframes.begin(), keyframes.end(),
 		[priority_id, target_time, eps](const Keyframe<T, N>& kf) {
@@ -386,7 +386,7 @@ uint64_t KeyframeResolver<T, N>::add(const Keyframe<T, N>& keyframe) {
 
 	for (size_t i = 0; i < keyframes.size(); i++) {
 
-		float eps = 0.00001f;
+		float eps = 0.0001f;
 		float diff = std::abs(keyframe.sample.time - keyframes[i].sample.time);
 
 		if (keyframe.sample.time < keyframes[i].sample.time) {

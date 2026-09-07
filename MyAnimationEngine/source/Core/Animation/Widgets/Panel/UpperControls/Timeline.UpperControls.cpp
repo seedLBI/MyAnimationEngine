@@ -44,7 +44,7 @@ void Timeline_UpperControls::Update() {
 
 std::string Timeline_UpperControls::getTimer() {
 	const uint64_t framerate = ctx->timelineData->GetData().framerate;
-	const uint64_t frame = ctx->timelineData->GetData().currentFrame;
+	const uint64_t frame  = ctx->timelineData->GetData().currentFrame;
 
 	uint64_t sec_frame = frame % framerate;
 	uint64_t min_frame = frame / framerate;
@@ -64,7 +64,7 @@ std::string Timeline_UpperControls::getTimer() {
 
 std::string Timeline_UpperControls::getFrame() {
 	const uint64_t framerate = ctx->timelineData->GetData().framerate;
-	const uint64_t frame = ctx->timelineData->GetData().currentFrame;
+	const uint64_t frame  = ctx->timelineData->GetData().currentFrame;
 
 	std::string frame_str = std::to_string(frame);
 	PadLeft(frame_str, '0', 5);

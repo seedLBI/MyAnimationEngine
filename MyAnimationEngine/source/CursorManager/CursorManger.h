@@ -31,7 +31,8 @@ enum class TypeCursor {
 	RESIZE_VERTICAL,
 	TEXT,
 	DISABLED,
-	COPY
+	COPY,
+	MAGNET
 };
 
 class CursorManager {

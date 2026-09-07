@@ -212,6 +212,8 @@ void Timeline_Ruler::Update(const float& dt) {
 	UpdateZoom();
 
 
+	CursorManager::getInstance().SetCursor(TypeCursor::POINT);
+
 	if (isHovered)
 		CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
 	if (isDraging)
@@ -245,6 +247,8 @@ void Timeline_Ruler::Update(const float& dt) {
 
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Right, false)) {
 
+		
+
 		float step_frame = 1.f / (float)ctx->timelineData->GetData().framerate;
 		float count = std::floor(mouse_global / step_frame);
 		float time = count * step_frame + 0.000001f;
@@ -252,12 +256,50 @@ void Timeline_Ruler::Update(const float& dt) {
 		if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
 			time = mouse_global;
 
+
+		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+
+			CursorManager::getInstance().SetCursor(TypeCursor::MAGNET);
+
+			const float snap_radius_pixels = 15.f;
+
+			float snap_radius_global = std::abs(
+				ctx->horizontalTransform->getPostionGlobal_real(snap_radius_pixels) -
+				ctx->horizontalTransform->getPostionGlobal_real(0.f)
+			);
+
+			float closest_time = -1.f;
+			float min_dist = snap_radius_global;
+
+			ctx->layersData->forEach([&](LayerObject* layer, uint64_t index) {
+				const auto& layerInfo = layer->GetLayerInfo();
+
+				layer->GetProperties().forEachUnwrapped([&](const std::string& name, auto& value) {
+					for (const auto& kf : value.kr.getKeyframes()) {
+						float kf_global_time = layerInfo.time.Begin + kf.sample.time;
+
+						float dist = std::abs(kf_global_time - mouse_global);
+
+						if (dist < min_dist) {
+							min_dist = dist;
+							closest_time = kf_global_time;
+						}
+					}
+					});
+				});
+
+			if (closest_time >= 0.f) {
+				time = closest_time;
+			}
+		}
+
+
 		ctx->timelineData->GetData().SetTime(
 			long double(time),
 			ctx->timelineController->GetState() == TimelineRunState::RUNNING_CYCLE
 		);
 
-		CursorManager::getInstance().SetCursor(TypeCursor::POINT);
+		
 	}
 
 }
