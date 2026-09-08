@@ -37,7 +37,6 @@ private:
 	void drawTriggerButton(bool& value, std::string index ,const char* symbol, float availableHeight);
 	bool drawAnimationEnabler(bool& value, std::string index, float availableHeight);
 
-
 	void DrawEmptyState(const ImVec2& center);
 	void HandleScroll(const ImVec2& p_min, const ImVec2& p_max, float itemHeight);
 	void PrepareDragStaff();
@@ -45,7 +44,6 @@ private:
 	void HandleAreaSelectionStart(const ImVec2& p, const ImVec2& p_max);
 	void ProcessDragLogic(float itemHeight);
 	void DrawDragAndDropIndicators(uint64_t index, const ImVec2& p, const ImVec2& p_max, const ImVec2& layer_min, const ImVec2& layer_max, bool isSelectedLayer);
-
 
 	void DrawLayerProperties(LayerObject* layer, uint64_t index_layer, ImVec2& p, const ImVec2& p_min, const ImVec2& p_max, float itemHeight, float& heightContent);
 
@@ -77,6 +75,9 @@ private:
 
 	std::vector<Column> columns;
 	std::vector<uint8_t> index_current_columns; //order for column
+
+	bool InRenamingMode = false;
+	uint64_t id_layer_renamingMode = UINT64_MAX;
 
 	int getCountEnabledColumns();
 

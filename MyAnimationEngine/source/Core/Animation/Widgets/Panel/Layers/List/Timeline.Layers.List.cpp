@@ -470,6 +470,7 @@ bool Timeline_Layers_List::DrawLayerIconType(LayerObject* object, uint64_t index
     DrawIcon(object, ctx->verticalTransform->getScaledHeightOneObject(), eval_time);
     return false;
 }
+
 bool Timeline_Layers_List::DrawLayerName(LayerObject* object, uint64_t index) {
     float itemHeight = ctx->verticalTransform->getScaledHeightOneObject();
     float textHeight = ImGui::GetTextLineHeight();
@@ -485,26 +486,75 @@ bool Timeline_Layers_List::DrawLayerName(LayerObject* object, uint64_t index) {
         min_text.x + columns[TypeColumn::NAME].width - 4.f,
         min_text.y + text_size.y - 5.f };
 
+    float max_width = max_text.x - min_text.x - 2.f;
+
 
     ImColor color_text = COLOR_DEFAULT;
 
     uint64_t id_layer = object->GetLayerInfo().id;
 
-    if (ctx->selector->HaveSelectedPropertiesInLayer({ id_layer })) {
-        draw_list->AddRect(min_text, max_text, COLOR_BG_LAYER_NAME_CHOOSED, 0.f, 0, 2.f);
-    }
-    else if (ctx->selector->ContainsLayer({ id_layer })) {
-        color_text.Value.x = 1.f - color_text.Value.x;
-        color_text.Value.y = 1.f - color_text.Value.y;
-        color_text.Value.z = 1.f - color_text.Value.z;
 
-        draw_list->AddRectFilled(min_text, max_text, COLOR_BG_LAYER_NAME_CHOOSED, 0.f);
+    if (id_layer_renamingMode == id_layer && InRenamingMode) {
+
+        char buffer[256];
+        strncpy_s(buffer, sizeof(buffer), object->GetLayerInfo().name.c_str(), _TRUNCATE);
+        buffer[sizeof(buffer) - 1] = '\0';
+
+        draw_list->AddRect(min_text, max_text, COLOR_CHANGEBLE, 2.f, 0, 2.f);
+
+        Push_SmallestFont();
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+
+        ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
+
+        float text_pos_y = min_text.y + (itemHeight - ImGui::GetTextLineHeight()) / 2.f;
+        ImGui::SetCursorScreenPos({ min_text.x + 6.f, text_pos_y - 2.f });
+        ImGui::SetNextItemWidth(max_text.x - min_text.x - 6.f);
+
+        ImGui::SetKeyboardFocusHere();
+
+        if (ImGui::InputText("##rename_input", buffer, sizeof(buffer), flags)) {
+            object->GetLayerInfo().name = buffer;
+            InRenamingMode = false;
+        }
+
+
+        ImGui::PopStyleVar();
+        ImGui::PopStyleColor(3);
+        Pop_SmallestFont();
+
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsMouseHoveringRect(min_text, max_text)) {
+            InRenamingMode = false;
+            object->GetLayerInfo().name = buffer;
+        }
+
+    }
+    else {
+
+        if (ctx->selector->HaveSelectedPropertiesInLayer({ id_layer })) {
+            draw_list->AddRect(min_text, max_text, COLOR_BG_LAYER_NAME_CHOOSED, 0.f, 0, 2.f);
+        }
+        else if (ctx->selector->ContainsLayer({ id_layer })) {
+            color_text.Value.x = 1.f - color_text.Value.x;
+            color_text.Value.y = 1.f - color_text.Value.y;
+            color_text.Value.z = 1.f - color_text.Value.z;
+
+            draw_list->AddRectFilled(min_text, max_text, COLOR_BG_LAYER_NAME_CHOOSED, 0.f);
+        }
+
+
+        
+
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() - offsetY);
+        Push_SmallFont();
+        ImGui::TextColored(color_text, TruncateTextMiddle(object->GetLayerInfo().name, max_width).c_str());
+        Pop_SmallFont();
     }
 
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - offsetY);
-    Push_SmallFont();
-    ImGui::TextColored(color_text, object->GetLayerInfo().name.c_str());
-    Pop_SmallFont();
+
     return false;
 }
 
@@ -595,7 +645,7 @@ void Timeline_Layers_List::HandleSelectionLayer(LayerObject* layerlayer, uint64_
         else if (!isSelectedLayer)
             ctx->selector->SelectLayer({ id_layer });
 
-        if (isHoveredName) {
+        if (isHoveredName && !(id_layer_renamingMode == id_layer && InRenamingMode)) {
             dragStaff.indexGrabbingLayer = index;
             dragStaff.pos_grab_start = ImGui::GetMousePos();
             dragStaff.isGrabingLayer = true;
@@ -683,15 +733,17 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
     auto& properties = layer->GetProperties();
     properties.forEachUnwrapped([&](const std::string& name, auto& value) {
 
-        
+        SelectedProperty sel_prop;
+        sel_prop.name = name;
+        sel_prop.layer.id = id_layer;
 
         if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && ctx->areaSelection->IsActive()) {
             if (ctx->areaSelection->CheckAABB({ { p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) } })) {
-                ctx->selector->AddMoreSelectedProperty({ id_layer, name });
+                ctx->selector->AddMoreSelectedProperty(sel_prop);
                 ctx->selector->AddMoreSelectedLayer({ id_layer });
             }
             else {
-                ctx->selector->ErasePropertie({ id_layer, name });
+                ctx->selector->ErasePropertie(sel_prop);
                 if (!ctx->selector->HaveSelectedPropertiesInLayer({ id_layer }))
                     ctx->selector->EraseLayer({ id_layer });
             }
@@ -712,7 +764,7 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
         float eval_time = ctx->timelineData->GetData().currentTime - layerInfo.time.Begin;
         auto evaluated_value = value.kr.evaluate(eval_time);
 
-
+        bool isSelected = ctx->selector->ContainsProperty(sel_prop);
 
 
 
@@ -1020,6 +1072,19 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
         char text[32];
         auto AddButtonAndAdvance = [&]() {
 
+            static const ImColor colors_selected[9] = {
+                ImColor{.82f, .34f, .34f, 1.f},
+                ImColor{.44f, .81f, .47f, 1.f},
+                ImColor{.56f, .76f, .95f, 1.f},
+                ImColor{.95f, .69f, .4f, 1.f},
+                ImColor{.84f, .71f, .82f, 1.f},
+                ImColor{.92f, .79f, .5f, 1.f},
+                ImColor{.97f, .58f, .84f, 1.f},
+                ImColor{.32f, .84f, .8f, 1.f},
+                ImColor{.37f, .75f, .84f, 1.f}
+            };
+
+
             for (size_t j = 0; j < evaluated_value.size(); j++) {
                 snprintf(text, sizeof(text), "%.3f", evaluated_value[j]);
 
@@ -1034,6 +1099,9 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                     held
                 );
 
+
+                // ImColor{.21f, .2f, .2f, 1.f}
+
                 ImColor color = COLOR_CHANGEBLE;
 
                 if (hovered || held) {
@@ -1043,6 +1111,12 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                 if (held)
                     color = COLOR_CHANGEBLE_HELD;
 
+
+                bool needHighlight = isSelected && ctx->statusGlobalButtons->isGraphMode() && ctx->selector->getProperties().size() > 1;
+
+                if (needHighlight)
+                    color = ImColor{ .19f, .15f, .15f, 1.f };
+
                 if (held) {
                     if (ctx->timelineController->GetState() == TimelineRunState::PAUSE) {
                         float delta = ImGui::GetIO().MouseDelta.x * 0.01;
@@ -1051,37 +1125,41 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                         def_val[j] += delta;
                         value.kr.setDefaultValue(def_val);
 
+                        SelectedLayer selectedLayer;
+                        SelectedProperty selectedProperty;
+                        selectedLayer.id = id_layer;
+                        selectedProperty.layer = selectedLayer;
+                        selectedProperty.name = name;
+
+                        ctx->selector->SelectLayer(selectedLayer);
+                        ctx->selector->SelectProperty(selectedProperty);
+
                         if (value.kr.getKeyframes().empty() == false) {
 
-                            SelectedLayer selectedLayer;
-                            SelectedProperty selectedProperty;
                             SelectedKeyframe selectedKeyframe;
-
-                            selectedLayer.id = id_layer;
-                            selectedProperty.layer = selectedLayer;
-                            selectedProperty.name = name;
                             selectedKeyframe.id = value.kr.add(eval_time, def_val, TypeKeyframe::LINEAR);
                             selectedKeyframe.property = selectedProperty;
 
-                            ctx->selector->SelectLayer(selectedLayer);
-                            ctx->selector->SelectProperty(selectedProperty);
                             ctx->selector->SelectKeyframe(selectedKeyframe);
-                            
                         }
                     }
                 }
 
+
+                if (needHighlight)
+                    draw_list->AddRectFilled(p, { p.x + sizeText.x, p.y + sizeText.y }, colors_selected[j]);
+
                 draw_list->AddText(p, color, text);
 
-                p.x += ImGui::CalcTextSize(text).x + ImGui::GetStyle().ItemSpacing.x;
+                p.x += sizeText.x + ImGui::GetStyle().ItemSpacing.x * 0.25f;
 
                 if (j != evaluated_value.size() - 1) {
                     draw_list->AddText(p, COLOR_DEFAULT, ", ");
-                    p.x += ImGui::CalcTextSize(", ").x + ImGui::GetStyle().ItemSpacing.x;
+                    p.x += ImGui::CalcTextSize(", ").x ;
                 }
             }
 
-            };
+        };
 
 
 
@@ -1427,6 +1505,16 @@ void Timeline_Layers_List::Draw() {
         layers_ctx_menu->OpenMenu_Creation();
 
     PrepareDragStaff();
+
+    //	bool InRenamingMode = false;
+    // uint64_t id_layer_renamingMode = UINT64_MAX;
+
+    uint64_t try_get_id = layers_ctx_menu->GetIDLayer_RenamingMode();
+    if (try_get_id != UINT64_MAX) {
+        InRenamingMode = true;
+        id_layer_renamingMode = try_get_id;
+    }
+
 
     ImVec2 p = ImGui::GetCursorScreenPos();
     p.y += ctx->verticalTransform->getOffset_lerped();

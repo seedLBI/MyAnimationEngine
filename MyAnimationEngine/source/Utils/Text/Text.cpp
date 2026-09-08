@@ -1,4 +1,4 @@
-#include "Text.h"
+﻿#include "Text.h"
 
 
 
@@ -32,6 +32,23 @@ std::vector<std::string> Split(const std::string& line, const std::string& delim
         result.push_back(s);
     }
     return result;
+}
+
+std::vector<std::string> SplitUtf8(const std::string& text) {
+    std::vector<std::string> chars;
+    size_t i = 0;
+    while (i < text.length()) {
+        size_t start = i;
+        unsigned char c = text[i];
+        if (c <= 0x7F) i += 1;
+        else if ((c & 0xE0) == 0xC0) i += 2;
+        else if ((c & 0xF0) == 0xE0) i += 3;
+        else if ((c & 0xF8) == 0xF0) i += 4;
+        else i += 1;
+
+        chars.push_back(text.substr(start, i - start));
+    }
+    return chars;
 }
 
 void PadLeft(std::string& text, const char& symbol, int NeedLength) {

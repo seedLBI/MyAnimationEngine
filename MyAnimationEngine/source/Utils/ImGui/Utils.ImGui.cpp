@@ -279,3 +279,37 @@ void AddDashedLine(ImDrawList* draw_list, const ImVec2& p1, const ImVec2& p2, Im
 		current_length += dash_length + gap_length;
 	}
 }
+
+std::string TruncateTextMiddle(const std::string& text, float maxWidth) {
+	if (ImGui::CalcTextSize(text.c_str()).x <= maxWidth) {
+		return text;
+	}
+
+	std::vector<std::string> chars = SplitUtf8(text);
+	if (chars.empty()) return text;
+
+	const std::string ellipsis = "...";
+	float ellipsisWidth = ImGui::CalcTextSize(ellipsis.c_str()).x;
+
+	if (maxWidth <= ellipsisWidth) return ellipsis;
+
+	int maxN = chars.size() / 2;
+	for (int n = maxN; n > 0; --n) {
+		std::string leftStr, rightStr;
+
+		for (int j = 0; j < n; ++j) {
+			leftStr += chars[j];
+		}
+		for (int j = chars.size() - n; j < chars.size(); ++j) {
+			rightStr += chars[j];
+		}
+
+		std::string candidate = leftStr + ellipsis + rightStr;
+
+		if (ImGui::CalcTextSize(candidate.c_str()).x <= maxWidth) {
+			return candidate;
+		}
+	}
+
+	return ellipsis;
+}

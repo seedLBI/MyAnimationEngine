@@ -157,126 +157,156 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 	ImVec2 region_max = ImGui::GetContentRegionAvail();
 
 
-	if (ctx->layersData->GetData().layers.empty() ||
-		ctx->selector->getProperties().empty()) {
-		
+	if (ctx->layersData->GetData().layers.empty() || ctx->selector->getProperties().empty()) 
 		return;
-	}
 
-	
-	auto id_selected_layer = ctx->selector->getProperties().begin()->layer.id;
-	auto name_property     = ctx->selector->getProperties().begin()->name;
-	
-	auto* layerObject = ctx->layersData->GetLayerByID(id_selected_layer).get();
-	float time_begin  = layerObject->GetLayerInfo().time.Begin;
+	for (const auto& selected_property : ctx->selector->getProperties()) {
 
-	auto& variant_prop = layerObject->GetProperties().getVariant(name_property);
+		const auto& id_layer = selected_property.layer.id;
+		const auto& name_property = selected_property.name;
 
-	std::visit([&](auto& propertie) {
-		auto& keyframes = propertie.kr.getKeyframes();
-		auto& range = propertie.kr.getRange();
+		auto* layerObject = ctx->layersData->GetLayerByID(id_layer).get();
+		float time_begin = layerObject->GetLayerInfo().time.Begin;
 
-		if (range.has_value()) {
-			float min_value = range.value().Min.front();
-			float max_value = range.value().Max.front();
-
-			min_graph = min_value;
-			max_graph = max_value;
-
-			float screen_min_range = ctx->graphTransformVertical->getPosScreen_lerped(min_value);
-			float screen_max_range = ctx->graphTransformVertical->getPosScreen_lerped(max_value);
-
-			drawlist->AddRectFilled(
-				{ p_min.x, p_min.y + screen_min_range },
-				{ p_max.x, p_max.y },
-				ImColor(1.f, 0.f, 0.f, 0.1f)
-			);
-
-			drawlist->AddRectFilled(
-				{ p_min.x, p_min.y },
-				{ p_max.x, p_max.y - (region_max.y - screen_max_range) },
-				ImColor(1.f, 0.f, 0.f, 0.1f)
-			);
-
-		}
-
-		float size_keyframe = 6.f;
-
-		ImColor colors[3] = {
-			ImColor(1.f,0.3f,0.3f,1.f),
-			ImColor(0.3f,1.f,0.3f,1.f),
-			ImColor(0.3f,0.3f,1.f,1.f)
-		};
-
-		if (keyframes.empty() == false) {
-
-			float front_begin = cursor_pos.x;
-			float front_pos = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes.front().sample.time);
-			float back_pos = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes.back().sample.time);
-			float back_end = cursor_pos.x + region_max.x;
-
-			for (size_t j = 0; j < keyframes.front().sample.value.size(); j++) {
-
-				float front_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes.front().sample.value[j]);
-				float back_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes.back().sample.value[j]);
-
-				const float gap = 3.f;
-				const float length = 6.f;
-
-				AddDashedLine(drawlist,
-					{ front_pos, front_pos_y },
-					{ front_begin, front_pos_y },
-					(j <= 2 ? colors[j] : ImColor(0.5f, 0.5f, 0.2f, 1.f)),
-					1.f,
-					length, gap);
-
-				AddDashedLine(drawlist,
-					{ back_pos, back_pos_y },
-					{ back_end, back_pos_y },
-					(j <= 2 ? colors[j] : ImColor(0.5f, 0.5f, 0.2f, 1.f)),
-					1.f,
-					length, gap);
-			}
-		}
+		auto& variant_prop = layerObject->GetProperties().getVariant(name_property);
 
 
+		std::visit([&](auto& propertie) {
+			auto& keyframes = propertie.kr.getKeyframes();
+			auto& range = propertie.kr.getRange();
 
-		for (size_t i = 1; i < keyframes.size(); i++) {
-			float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);
+			if (range.has_value()) {
+				float min_value = range.value().Min.front();
+				float max_value = range.value().Max.front();
 
-			for (size_t j = 0; j < keyframes[i].sample.value.size(); j++) {
-				float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].sample.value[j]);
+				min_graph = min_value;
+				max_graph = max_value;
 
-				float prev_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i - 1].sample.time);
-				float prev_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i - 1].sample.value[j]);
-
-				if (keyframes[i - 1].type == TypeKeyframe::BINARY)
-				{
-					drawlist->AddLine({ prev_pos_x, prev_pos_y }, { pos_x,prev_pos_y }, (j <= 2 ? colors[j] : ImColor(0.5f, 0.5f, 0.2f, 1.f)), 2.f);
-					drawlist->AddLine({ pos_x,prev_pos_y }, { pos_x, pos_y }, (j <= 2 ? colors[j] : ImColor(0.5f, 0.5f, 0.2f, 1.f)), 2.f);
-				}
-				else {
-					drawlist->AddLine({ prev_pos_x, prev_pos_y }, { pos_x,pos_y }, (j <= 2 ? colors[j] : ImColor(0.5f, 0.5f, 0.2f, 1.f)), 2.f);
-				}
-
-			}
-		}
-
-		for (size_t i = 0; i < keyframes.size(); i++) {
-			float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);
-			for (size_t j = 0; j < keyframes[i].sample.value.size(); j++) {
-				float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].sample.value[j]);
+				float screen_min_range = ctx->graphTransformVertical->getPosScreen_lerped(min_value);
+				float screen_max_range = ctx->graphTransformVertical->getPosScreen_lerped(max_value);
 
 				drawlist->AddRectFilled(
-					{ pos_x - size_keyframe / 2.f, pos_y - size_keyframe / 2.f },
-					{ pos_x + size_keyframe / 2.f, pos_y + size_keyframe / 2.f },
-					(j <= 2 ? colors[j] : ImColor(0.5f, 0.5f, 0.2f, 1.f))
+					{ p_min.x, p_min.y + screen_min_range },
+					{ p_max.x, p_max.y },
+					ImColor(1.f, 0.f, 0.f, 0.1f)
 				);
+
+				drawlist->AddRectFilled(
+					{ p_min.x, p_min.y },
+					{ p_max.x, p_max.y - (region_max.y - screen_max_range) },
+					ImColor(1.f, 0.f, 0.f, 0.1f)
+				);
+
 			}
-		}
+
+			float size_keyframe = 6.f;
+
+			ImColor colors[9] = {
+				ImColor{.82f, .34f, .34f, 1.f},
+				ImColor{.44f, .81f, .47f, 1.f},
+				ImColor{.56f, .76f, .95f, 1.f},
+				ImColor{.95f, .69f, .4f, 1.f},
+				ImColor{.84f, .71f, .82f, 1.f},
+				ImColor{.92f, .79f, .5f, 1.f},
+				ImColor{.97f, .58f, .84f, 1.f},
+				ImColor{.32f, .84f, .8f, 1.f},
+				ImColor{.37f, .75f, .84f, 1.f}
+			};
 
 
-	}, variant_prop);
+			float front_begin = cursor_pos.x;
+			float back_end = cursor_pos.x + region_max.x;
+
+			if (keyframes.empty()) {
+
+				const auto& values = propertie.kr.getDefaultValue();
+				for (size_t j = 0; j < values.size(); j++) {
+					float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(values[j]);
+					ImColor color_line = colors[j];
+					drawlist->AddLine({ front_begin, pos_y }, { back_end,pos_y }, color_line, 2.f);
+				}
+
+			}
+			else {
+
+				for (size_t j = 0; j < keyframes.front().sample.value.size(); j++) {
+					float front_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes.front().sample.time);
+					float front_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes.front().sample.value[j]);
+
+					float back_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes.back().sample.time);
+					float back_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes.back().sample.value[j]);
+
+
+					ImColor color_line = colors[j];
+
+					if (keyframes.size() == 1) {
+						drawlist->AddLine({ front_begin, front_pos_y }, { back_end,front_pos_y }, color_line, 2.f);
+					}
+					else {
+						const float gap = 3.f;
+						const float length = 6.f;
+
+						AddDashedLine(drawlist,
+							{ front_pos_x, front_pos_y },
+							{ front_begin, front_pos_y },
+							color_line,
+							1.f,
+							length, gap);
+
+						AddDashedLine(drawlist,
+							{ back_pos_x, back_pos_y },
+							{ back_end, back_pos_y },
+							color_line,
+							1.f,
+							length, gap);
+					}
+				}
+			}
+
+
+
+			for (size_t i = 1; i < keyframes.size(); i++) {
+				float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);
+
+				for (size_t j = 0; j < keyframes[i].sample.value.size(); j++) {
+					float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].sample.value[j]);
+
+					float prev_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i - 1].sample.time);
+					float prev_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i - 1].sample.value[j]);
+
+					ImColor color_line = colors[j];
+
+					if (keyframes[i - 1].type == TypeKeyframe::BINARY)
+					{
+						drawlist->AddLine({ prev_pos_x, prev_pos_y }, { pos_x,prev_pos_y }, color_line, 2.f);
+						drawlist->AddLine({ pos_x,prev_pos_y }, { pos_x, pos_y }, color_line, 2.f);
+					}
+					else {
+						drawlist->AddLine({ prev_pos_x, prev_pos_y }, { pos_x,pos_y }, color_line, 2.f);
+					}
+
+				}
+			}
+
+			for (size_t i = 0; i < keyframes.size(); i++) {
+				float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);
+				for (size_t j = 0; j < keyframes[i].sample.value.size(); j++) {
+					float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].sample.value[j]);
+
+					ImColor color_line = colors[j];
+
+					drawlist->AddRectFilled(
+						{ pos_x - size_keyframe / 2.f, pos_y - size_keyframe / 2.f },
+						{ pos_x + size_keyframe / 2.f, pos_y + size_keyframe / 2.f },
+						color_line
+					);
+				}
+			}
+
+
+			}, variant_prop);
+	}
+
 }
 
 

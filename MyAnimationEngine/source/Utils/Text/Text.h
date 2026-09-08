@@ -1,4 +1,4 @@
-#ifndef UTILS_TEXT_H
+﻿#ifndef UTILS_TEXT_H
 #define UTILS_TEXT_H
 #include <vector>
 #include <fstream>
@@ -6,6 +6,7 @@
 #include <sstream>
 
 std::vector<std::string> Split(const std::string& line, const std::string& delimiter);
+std::vector<std::string> SplitUtf8(const std::string& text);
 
 std::string to_hex_string(const uint64_t& value);
 std::wstring to_hex_wstring(const uint64_t& value);

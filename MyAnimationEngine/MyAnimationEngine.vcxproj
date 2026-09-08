@@ -37,6 +37,7 @@
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\List\IconDrawer\Timeline.Layers.Icon.Drawer.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Viewer\KeyframeRenderer\KeyframeRenderer.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.cpp" />
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\StatusGlobalButtons\Timeline.StatusGlobalButtons.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Textures\Noise\Texture.Noise.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\TransformScaled\Transform.Scaled.cpp" />
@@ -124,6 +125,7 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\List\IconDrawer\Timeline.Layers.Icon.Drawer.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Viewer\KeyframeRenderer\KeyframeRenderer.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\StatusGlobalButtons\Timeline.StatusGlobalButtons.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Textures\Noise\Texture.Noise.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\TransformScaled\Transform.Scaled.h" />

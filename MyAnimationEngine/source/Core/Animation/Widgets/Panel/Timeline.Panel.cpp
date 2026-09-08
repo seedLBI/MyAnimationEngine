@@ -32,6 +32,7 @@ Timeline_Panel::Timeline_Panel(
 	timelineContext->layersData = layersData;
 	timelineContext->timelineController = timelineController;
 	timelineContext->timelineData = timelineData;
+	timelineContext->statusGlobalButtons = new Timeline_StatusGlobalButtons();
 
 
 	horizontalTickRenderer = new HorizontalTickRenderer(timelineContext);
@@ -276,7 +277,7 @@ void Timeline_Panel::DrawLayerSide_3Level(const float& height) {
 void Timeline_Panel::DrawTimelineSide_3Level(const float& height) {
 	ImGui::BeginChild(u8"Timeline_TimelineSide_3Level", ImVec2(ImGui::GetContentRegionAvail().x - 20, height), 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-	if (upperControls->isGraphMode())
+	if (timelineContext->statusGlobalButtons->isGraphMode())
 		graph->Draw();
 	else
 		layersViewer->Draw();

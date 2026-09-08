@@ -22,12 +22,6 @@ Timeline_UpperControls::~Timeline_UpperControls()
 {
 
 }
-const bool& Timeline_UpperControls::isGraphMode() {
-	return GraphMode;
-}
-const bool& Timeline_UpperControls::isMotionBlurMode() {
-	return MotionBlurMode;
-}
 
 void Timeline_UpperControls::Draw() {
 	ImGui::SetCursorPosX(4.f);
@@ -201,6 +195,7 @@ float Timeline_UpperControls::DrawFinder(float availableWidth) {
 	ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 
+
 	if (ImGui::InputText("##finder_input", searchBuffer, IM_ARRAYSIZE(searchBuffer))) {
 		ctx->layersData->setFindText(std::string(searchBuffer));
 	}
@@ -231,21 +226,22 @@ float Timeline_UpperControls::DrawButtons() {
 
 	bool mb_hovered, mb_held;
 
+
 	if (MyButtonBehavior(mb_min, mb_max, "MOTION_BLUR_TOGGLE", mb_hovered, mb_held)) {
-		MotionBlurMode = !MotionBlurMode;
+		ctx->statusGlobalButtons->SetFlag_MotionBlurMode(!ctx->statusGlobalButtons->isMotionBlurMode());
 	}
 
 	ImColor bg_mb = ImColor(0.f, 0.f, 0.f, 0.f);
 	ImColor text_mb = COLOR_DEFAULT;
 
 
-	if (MotionBlurMode) {
+	if (ctx->statusGlobalButtons->isMotionBlurMode()) {
 		bg_mb = COLOR_BG_BUTTONS_HELD;
 		text_mb = ImColor(1.f, 1.f, 1.f, 1.f);
 	}
 
 	if (mb_hovered) {
-		if (MotionBlurMode)
+		if (ctx->statusGlobalButtons->isMotionBlurMode())
 			bg_mb = COLOR_DEFAULT;
 		else
 			bg_mb = COLOR_BG_BUTTONS_HOVERED;
@@ -268,21 +264,20 @@ float Timeline_UpperControls::DrawButtons() {
 	bool mg_hovered, mg_held;
 
 	if (MyButtonBehavior(mg_min, mg_max, "GRAPH_MODE_TOGGLE", mg_hovered, mg_held)) {
-		GraphMode = !GraphMode;
-		//graphVerticalTransform->centerize(0.f);
+		ctx->statusGlobalButtons->SetFlag_GraphMode(!ctx->statusGlobalButtons->isGraphMode());
 	}
 
 	ImColor bg_mg = ImColor(0.f, 0.f, 0.f, 0.f);
 	ImColor text_mg = COLOR_DEFAULT;
 
 
-	if (GraphMode) {
+	if (ctx->statusGlobalButtons->isGraphMode()) {
 		bg_mg = COLOR_BG_BUTTONS_HELD;
 		text_mg = ImColor(1.f, 1.f, 1.f, 1.f);
 	}
 
 	if (mg_hovered) {
-		if (GraphMode)
+		if (ctx->statusGlobalButtons->isGraphMode())
 			bg_mg = COLOR_DEFAULT;
 		else
 			bg_mg = COLOR_BG_BUTTONS_HOVERED;

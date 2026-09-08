@@ -50,11 +50,24 @@ void LayersContextMenu_Manager::DrawMenu_Creation() {
 void LayersContextMenu_Manager::DrawMenu_LayerSetting() {
     if (ImGui::BeginPopup("POPUP_LAYERS_MENU_SETTING")) {
 
-        if (ImGui::MenuItem(u8"Переименовать"))
-        {
-
+        if (ImGui::MenuItem(u8"Переименовать")) {
+            this->id_layer_renamingMode = this->id_layer_open_setting;
+            pressedRename = true;
         }
 
         ImGui::EndPopup();
     }
+}
+
+uint64_t LayersContextMenu_Manager::GetIDLayer_RenamingMode() {
+    if (pressedRename) {
+        pressedRename = false;
+        uint64_t temp = this->id_layer_renamingMode;
+        this->id_layer_renamingMode = UINT64_MAX;
+        return temp;
+    }
+    else {
+        return UINT64_MAX;
+    }
+
 }

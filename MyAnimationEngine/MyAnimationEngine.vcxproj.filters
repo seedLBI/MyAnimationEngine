@@ -396,6 +396,9 @@
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\ContextMenuManager\Layers.ContextMenu.Manager.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\StatusGlobalButtons\Timeline.StatusGlobalButtons.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Application\Application.h">
@@ -672,6 +675,9 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\StatusGlobalButtons\Timeline.StatusGlobalButtons.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

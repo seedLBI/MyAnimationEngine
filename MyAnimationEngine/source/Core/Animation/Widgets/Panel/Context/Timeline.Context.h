@@ -10,17 +10,24 @@
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
 #include "Core/Animation/Widgets/Panel/Transform/TransformScaled/Transform.Scaled.h"
+#include <Core/Animation/Widgets/Panel/StatusGlobalButtons/Timeline.StatusGlobalButtons.h>
+
 
 struct TimelineContext {
     LayerFactory* layerFactory = nullptr;
     LayersDataProvider* layersData = nullptr;
+
     TimelineProviderData* timelineData = nullptr;
     TimelineController* timelineController = nullptr;
+
     TimelineTransformHorizontal* horizontalTransform = nullptr;
     TimelineTransformVertical* verticalTransform = nullptr;
     TransformScaled* graphTransformVertical = nullptr;
+
     Timeline_Selector* selector = nullptr;
     Timeline_AreaSelection* areaSelection = nullptr;
+
+    Timeline_StatusGlobalButtons* statusGlobalButtons = nullptr;
 };
 
 

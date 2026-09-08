@@ -42,12 +42,13 @@ public:
 	void precompute();
 
 	std::array<T, N>  evaluate(float time);
-	const std::array<T, N>& getDefaultValue();
+	
 	const std::optional<RangeValueKeyframe<T,N>>& getRange();
 	const std::vector<Keyframe<T, N>>& getKeyframes();
 	const std::vector<TypeKeyframe>& getTypeRestrictions();
 
 	void setDefaultValue(std::array<T, N>& value);
+	const std::array<T, N>& getDefaultValue();
 
 	void  setDeltaTime(float deltaTime);
 	void  applyDeltaTime();

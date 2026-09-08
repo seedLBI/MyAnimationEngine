@@ -15,14 +15,8 @@ public:
 	void Draw();
 	void Update();
 
-	const bool& isGraphMode();
-	const bool& isMotionBlurMode();
-
 private:
 	TimelineContext* ctx;
-
-	bool GraphMode		= false;
-	bool MotionBlurMode = false;
 
 	float DrawTimer();
 	float DrawFinder(float availableWidth);
