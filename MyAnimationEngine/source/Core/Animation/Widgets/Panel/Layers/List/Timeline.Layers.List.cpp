@@ -1,6 +1,6 @@
 ﻿#include "Timeline.Layers.List.h"
 
-#include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
+#include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
 #include "CursorManager/CursorManger.h"
 #include "FontManager/FontManager.h"
 #include "ThirdParty/IconFontCppHeaders/IconsFontAwesome6.h"

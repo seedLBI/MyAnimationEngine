@@ -1,6 +1,6 @@
 ﻿#include "Timeline.UpperControls.h"
 
-#include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
+#include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
 
 #include "ThirdParty/ImGui/imgui.h"
 #include "ThirdParty/ImGui/imgui_internal.h"

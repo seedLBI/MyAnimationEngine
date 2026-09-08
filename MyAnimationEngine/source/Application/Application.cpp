@@ -112,6 +112,29 @@ void Application::Init_ImGui() {
 
 	auto& s = ImGui::GetStyle();
 	s.ImageBorderSize = 1.f;
+	s.DockingSeparatorSize = 5.f;
+	s.TabBorderSize = 0.f;
+	s.TabRounding = 0.f;
+
+	s.TabBarOverlineSize = 1.f;
+
+
+	s.Colors[ImGuiCol_Border] = ImColor(0.f, 0.f, 0.f, 1.f);
+	s.Colors[ImGuiCol_WindowBg] = ImColor(.11f, .11f, .11f, 1.f);
+	s.Colors[ImGuiCol_TitleBg] = ImColor(.11f, .11f, .11f, 1.f);
+	s.Colors[ImGuiCol_TitleBgActive] = ImColor(.11f, .11f, .11f, 1.f);
+	s.Colors[ImGuiCol_ResizeGrip] = ImColor(0.f, 0.f, 0.f, 1.f);
+	s.Colors[ImGuiCol_ResizeGripHovered] = ImColor(0.f, 0.f, 0.f, 1.f);
+	s.Colors[ImGuiCol_ResizeGripActive] = ImColor(0.f, 0.f, 0.f, 1.f);
+	
+	s.Colors[ImGuiCol_TabHovered] = ImColor(0.f, 0.f, 0.f, 0.f);
+	s.Colors[ImGuiCol_Tab] = ImColor(0.f, 0.f, 0.f, 0.f);
+	s.Colors[ImGuiCol_TabSelected] = ImColor(0.f, 0.f, 0.f, 0.f);
+	s.Colors[ImGuiCol_TabDimmed] = ImColor(0.f, 0.f, 0.f, 0.f);
+	s.Colors[ImGuiCol_TabDimmedSelected] = ImColor(0.f, 0.f, 0.f, 0.f);
+
+	s.Colors[ImGuiCol_TabDimmedSelectedOverline] = ImColor(0.5f, 0.5f, 0.5f, 1.f);
+	s.Colors[ImGuiCol_TabSelectedOverline] = ImColor(1.f, 1.f, 1.f, 1.f);
 
 	ImGui::GetIO().IniFilename = NULL;
 	ImGui::GetIO().LogFilename = NULL;
@@ -167,6 +190,25 @@ void Application::Run() {
 	}
 }
 
+#include "ThirdParty/ImGui/imgui_internal.h"
+
+void UpdateDockingCursorOnly()
+{
+	auto g = ImGui::GetCurrentContext();
+	ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+
+	bool is_resizing = (imgui_cursor == ImGuiMouseCursor_ResizeEW || imgui_cursor == ImGuiMouseCursor_ResizeNS);
+
+	if (is_resizing && g->DebugHoveredDockNode != nullptr)
+	{
+		if (imgui_cursor == ImGuiMouseCursor_ResizeEW)
+			CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_HORIZONTAL);
+		else
+			CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_VERTICAL);
+	}
+
+}
+
 void Application::Draw() {
 
 	//DebugOverlay::AddText("FPS_imgui_io: " + std::to_string(ImGui::GetIO().Framerate), ImColor{ 0.5f,0.5f,1.f,1.f });
@@ -201,6 +243,7 @@ void Application::Update() {
 	timelineController->Update();
 	playerComposition->Update();
 	renderer->Update();
+	UpdateDockingCursorOnly();
 }
 
 void Application::BeginDraw() {

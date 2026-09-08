@@ -1,7 +1,8 @@
 ﻿#include "Timeline.Scroll.Vertical.h"
 
 #include "Utils/ImGui/Utils.ImGui.h"
-#include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
+#include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
+
 #include "CursorManager/CursorManger.h"
 
 Timeline_Scroll_Vertical::Timeline_Scroll_Vertical(TimelineContext* ctx) : ctx(ctx)

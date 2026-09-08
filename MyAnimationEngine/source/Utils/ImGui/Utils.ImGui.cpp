@@ -281,35 +281,71 @@ void AddDashedLine(ImDrawList* draw_list, const ImVec2& p1, const ImVec2& p2, Im
 }
 
 std::string TruncateTextMiddle(const std::string& text, float maxWidth) {
-	if (ImGui::CalcTextSize(text.c_str()).x <= maxWidth) {
-		return text;
+    if (ImGui::CalcTextSize(text.c_str()).x <= maxWidth) {
+        return text;
+    }
+
+    std::vector<std::string> chars = SplitUtf8(text);
+    if (chars.empty()) return text;
+
+    const std::string ellipsis = "...";
+    float ellipsisWidth = ImGui::CalcTextSize(ellipsis.c_str()).x;
+
+    if (maxWidth <= ellipsisWidth) return ellipsis;
+
+    int maxN = chars.size() / 2;
+    for (int n = maxN; n > 0; --n) {
+        std::string leftStr, rightStr;
+
+        for (int j = 0; j < n; ++j) {
+            leftStr += chars[j];
+        }
+        for (int j = chars.size() - n; j < chars.size(); ++j) {
+            rightStr += chars[j];
+        }
+
+        std::string candidate = leftStr + ellipsis + rightStr;
+
+        if (ImGui::CalcTextSize(candidate.c_str()).x <= maxWidth) {
+            return candidate;
+        }
+    }
+
+    return ellipsis;
+}
+
+void DrawBorderForFocusedWindow(ImColor color_border) {
+	if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+	{
+		ImVec2 p_min, p_max;
+
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+		if (window->DockNode)
+		{
+			p_min = window->DockNode->Pos;
+			p_max = ImVec2(p_min.x + window->DockNode->Size.x, p_min.y + window->DockNode->Size.y);
+		}
+		else
+		{
+			p_min = window->Pos;
+			p_max = ImVec2(p_min.x + window->Size.x, p_min.y + window->Size.y);
+		}
+
+		float thickness = 1.0f;
+		float rounding = 0.0f;
+
+
+		ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+		ImVec2 clip_min = ImVec2(p_min.x - thickness, p_min.y - thickness);
+		ImVec2 clip_max = ImVec2(p_max.x + thickness, p_max.y + thickness);
+
+		draw_list->PushClipRect(clip_min, clip_max, false);
+
+		draw_list->AddRect(p_min, p_max, color_border, rounding, 0, thickness);
+
+		draw_list->PopClipRect();
+
 	}
-
-	std::vector<std::string> chars = SplitUtf8(text);
-	if (chars.empty()) return text;
-
-	const std::string ellipsis = "...";
-	float ellipsisWidth = ImGui::CalcTextSize(ellipsis.c_str()).x;
-
-	if (maxWidth <= ellipsisWidth) return ellipsis;
-
-	int maxN = chars.size() / 2;
-	for (int n = maxN; n > 0; --n) {
-		std::string leftStr, rightStr;
-
-		for (int j = 0; j < n; ++j) {
-			leftStr += chars[j];
-		}
-		for (int j = chars.size() - n; j < chars.size(); ++j) {
-			rightStr += chars[j];
-		}
-
-		std::string candidate = leftStr + ellipsis + rightStr;
-
-		if (ImGui::CalcTextSize(candidate.c_str()).x <= maxWidth) {
-			return candidate;
-		}
-	}
-
-	return ellipsis;
 }

@@ -2,6 +2,8 @@
 #define TIMELINE_PREVIEW_H
 
 #include "Core/Animation/Renderer/Renderer.h"
+#include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
+#include "Utils/ImGui/Utils.ImGui.h"
 
 class Timeline_Preview
 {

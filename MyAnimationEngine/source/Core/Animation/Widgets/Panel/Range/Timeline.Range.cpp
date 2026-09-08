@@ -1,6 +1,7 @@
 ﻿#include "Timeline.Range.h"
 #include "CursorManager/CursorManger.h"
-#include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
+#include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
+
 #include <algorithm>
 
 Timeline_Range::Timeline_Range(

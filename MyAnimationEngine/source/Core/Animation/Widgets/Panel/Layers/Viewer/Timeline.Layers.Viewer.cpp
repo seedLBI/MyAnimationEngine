@@ -2,7 +2,7 @@
 #include "CursorManager/CursorManger.h"
 #include "Core/DebugOverlay/DebugOverlay.h"
 #include "Core/Animation/Widgets/Panel/Textures/Noise/Texture.Noise.h"
-#include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
+#include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
 
 
 #include "KeyframeRenderer/KeyframeRenderer.h"

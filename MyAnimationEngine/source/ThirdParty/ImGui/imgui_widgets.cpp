@@ -1,4 +1,4 @@
-// dear imgui, v1.92.0 WIP
+ï»¿// dear imgui, v1.92.0 WIP
 // (widgets code)
 
 /*
@@ -7160,7 +7160,7 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     if ( (flags & ImGuiSelectableFlags_Centered) ) {
         ImVec2 text_min = ImVec2(bb.Min.x, bb.Min.y + (bb.Max.y - bb.Min.y) * 0.5f - label_size.y * 0.5f);
         ImVec2 text_max = ImVec2(bb.Max.x, text_min.y + label_size.y);
-        RenderTextClipped(text_min, text_max, label, NULL, &label_size, ImVec2(0.5f, 0.5f), &bb); // (0.5f, 0.5f) äëÿ öåíòðèðîâàíèÿ
+        RenderTextClipped(text_min, text_max, label, NULL, &label_size, ImVec2(0.5f, 0.5f), &bb); // (0.5f, 0.5f) Ð´Ð»Ñ Ñ†ÐµÐ½Ñ‚Ñ€Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ñ
     }
     else {
         RenderTextClipped(pos, ImVec2(ImMin(pos.x + size.x, window->WorkRect.Max.x), pos.y + size.y), label, NULL, &label_size, style.SelectableTextAlign, &bb);
@@ -10388,7 +10388,9 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
             }
             else
             {
-                display_draw_list->AddLine(tl - ImVec2(0.5f, 0.5f), tr - ImVec2(0.5f, 0.5f), overline_col, style.TabBarOverlineSize);
+                ImVec2 bl = bb.GetBL() - ImVec2(0, 1.0f * g.CurrentDpiScale);
+                ImVec2 br = bb.GetBR() - ImVec2(0, 1.0f * g.CurrentDpiScale);
+                display_draw_list->AddLine(bl - ImVec2(0.5f, 0.5f), br - ImVec2(0.5f, 0.5f), overline_col, style.TabBarOverlineSize);
             }
         }
         RenderNavCursor(bb, id);

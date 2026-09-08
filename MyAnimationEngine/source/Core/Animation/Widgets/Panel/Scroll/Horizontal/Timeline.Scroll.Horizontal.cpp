@@ -6,7 +6,7 @@
 #include "ThirdParty/ImGui/imgui_internal.h"
 #include "CursorManager/CursorManger.h"
 
-#include "Core/Animation/Widgets/Panel/Colors/Panel.Colors.h"
+#include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
 #include "Core/DebugOverlay/DebugOverlay.h"
 
 #include <iostream>

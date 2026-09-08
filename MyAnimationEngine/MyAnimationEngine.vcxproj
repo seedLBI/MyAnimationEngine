@@ -117,7 +117,7 @@
     <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Data\Timeline.Data.h" />
     <ClInclude Include="source\Core\Animation\Timeline\ProviderData\Timeline.ProviderData.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\AreaSelection\Timeline.AreaSelection.h" />
-    <ClInclude Include="source\Core\Animation\Widgets\Panel\Colors\Panel.Colors.h" />
+    <ClInclude Include="source\Core\Animation\Widgets\Colors\Widgets.Colors.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Context\Timeline.Context.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Graph\Timeline.Graph.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.h" />

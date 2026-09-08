@@ -1,5 +1,5 @@
-﻿#ifndef PANEL_COLORS_H
-#define PANEL_COLORS_H
+﻿#ifndef WIDGETS_COLORS_H
+#define WIDGETS_COLORS_H
 
 #define COLOR_DISABLED					ImColor(.42f, .42f, .42f, 1.f)
 
@@ -17,6 +17,8 @@
 #define COLOR_DEFAULT_BORDER_HOVERED	ImColor(.29f, .29f, .29f, 1.f)
 
 #define COLOR_SEPARATOR					ImColor(0.f,0.f,0.f,1.f)
+#define COLOR_WINDOW_BORDER_FOCUS		ImColor(.25f, .59f, .95f, 1.f)
+
 
 #define COLOR_BG_LAYER_NAME_CHOOSED		ImColor(.69f, .69f, .69f, 1.f)
 #define COLOR_BG_LAYER_CHOOSED			ImColor(.29f, .29f, .29f, 1.f)

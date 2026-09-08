@@ -1,5 +1,5 @@
 ﻿#include "Timeline.Panel.h"
-#include "Colors/Panel.Colors.h"
+#include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
 
 Timeline_Panel::Timeline_Panel(
 	FPS_Timer* deltaTime, 
@@ -72,6 +72,11 @@ Timeline_Panel::~Timeline_Panel() {
 
 }
 
+
+
+
+
+
 void Timeline_Panel::Draw() {
 
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, COLOR_BG_LIST.Value);
@@ -140,8 +145,7 @@ void Timeline_Panel::Draw() {
 
 		);
 
-		
-
+		DrawBorderForFocusedWindow(COLOR_WINDOW_BORDER_FOCUS);
 	
 	ImGui::End();
 

@@ -40,4 +40,7 @@ void AddDashedLine(ImDrawList* draw_list, const ImVec2& p1, const ImVec2& p2, Im
 
 std::string TruncateTextMiddle(const std::string& text, float maxWidth);
 
+void DrawBorderForFocusedWindow(ImColor color_border);
+
+
 #endif

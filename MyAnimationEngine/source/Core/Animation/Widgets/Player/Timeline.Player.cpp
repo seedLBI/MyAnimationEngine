@@ -54,6 +54,8 @@ void Timeline_Player::Draw() {
 
 	controller->SetSpeedMultiplier(multiplier);
 
+
+	DrawBorderForFocusedWindow(COLOR_WINDOW_BORDER_FOCUS);
 	ImGui::End();
 
 }
