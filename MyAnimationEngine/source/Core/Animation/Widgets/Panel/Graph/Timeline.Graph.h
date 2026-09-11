@@ -5,7 +5,7 @@
 #include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 #include "Core/Animation/Widgets/Panel/HorizontalTickRenderer/Horizontal.Tick.Renderer.h"
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
-
+#include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
 
 
 #include "Utils/ImGui/Utils.ImGui.h"
@@ -32,7 +32,8 @@ private:
 	bool isHovered = false, isDraging = false, isHeld = false;
 	float mouse_global = 0.f, mouse_screen = 0.f;
 	float scroll_zoom;
-
+	float size_keyframe = 8.f;
+	float size_offset = size_keyframe / 2.f;
 
 	float min_graph = 0.f, max_graph = 0.f;
 

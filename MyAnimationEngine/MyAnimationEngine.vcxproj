@@ -73,6 +73,9 @@
     <ClCompile Include="source\Utils\ImGui\Utils.ImGui.cpp" />
     <ClCompile Include="source\Utils\Keyboard\Keyboard.cpp" />
     <ClCompile Include="source\Utils\Math\AABB\AABB.cpp" />
+    <ClCompile Include="source\Utils\Math\Capsule\Capsule.cpp" />
+    <ClCompile Include="source\Utils\Math\Circle\Circle.cpp" />
+    <ClCompile Include="source\Utils\Math\Math.Collision.cpp" />
     <ClCompile Include="source\Utils\Math\Math.cpp" />
     <ClCompile Include="source\Utils\Math\Math.Lerp.cpp" />
     <ClCompile Include="source\Utils\Math\Segment\Segment.cpp" />
@@ -166,6 +169,9 @@
     <ClInclude Include="source\Utils\Keyboard\Keyboard.h" />
     <ClInclude Include="source\Utils\LerpedValue\LerpedValue.h" />
     <ClInclude Include="source\Utils\Math\AABB\AABB.h" />
+    <ClInclude Include="source\Utils\Math\Capsule\Capsule.h" />
+    <ClInclude Include="source\Utils\Math\Circle\Circle.h" />
+    <ClInclude Include="source\Utils\Math\Math.Collision.h" />
     <ClInclude Include="source\Utils\Math\Math.h" />
     <ClInclude Include="source\Utils\Math\Math.Lerp.h" />
     <ClInclude Include="source\Utils\Math\Segment\Segment.h" />

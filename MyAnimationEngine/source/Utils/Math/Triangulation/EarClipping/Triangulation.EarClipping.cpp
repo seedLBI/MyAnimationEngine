@@ -1,5 +1,5 @@
 ﻿#include "Triangulation.EarClipping.h"
-
+#include "Utils/Math/Math.Collision.h"
 #include <numeric>
 
 std::vector<Triangle> MakeTriangulationEarClipping(
@@ -28,7 +28,7 @@ std::vector<Triangle> MakeTriangulationEarClipping(
 			if (prev == vertex || current == vertex || next == vertex)
 				continue;
 
-			if (Collision_Point_and_Triangle(vertex, { prev, current, next }))
+			if (Collision::Check(vertex, Triangle{ prev, current, next }))
 				return false;
 
 		}

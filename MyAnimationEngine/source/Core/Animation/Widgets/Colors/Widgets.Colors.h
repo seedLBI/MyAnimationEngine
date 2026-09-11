@@ -46,4 +46,6 @@
 #define COLOR_LAYER_GRAB_OUTLINE			 ImColor(.22f, .47f, .74f, 1.f)
 #define COLOR_LAYER_GRAB_LINE_COPY_POSITION  ImColor(.25f, .59f, .95f, 1.f)
 
+#define COLOR_GRAPH_SELECTED_KEYFRAME ImColor(.85f, .71f, 0.f, 1.f)
+
 #endif

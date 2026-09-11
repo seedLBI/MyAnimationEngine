@@ -1,7 +1,7 @@
 ﻿#include "Timeline.Graph.h"
 
 #include "Core/DebugOverlay/DebugOverlay.h"
-
+#include "CursorManager/CursorManger.h"
 
 
 Timeline_Graph::Timeline_Graph(
@@ -88,8 +88,8 @@ void Timeline_Graph::DrawTicks(ImVec2 p_min, ImVec2 p_max) {
 
 	float bound_a = ctx->graphTransformVertical->getMinBoundView_lerped();
 	float bound_b = ctx->graphTransformVertical->getMaxBoundView_lerped();
-	float v_min = std::min(bound_a, bound_b);
-	float v_max = std::max(bound_a, bound_b);
+	float v_min = (std::min)(bound_a, bound_b);
+	float v_max = (std::max)(bound_a, bound_b);
 
 	if (v_min < 0.f && v_max > 0.f) {
 		float pos_y_center_line = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(0.f);
@@ -174,7 +174,7 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 		std::visit([&](auto& propertie) {
 			auto& keyframes = propertie.kr.getKeyframes();
 			auto& range = propertie.kr.getRange();
-
+			
 			if (range.has_value()) {
 				float min_value = range.value().Min.front();
 				float max_value = range.value().Max.front();
@@ -198,8 +198,6 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 				);
 
 			}
-
-			float size_keyframe = 6.f;
 
 			ImColor colors[9] = {
 				ImColor{.82f, .34f, .34f, 1.f},
@@ -260,6 +258,9 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 							1.f,
 							length, gap);
 					}
+
+
+					
 				}
 			}
 
@@ -288,29 +289,129 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 				}
 			}
 
-			for (size_t i = 0; i < keyframes.size(); i++) {
+			
+			float selected_min_time  = FLT_MAX, selected_max_time  = FLT_MIN;
+			float selected_min_value = FLT_MAX, selected_max_value = FLT_MIN;
+
+			bool isHaveSelected = ctx->selector->HasKeyframes();
+			bool isHaveSelectedMoreThenOne = ctx->selector->getKeyframes().size() > 1;
+
+			for (uint64_t i = 0; i < keyframes.size(); i++) {
+
+				SelectedKeyframe current;
+				current.id = keyframes[i].id;
+				current.property.name = name_property;
+				current.property.layer.id = id_layer;
+
+				bool isSelected = ctx->selector->ContainsKeyframe(current);
+
+				if (isSelected) {
+					selected_min_time = (std::min)(selected_min_time, keyframes[i].sample.time);
+					selected_max_time = (std::max)(selected_max_time, keyframes[i].sample.time);
+
+					selected_min_value = (std::min)(selected_min_value, (float)keyframes[i].sample.MinValue());
+					selected_min_value = (std::min)(selected_min_value, (float)keyframes[i].sample.MaxValue());
+
+					selected_max_value = (std::max)(selected_max_value, (float)keyframes[i].sample.MinValue());
+					selected_max_value = (std::max)(selected_max_value, (float)keyframes[i].sample.MaxValue());
+				}
+
+
+
 				float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);
-				for (size_t j = 0; j < keyframes[i].sample.value.size(); j++) {
+
+				for (uint64_t j = 0; j < keyframes[i].sample.value.size(); j++) {
 					float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].sample.value[j]);
 
+					ImVec2 min_hitbox = { pos_x - size_offset, pos_y - size_offset };
+					ImVec2 max_hitbox = { pos_x + size_offset, pos_y + size_offset };
+
+					if (
+						ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_VIEWER &&
+						ctx->areaSelection->IsActive())
+					{
+
+						if (ctx->areaSelection->CheckAABB({ min_hitbox, max_hitbox })) {
+							ctx->selector->AddMoreSelectedKeyframe(current);
+							ctx->selector->AddMoreSelectedProperty({ id_layer, name_property });
+							ctx->selector->AddMoreSelectedLayer({ id_layer });
+							break;
+						}
+						else {
+							ctx->selector->EraseKeyframe(current);
+						}
+					}
+
+				}
+
+				for (uint64_t j = 0; j < keyframes[i].sample.value.size(); j++) {
+					float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].sample.value[j]);
+					ImVec2 min_hitbox = { pos_x - size_offset, pos_y - size_offset };
+					ImVec2 max_hitbox = { pos_x + size_offset, pos_y + size_offset };
 					ImColor color_line = colors[j];
 
-					drawlist->AddRectFilled(
-						{ pos_x - size_keyframe / 2.f, pos_y - size_keyframe / 2.f },
-						{ pos_x + size_keyframe / 2.f, pos_y + size_keyframe / 2.f },
-						color_line
-					);
+
+					bool isHoveredPoint = ImGui::IsMouseHoveringRect(min_hitbox, max_hitbox);
+
+
+
+					if (isHoveredPoint) {
+						CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
+					}
+							
+
+					if (isHaveSelected) {
+						if (isSelected)
+							drawlist->AddRectFilled(min_hitbox, max_hitbox, COLOR_GRAPH_SELECTED_KEYFRAME);
+						else
+							drawlist->AddRect(min_hitbox, max_hitbox, COLOR_GRAPH_SELECTED_KEYFRAME, 0, 0, 1.f);
+					}
+					else
+						drawlist->AddRectFilled(min_hitbox, max_hitbox, color_line);
 				}
+				
+			}
+
+			// draw selected zone
+			if (isHaveSelectedMoreThenOne) {
+
+				float min_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + selected_min_time);
+				float max_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + selected_max_time);
+
+				float min_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(selected_max_value);
+				float max_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(selected_min_value);
+
+				static const float padding = 6.f;
+
+				ImVec2 r_min = { min_pos_x - padding, min_pos_y - padding };
+				ImVec2 r_max = { max_pos_x + padding, max_pos_y + padding };
+
+				float r_mid_y = (min_pos_y + max_pos_y) / 2.f;
+
+				ImVec2 s_left_min = { min_pos_x - padding - size_offset, r_mid_y - size_offset };
+				ImVec2 s_left_max = { min_pos_x - padding + size_offset, r_mid_y + size_offset };
+
+				ImVec2 s_right_min = { max_pos_x + padding - size_offset, r_mid_y - size_offset };
+				ImVec2 s_right_max = { max_pos_x + padding + size_offset, r_mid_y + size_offset };
+
+
+				drawlist->AddRectFilled(r_min, r_max, ImColor(1.f, 1.f, 1.f, 0.1f), 2.f);
+				drawlist->AddRect(r_min, r_max, ImColor(1.f, 1.f, 1.f, 0.4f), 2.f, 0.f, 2.f);
+
+				drawlist->AddRectFilled(s_left_min, s_left_max, ImColor(1.f, 1.f, 1.f, 1.0f), 0.f);
+				drawlist->AddRectFilled(s_right_min, s_right_max, ImColor(1.f, 1.f, 1.f, 1.0f), 0.f);
+
 			}
 
 
-			}, variant_prop);
+		}, variant_prop);
 	}
 
 }
 
 
 void Timeline_Graph::Draw() {
+
 	auto drawlist = ImGui::GetWindowDrawList();
 	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
 	ImVec2 region_max = ImGui::GetContentRegionAvail();

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <array>
+#include <algorithm>
 #include <optional>
 
 enum class TypeKeyframe {
@@ -28,6 +29,8 @@ template<typename T, uint8_t N>
 struct KeyframeSample {
 	float time;
 	std::array<T, N> value;
+	T MinValue() const { return *std::min_element(value.begin(), value.end()); }
+	T MaxValue() const { return *std::max_element(value.begin(), value.end()); }
 };
 
 template<typename T, uint8_t N>

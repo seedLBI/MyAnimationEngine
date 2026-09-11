@@ -399,6 +399,15 @@
     <ClCompile Include="source\Core\Animation\Widgets\Panel\StatusGlobalButtons\Timeline.StatusGlobalButtons.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="source\Utils\Math\Math.Collision.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Utils\Math\Capsule\Capsule.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Utils\Math\Circle\Circle.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Application\Application.h">
@@ -678,6 +687,15 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Core\Animation\Widgets\Panel\StatusGlobalButtons\Timeline.StatusGlobalButtons.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Utils\Math\Math.Collision.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Utils\Math\Capsule\Capsule.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Utils\Math\Circle\Circle.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

@@ -3,14 +3,15 @@
 
 #include <glm/glm.hpp>
 #include "Utils/Math/Math.h"
+#include "Utils/Math/AABB/AABB.h"
 
 struct Triangle {
 	glm::vec2 p1, p2, p3;
 
 	float getArea() const;
-	glm::vec2 getCenter();
+	glm::vec2 getCenter() const;
+	AABB_Region getAABB() const;
 };
 
-bool Collision_Point_and_Triangle(const glm::vec2& point, const Triangle& triangle);
 
 #endif
