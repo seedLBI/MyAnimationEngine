@@ -104,6 +104,9 @@ void TransformScaled::fitToRanges(float global_min, float global_max) {
 	getOffset().Set(
 		getOffset().GetReal() - getPosScreen_real(global_min)
 	);
+
+	//real_scale = getScale().GetReal();
+	real_offset = getOffset().GetReal();
 }
 
 float TransformScaled::getMinBoundView_real() {

@@ -226,8 +226,8 @@ void Application::Draw() {
 
 	DebugOverlay::DrawDebug();
 
-	//auto drawlist = ImGui::GetForegroundDrawList();
-	//drawlist->AddCircleFilled(ImGui::GetMousePos(), 2.f, ImColor(1.f, 0.f, 0.f, 1.f));
+	auto drawlist = ImGui::GetForegroundDrawList();
+	drawlist->AddCircleFilled(ImGui::GetMousePos(), 1.f, ImColor(1.f, 0.f, 0.f, 1.f));
 }
 void Application::Update() {
 	CursorManager::getInstance().Update();

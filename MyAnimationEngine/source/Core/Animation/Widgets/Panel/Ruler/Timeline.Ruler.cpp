@@ -242,7 +242,10 @@ void Timeline_Ruler::Update(const float& dt) {
 
 
 	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left, false)) {
-		ctx->horizontalTransform->fitToRanges(-0.1, ctx->timelineData->GetData().totalTime + 0.1);
+
+		float w = ctx->timelineData->GetData().totalTime * 0.05f;
+
+		ctx->horizontalTransform->fitToRanges(-w, ctx->timelineData->GetData().totalTime + w);
 	}
 
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Right, false)) {

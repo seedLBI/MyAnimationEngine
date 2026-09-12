@@ -46,10 +46,9 @@ bool Collision::Check(const glm::vec2& point, const Circle& circle) {
 	return glm::length(circle.pos - point) <= circle.radius;
 }
 bool Collision::Check(const glm::vec2& point, const Capsule& capsule) {
-
 	glm::vec2 dir = capsule.segment.getDirection();
 	float len = glm::length(dir);
-	float dot = glm::dot(point, dir);
+	float dot = glm::dot(point - capsule.segment.begin, dir);
 	float t = std::clamp(dot / (len * len),0.f,1.f);
 
 	glm::vec2 proj = capsule.segment.begin + t * dir;

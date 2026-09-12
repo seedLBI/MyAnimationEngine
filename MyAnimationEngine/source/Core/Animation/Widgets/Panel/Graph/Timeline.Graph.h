@@ -29,6 +29,9 @@ private:
 	HorizontalTickRenderer* horizontalTickRenderer;
 
 
+	ImRect getRectGraph();
+
+
 	bool isHovered = false, isDraging = false, isHeld = false;
 	float mouse_global = 0.f, mouse_screen = 0.f;
 	float scroll_zoom;
