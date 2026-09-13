@@ -37,6 +37,7 @@ private:
 
 	bool isHovered = false;
 	bool isDraging = false;
+	bool isDragingTime = false;
 	float scrol_zoom = 0.f;
 
 	void UpdateVars(const float& dt);

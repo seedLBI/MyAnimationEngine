@@ -6,10 +6,12 @@
 
 Timeline_Graph::Timeline_Graph(
 	TimelineContext* ctx,
+	KeyframeDragHandler* kf_DragHandler,
 	Timeline_TimeCursor* timeCursor,
 	HorizontalTickRenderer* horizontalTickRenderer)
 	:
 	ctx(ctx),
+	kf_DragHandler(kf_DragHandler),
 	timeCursor(timeCursor),
 	horizontalTickRenderer(horizontalTickRenderer)
 {
@@ -216,7 +218,14 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 	if (ctx->layersData->GetData().layers.empty() || ctx->selector->getProperties().empty()) 
 		return;
 
-	for (const auto& selected_property : ctx->selector->getProperties()) {
+	float mouse_x_fixed = ImGui::GetMousePos().x - cursor_pos.x;
+	float mouse_y_fixed = ImGui::GetMousePos().y - cursor_pos.y;
+	float mouse_time_global_x = ctx->horizontalTransform->getPostionGlobal_real(mouse_x_fixed);
+	float mouse_time_global_y = ctx->graphTransformVertical->getPosGlobal_real(mouse_y_fixed);
+
+	const auto props = ctx->selector->getProperties();
+
+	for (const auto& selected_property : props) {
 
 		const auto& id_layer = selected_property.layer.id;
 		const auto& name_property = selected_property.name;
@@ -315,8 +324,6 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 							length, gap);
 					}
 
-
-					
 				}
 			}
 
@@ -353,6 +360,9 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 					ImColor color_line = colors[j];
 
+
+					bool isPressedLBM = false;
+
 					if (keyframes[i - 1].type == TypeKeyframe::BINARY)
 					{
 						ImVec2 b1 = { prev_pos_x, prev_pos_y };
@@ -362,10 +372,8 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 						ImVec2 e2 = { pos_x, pos_y };
 
 						if (isHoveredPoint == false) {
-							isHovered_Segment = Collision::Check({ m.x,m.y }, Capsule{ Segment{ {b1.x,b1.y},{e1.x,e1.y} }, 4.f });
+							isHovered_Segment =  Collision::Check({ m.x,m.y }, Capsule{ Segment{ {b1.x,b1.y},{e1.x,e1.y} }, 4.f });
 							isHovered_Segment |= Collision::Check({ m.x,m.y }, Capsule{ Segment{ {b2.x,b2.y},{e2.x,e2.y} }, 4.f });
-
-							
 						}
 						
 						if (isHovered_Segment && OneIsHovered == false) {
@@ -373,6 +381,8 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 							drawlist->AddLine(b1, e1, color_line, 4.f);
 							drawlist->AddLine({ pos_x,prev_pos_y }, { pos_x, pos_y }, color_line, 4.f);
 							OneIsHovered = true;
+
+							isPressedLBM = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
 						}
 						else {
 							drawlist->AddLine(b1, e1, color_line, 2.f);
@@ -392,10 +402,32 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 							CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
 							drawlist->AddLine(b, e, color_line, 4.f);
 							OneIsHovered = true;
+							isPressedLBM = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
 						}
 						else
 							drawlist->AddLine(b, e, color_line, 2.f);
 						
+					}
+
+
+					if (isPressedLBM) {
+
+						SelectedKeyframe left;
+						left.id = keyframes[i-1].id;
+						left.property.name = name_property;
+						left.property.layer.id = id_layer;
+
+						SelectedKeyframe right;
+						right.id = keyframes[i].id;
+						right.property.name = name_property;
+						right.property.layer.id = id_layer;
+
+						//ctx->selector->UnsetAll();
+						ctx->selector->SelectKeyframe(left);
+						ctx->selector->AddMoreSelectedKeyframe(right);
+
+
+						kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, j, left);
 					}
 
 				}
@@ -469,6 +501,18 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 					if (isHoveredPoint) {
 						CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
+
+
+						if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+							kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, j, current);
+						}
+
+						if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !kf_DragHandler->IsDragging()) {
+							ctx->selector->UnsetAll();
+							ctx->selector->AddMoreSelectedKeyframe(current);
+						}
+
+
 						min_hitbox.x -= 1.f;
 						min_hitbox.y -= 1.f;
 						max_hitbox.x += 1.f;
@@ -508,9 +552,12 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 				ImVec2 s_left_min = { min_pos_x - padding - size_offset, r_mid_y - size_offset };
 				ImVec2 s_left_max = { min_pos_x - padding + size_offset, r_mid_y + size_offset };
+				bool is_left_drag_scale_hovered = ImGui::IsMouseHoveringRect(s_left_min, s_left_max);
+
 
 				ImVec2 s_right_min = { max_pos_x + padding - size_offset, r_mid_y - size_offset };
 				ImVec2 s_right_max = { max_pos_x + padding + size_offset, r_mid_y + size_offset };
+				bool is_right_drag_scale_hovered = ImGui::IsMouseHoveringRect(s_right_min, s_right_max);
 
 
 				drawlist->AddRectFilled(r_min, r_max, ImColor(1.f, 1.f, 1.f, 0.1f), 2.f);
@@ -518,6 +565,22 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 				drawlist->AddRectFilled(s_left_min, s_left_max, ImColor(1.f, 1.f, 1.f, 1.0f), 0.f);
 				drawlist->AddRectFilled(s_right_min, s_right_max, ImColor(1.f, 1.f, 1.f, 1.0f), 0.f);
+
+
+
+
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !kf_DragHandler->IsDragging()) {
+					if (is_left_drag_scale_hovered) {
+						kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, -1, *ctx->selector->getKeyframes().begin(), KeyframeDragMode::ScaleLeft);
+					}
+					else if (is_right_drag_scale_hovered) {
+						kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, -1, *ctx->selector->getKeyframes().begin(), KeyframeDragMode::ScaleRight);
+					}
+					else if (ImGui::IsMouseHoveringRect(r_min, r_max)) {
+						kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, -1, *ctx->selector->getKeyframes().begin(), KeyframeDragMode::Translate);
+					}
+				}
+
 
 			}
 
@@ -579,6 +642,14 @@ void Timeline_Graph::Draw() {
 	);
 
 
+	float mouse_x_fixed = ImGui::GetMousePos().x - cursor_pos.x;
+	float mouse_y_fixed = ImGui::GetMousePos().y - cursor_pos.y;
+	float mouse_time_global_x = ctx->horizontalTransform->getPostionGlobal_real(mouse_x_fixed);
+	float mouse_time_global_y = ctx->graphTransformVertical->getPosGlobal_real(mouse_y_fixed);
+
+	kf_DragHandler->ProcessDrag(mouse_time_global_x, mouse_time_global_y);
+
+
 	if (ImGui::IsKeyDown(ImGuiKey_LeftShift) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 		ctx->areaSelection->SetStatus(true);
 		ctx->areaSelection->SetStartMousePosition(ImGui::GetMousePos());
@@ -604,7 +675,7 @@ void Timeline_Graph::Update(const float& dt) {
 
 	static bool isOfsetDeltaApplied = false;
 
-	if (isDraging && ImGui::IsMouseDown(ImGuiMouseButton_Left) && !ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
+	if (isDraging && ImGui::IsMouseDown(ImGuiMouseButton_Left) && !ImGui::IsKeyDown(ImGuiKey_LeftShift) && !kf_DragHandler->IsDragging()) {
 		isOfsetDeltaApplied = true;
 		float delta_y = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).y;
 		float delta_x = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left).x;
@@ -633,7 +704,6 @@ void Timeline_Graph::Update(const float& dt) {
 		isDraging = true;
 	}
 
-	// TODO: fit graph with padding
 	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
 		auto rect = getRectGraph();
 		if (((rect.Min.x != FLT_MAX && rect.Min.y != FLT_MAX) && (rect.Max.x != FLT_MIN && rect.Max.y != FLT_MIN))) {
@@ -651,6 +721,9 @@ void Timeline_Graph::Update(const float& dt) {
 			ctx->graphTransformVertical->fitToRanges(rect.Max.y, rect.Min.y);
 
 			ctx->horizontalTransform->fitToRanges(rect.Min.x, rect.Max.x);
+		}
+		else {
+			ctx->graphTransformVertical->centerize(0.f);
 		}
 
 	}

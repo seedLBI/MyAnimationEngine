@@ -4,6 +4,7 @@
 
 #include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 #include "Core/Animation/Widgets/Panel/HorizontalTickRenderer/Horizontal.Tick.Renderer.h"
+#include "Core/Animation/Widgets/Panel/Layers/KeyframeDragHandler/Keyframe.DragHandler.h"
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
 #include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
 
@@ -13,7 +14,8 @@
 class Timeline_Graph{
 public:
 	Timeline_Graph(
-		TimelineContext* ctx, 
+		TimelineContext* ctx,
+		KeyframeDragHandler* kf_DragHandler,
 		Timeline_TimeCursor* timeCursor, 
 		HorizontalTickRenderer* horizontalTickRenderer);
 	~Timeline_Graph();
@@ -25,6 +27,7 @@ public:
 
 private:
 	TimelineContext* ctx;
+	KeyframeDragHandler* kf_DragHandler;
 	Timeline_TimeCursor* timeCursor;
 	HorizontalTickRenderer* horizontalTickRenderer;
 

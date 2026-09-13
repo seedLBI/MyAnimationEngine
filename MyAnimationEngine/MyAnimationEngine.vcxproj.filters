@@ -351,7 +351,7 @@
     <ClCompile Include="source\Utils\OpenGL\Shaders\Shader.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="source\Core\Animation\Widgets\Panel\Graph\Timeline.Graph.cpp">
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Graph\Timeline.Graph.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.cpp">
@@ -406,6 +406,9 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="source\Utils\Math\Circle\Circle.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\KeyframeDragHandler\Keyframe.DragHandler.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -638,7 +641,7 @@
     <ClInclude Include="source\Utils\OpenGL\Shaders\Shader.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Animation\Widgets\Panel\Graph\Timeline.Graph.h">
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Graph\Timeline.Graph.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Selector\Timeline.Selector.h">
@@ -696,6 +699,9 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Utils\Math\Circle\Circle.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\KeyframeDragHandler\Keyframe.DragHandler.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

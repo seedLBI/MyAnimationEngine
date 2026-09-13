@@ -47,12 +47,13 @@ Timeline_Panel::Timeline_Panel(
 	timelineRange = new Timeline_Range(timelineContext, timelineTimeCursor);
 
 	layers_ctx_menu = new LayersContextMenu_Manager(timelineContext);
+	keyframeDragHandler = new KeyframeDragHandler(timelineContext);
 
-	layersViewer = new Timeline_Layers_Viewer(timelineContext, timelineTimeCursor, layers_ctx_menu);
 	layersList = new Timeline_Layers_List(timelineContext, layers_ctx_menu);
-
-	graph = new Timeline_Graph(timelineContext, timelineTimeCursor, horizontalTickRenderer);
+	layersViewer = new Timeline_Layers_Viewer(timelineContext, keyframeDragHandler, timelineTimeCursor, layers_ctx_menu);
+	graph = new Timeline_Graph(timelineContext, keyframeDragHandler, timelineTimeCursor, horizontalTickRenderer);
 	graph->NeedCenterize();
+
 
 	NoiseTexture::getInstance();
 }

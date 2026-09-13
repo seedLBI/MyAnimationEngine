@@ -9,10 +9,12 @@
 
 Timeline_Layers_Viewer::Timeline_Layers_Viewer(
 	TimelineContext* ctx,
+	KeyframeDragHandler* kf_DragHandler,
 	Timeline_TimeCursor* timeCursor,
 	LayersContextMenu_Manager* layers_ctx_menu)
 	: 
 	ctx(ctx),
+	kf_DragHandler(kf_DragHandler),
 	timeCursor(timeCursor),
 	layers_ctx_menu(layers_ctx_menu)
 {
@@ -264,8 +266,6 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 					info.time.DragInfo.Prev_Begin = info.time.Begin;
 				}
 
-
-
 			}
 		}
 
@@ -367,46 +367,10 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 						}
 
 						if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-							DragKeyframe.drag_started = true;
-							DragKeyframe.startedDrag_global_x = ui_info.relative_mouse_global_pos_x;
-							DragKeyframe.original_times.clear();
-
-							if (ctx->selector->ContainsKeyframe(current)) {
-								for (const auto& sel_kf : ctx->selector->getKeyframes()) {
-									auto& properties = ctx->layersData->GetLayerByID(sel_kf.property.layer.id).get()->GetProperties();
-
-									properties.applyToKr(
-										sel_kf.property.name,
-										[&](auto& kr) {
-											auto* kf = kr.getKeyframeByID(sel_kf.id);
-											if (kf) {
-												DragKeyframe.original_times.push_back({ sel_kf, kf->sample.time });
-											}
-										}
-									);
-								}
-							}
-							else {
-								ctx->selector->UnsetAll();
-								ctx->selector->AddMoreSelectedKeyframe(current);
-								ctx->selector->AddMoreSelectedProperty({ id_layer, name_propertie });
-								ctx->selector->AddMoreSelectedLayer({ id_layer });
-
-								auto& properties = ctx->layersData->GetLayerByID(id_layer).get()->GetProperties();
-								properties.applyToKr(
-									name_propertie,
-									[&](auto& kr) {
-										auto* kf = kr.getKeyframeByID(current.id);
-										if (kf) {
-											DragKeyframe.original_times.push_back({ current, kf->sample.time });
-										}
-									}
-								);
-
-							}
+							kf_DragHandler->BeginDrag(ui_info.relative_mouse_global_pos_x,0.f,-1, current);
 						}
 
-						if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !DragKeyframe.drag_started) {
+						if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !kf_DragHandler->IsDragging()) {
 							ctx->selector->UnsetAll();
 							ctx->selector->AddMoreSelectedKeyframe(current);
 						}
@@ -503,40 +467,16 @@ void Timeline_Layers_Viewer::HandleKeyframeDragging() {
 
 	const auto& layers = ctx->layersData->GetData().layers;
 
-	if (DragKeyframe.drag_started) {
-		CursorManager::getInstance().SetCursor(TypeCursor::HAND_CLOSED);
+	kf_DragHandler->ProcessDrag(
+		ui_info.relative_mouse_global_pos_x,
+		0.f
+	);
 
-		float total_delta = ui_info.relative_mouse_global_pos_x - DragKeyframe.startedDrag_global_x;
-
-		for (const auto& drag_keyframe : DragKeyframe.original_times)
-		{
-			float orig_time = drag_keyframe.original_time;
-			float target_time = SnapToGrid(orig_time + total_delta);
-
-			const auto& layers = ctx->layersData->GetLayerByID(drag_keyframe.keyframe.property.layer.id);
-			auto& properties = layers.get()->GetProperties();
-
-			properties.applyToKr(
-				drag_keyframe.keyframe.property.name,
-				[&](auto& kr) {
-					auto* kf = kr.getKeyframeByID(drag_keyframe.keyframe.id);
-					if (kf) {
-						float delta_to_apply = target_time - kf->sample.time;
-						if (delta_to_apply != 0.f) {
-							kr.setDeltaTimeForKeyframeByID(delta_to_apply, drag_keyframe.keyframe.id);
-						}
-					}
-				}
-			);
-
-		}
-	}
-
-
-	if (index_drag == UINT64_MAX &&
-		ui_info.isHoveredArea &&
-		ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
-		!DragKeyframe.drag_started)
+	if (
+		index_drag == UINT64_MAX && 
+		ui_info.isHoveredArea && 
+		ImGui::IsMouseClicked(ImGuiMouseButton_Left) && 
+		!kf_DragHandler->IsDragging() )
 	{
 		ctx->selector->UnsetAll();
 		ctx->areaSelection->SetStatus(true);
@@ -546,25 +486,7 @@ void Timeline_Layers_Viewer::HandleKeyframeDragging() {
 	}
 
 	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-		if (DragKeyframe.drag_started) {
-
-			for (const auto& drag_keyframe : DragKeyframe.original_times) {
-				const auto& layer = ctx->layersData->GetLayerByID(drag_keyframe.keyframe.property.layer.id);
-				auto& properties = layer.get()->GetProperties();
-				properties.applyToKr(
-					drag_keyframe.keyframe.property.name,
-					[&](auto& kr) {
-						kr.resolveOverlaps(drag_keyframe.keyframe.id);
-					}
-				);
-
-			}
-
-		}
-
 		ctx->areaSelection->SetStatus(false);
-		DragKeyframe.drag_started = false;
-		DragKeyframe.original_times.clear();
 	}
 }
 

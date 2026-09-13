@@ -3,6 +3,7 @@
 
 #include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 #include "Core/Animation/Widgets/Panel/Layers/ContextMenuManager/Layers.ContextMenu.Manager.h"
+#include "Core/Animation/Widgets/Panel/Layers/KeyframeDragHandler/Keyframe.DragHandler.h"
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
 
 
@@ -13,6 +14,7 @@ class Timeline_Layers_Viewer
 public:
 	Timeline_Layers_Viewer(
 		TimelineContext* ctx,
+		KeyframeDragHandler* kf_DragHandler,
 		Timeline_TimeCursor* timeCursor,
 		LayersContextMenu_Manager* layers_ctx_menu
 	);
@@ -23,6 +25,7 @@ public:
 
 private:
 	TimelineContext* ctx;
+	KeyframeDragHandler* kf_DragHandler;
 	Timeline_TimeCursor* timeCursor;
 	LayersContextMenu_Manager* layers_ctx_menu;
 
@@ -36,20 +39,6 @@ private:
 	uint64_t index_drag = UINT64_MAX;
 	ObjectStatus pressed_status;
 	ObjectStatus draging_status;
-
-
-	struct DragKeyframeInfo {
-		bool drag_started = false;
-		float startedDrag_global_x;
-
-		struct DragData {
-			SelectedKeyframe keyframe;
-			float original_time;
-		};
-
-		std::vector<DragData> original_times;
-	} DragKeyframe;
-
 
 	struct UIInfo {
 		ImDrawList* draw_list;

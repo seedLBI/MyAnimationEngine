@@ -175,7 +175,7 @@ void Timeline_Ruler::UpdateVars(const float& dt) {
 
 	offsetOutOfBound /= valueForOutBounds;
 
-	time_left_bound.Set(offsetOutOfBound >= 0.f ?   offsetOutOfBound : 0.f);
+	time_left_bound.Set( offsetOutOfBound >= 0.f ?  offsetOutOfBound : 0.f);
 	time_right_bound.Set(offsetOutOfBound <= 0.f ? -offsetOutOfBound : 0.f);
 
 
@@ -234,10 +234,13 @@ void Timeline_Ruler::Update(const float& dt) {
 		isOfsetDeltaApplied = false;
 	}
 
-	if (!isHovered) return;
+	if (!isHovered && !isDragingTime) return;
 
 	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
 		isDraging = true;
+	}
+	if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+		isDragingTime = true;
 	}
 
 
@@ -248,9 +251,7 @@ void Timeline_Ruler::Update(const float& dt) {
 		ctx->horizontalTransform->fitToRanges(-w, ctx->timelineData->GetData().totalTime + w);
 	}
 
-	if (ImGui::IsMouseDown(ImGuiMouseButton_Right, false)) {
-
-		
+	if (isDragingTime && ImGui::IsMouseDown(ImGuiMouseButton_Right, false)) {
 
 		float step_frame = 1.f / (float)ctx->timelineData->GetData().framerate;
 		float count = std::floor(mouse_global / step_frame);
@@ -304,5 +305,7 @@ void Timeline_Ruler::Update(const float& dt) {
 
 		
 	}
-
+	else {
+		isDragingTime = false;
+	}
 }

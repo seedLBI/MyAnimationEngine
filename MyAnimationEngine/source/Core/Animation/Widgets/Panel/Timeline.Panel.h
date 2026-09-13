@@ -23,9 +23,11 @@
 #include "Scroll/Vertical/Timeline.Scroll.Vertical.h"
 #include "Layers/List/Timeline.Layers.List.h"
 #include "Layers/Viewer/Timeline.Layers.Viewer.h"
+#include "Layers/Graph/Timeline.Graph.h"
 #include "Layers/ContextMenuManager/Layers.ContextMenu.Manager.h"
+#include "Layers/KeyframeDragHandler/Keyframe.DragHandler.h"
+
 #include "UpperControls/Timeline.UpperControls.h"
-#include "Graph/Timeline.Graph.h"
 #include "HorizontalTickRenderer/Horizontal.Tick.Renderer.h"
 #include "TimeCursor/Timeline.TimeCursor.h"
 #include "Context/Timeline.Context.h"
@@ -62,6 +64,7 @@ private:
 	TransformScaled*			 graphTransformVertical;
 	Timeline_Selector*			 selector;
 	LayersContextMenu_Manager*	 layers_ctx_menu;
+	KeyframeDragHandler*		 keyframeDragHandler;
 
 	// gui
 	HorizontalTickRenderer*		horizontalTickRenderer;
