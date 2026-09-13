@@ -195,7 +195,9 @@ void Timeline_Ruler::UpdateZoom() {
 }
 
 void Timeline_Ruler::FitAllTimeline() {
-	ctx->horizontalTransform->fitToRanges(-0.1, ctx->timelineData->GetData().totalTime + 0.1);
+
+	float w = ctx->timelineData->GetData().totalTime * 0.05f;
+	ctx->horizontalTransform->fitToRanges(-w, ctx->timelineData->GetData().totalTime + w);
 }
 
 
@@ -245,10 +247,7 @@ void Timeline_Ruler::Update(const float& dt) {
 
 
 	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left, false)) {
-
-		float w = ctx->timelineData->GetData().totalTime * 0.05f;
-
-		ctx->horizontalTransform->fitToRanges(-w, ctx->timelineData->GetData().totalTime + w);
+		FitAllTimeline();
 	}
 
 	if (isDragingTime && ImGui::IsMouseDown(ImGuiMouseButton_Right, false)) {

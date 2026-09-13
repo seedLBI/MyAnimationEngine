@@ -21,7 +21,8 @@ void TimelineTransformHorizontal::updateAvailableWidth(const double& availableWi
 void TimelineTransformHorizontal::update(const float& dt) {
 	if (FirstCenterize){
 		if (width_available > 100.f) {
-			fitToRanges(0. - 0.1, providerData->GetData().totalTime + 0.1);
+			float w = providerData->GetData().totalTime * 0.05f;
+			fitToRanges(-w, providerData->GetData().totalTime + w);
 			getOffset().SetAll(getOffset().GetReal());
 			getScale().SetAll(getScale().GetReal());
 			FirstCenterize = false;
@@ -34,11 +35,7 @@ void TimelineTransformHorizontal::update(const float& dt) {
 	scale.Update(dt * 22.f);
 	offset.Update(dt * 22.f);
 	reaction_to_over_scale.Update(dt * 8.f);
-
-
 }
-
-
 
 float TimelineTransformHorizontal::getAvailableWidth() {
 	return width_available;

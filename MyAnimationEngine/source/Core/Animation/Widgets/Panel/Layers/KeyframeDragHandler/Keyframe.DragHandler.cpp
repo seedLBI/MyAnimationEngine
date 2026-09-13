@@ -113,7 +113,16 @@ void KeyframeDragHandler::ProcessDrag(float current_global_x, float current_glob
                         dragged_value_index != -1 && 
                         dragged_value_index < kf->sample.value.size()) 
                     {
+
                         kf->sample.value[dragged_value_index] = drag_keyframe.original_value + total_delta_y;
+
+                        const auto& range = kr.getRange();
+                        if (range.has_value()) {
+                            const auto& r = range.value();
+                            auto& i = dragged_value_index;
+                            kf->sample.value[i] = std::clamp(kf->sample.value[i], r.Min[i], r.Max[i]);
+                        }
+                            
                     }
 
                     float delta_to_apply = target_time - kf->sample.time;

@@ -450,6 +450,12 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 				bool isSelected = ctx->selector->ContainsKeyframe(current);
 
 				if (isSelected) {
+
+					if (selected_min_time == FLT_MAX) {
+						selected_min_time = keyframes[i].sample.time;
+						selected_max_time = keyframes[i].sample.time;
+					}
+
 					selected_min_time = (std::min)(selected_min_time, keyframes[i].sample.time);
 					selected_max_time = (std::max)(selected_max_time, keyframes[i].sample.time);
 
@@ -553,11 +559,31 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 				ImVec2 s_left_min = { min_pos_x - padding - size_offset, r_mid_y - size_offset };
 				ImVec2 s_left_max = { min_pos_x - padding + size_offset, r_mid_y + size_offset };
 				bool is_left_drag_scale_hovered = ImGui::IsMouseHoveringRect(s_left_min, s_left_max);
+				is_left_drag_scale_hovered |= ImGui::IsMouseHoveringRect(
+					{ min_pos_x - padding - size_offset, min_pos_y - size_offset }, 
+					{ min_pos_x - padding + size_offset, max_pos_y + size_offset });
 
+				if (is_left_drag_scale_hovered) {
+					s_left_min.x -= 1.f;
+					s_left_min.y -= 1.f;
+					s_left_max.x += 1.f;
+					s_left_max.y += 1.f;
+				}
 
 				ImVec2 s_right_min = { max_pos_x + padding - size_offset, r_mid_y - size_offset };
 				ImVec2 s_right_max = { max_pos_x + padding + size_offset, r_mid_y + size_offset };
 				bool is_right_drag_scale_hovered = ImGui::IsMouseHoveringRect(s_right_min, s_right_max);
+				is_right_drag_scale_hovered |= ImGui::IsMouseHoveringRect(
+					{ max_pos_x + padding - size_offset, min_pos_y - size_offset },
+					{ max_pos_x + padding + size_offset, max_pos_y + size_offset });
+
+				if (is_right_drag_scale_hovered) {
+					s_right_min.x -= 1.f;
+					s_right_min.y -= 1.f;
+					s_right_max.x += 1.f;
+					s_right_max.y += 1.f;
+				}
+
 
 
 				drawlist->AddRectFilled(r_min, r_max, ImColor(1.f, 1.f, 1.f, 0.1f), 2.f);
