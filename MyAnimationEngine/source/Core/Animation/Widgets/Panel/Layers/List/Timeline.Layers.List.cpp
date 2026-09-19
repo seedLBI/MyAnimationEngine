@@ -600,7 +600,7 @@ void Timeline_Layers_List::HandleSelectionLayer(LayerObject* layerlayer, uint64_
         dragStaff.count_selected++;
     }
 
-    if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && ctx->areaSelection->IsActive()) {
+    if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LEFT_HALF && ctx->areaSelection->IsActive()) {
         if (ctx->areaSelection->CheckAABB({ layer_min, layer_max }))
             ctx->selector->AddMoreSelectedLayer({ id_layer });
         else if (!ctx->selector->HaveSelectedPropertiesInLayer({ id_layer }))
@@ -659,7 +659,7 @@ void Timeline_Layers_List::HandleAreaSelectionStart(const ImVec2& p, const ImVec
         ctx->selector->UnsetAll();
         ctx->areaSelection->SetStatus(true);
         ctx->areaSelection->SetStartMousePosition(ImGui::GetMousePos());
-        ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_LIST);
+        ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_LEFT_HALF);
     }
     if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
         ctx->areaSelection->SetStatus(false);
@@ -737,7 +737,7 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
         sel_prop.name = name;
         sel_prop.layer.id = id_layer;
 
-        if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LIST && ctx->areaSelection->IsActive()) {
+        if (ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_LEFT_HALF && ctx->areaSelection->IsActive()) {
             if (ctx->areaSelection->CheckAABB({ { p_min.x, round(p.y + 1.f) }, { p_max.x, round(p.y + itemHeight) } })) {
                 ctx->selector->AddMoreSelectedProperty(sel_prop);
                 ctx->selector->AddMoreSelectedLayer({ id_layer });
@@ -1118,7 +1118,7 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                     color = ImColor{ .19f, .15f, .15f, 1.f };
 
                 if (held) {
-                    if (ctx->timelineController->GetState() == TimelineRunState::PAUSE) {
+                    if (ctx->timelineController->GetState() == TimelineRunState::PAUSE || value.kr.getKeyframes().empty()) {
                         float delta = ImGui::GetIO().MouseDelta.x * 0.01;
 
                         auto def_val = evaluated_value;
@@ -1137,7 +1137,7 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                         if (value.kr.getKeyframes().empty() == false) {
 
                             SelectedKeyframe selectedKeyframe;
-                            selectedKeyframe.id = value.kr.add(eval_time, def_val, TypeKeyframe::LINEAR);
+                            selectedKeyframe.id = value.kr.add(eval_time, def_val, TypeKeyframe::AUTOBEZIER);
                             selectedKeyframe.property = selectedProperty;
 
                             ctx->selector->SelectKeyframe(selectedKeyframe);

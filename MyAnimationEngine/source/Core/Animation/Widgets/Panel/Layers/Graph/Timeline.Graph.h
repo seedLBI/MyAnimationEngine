@@ -36,7 +36,9 @@ private:
 
 
 	bool isHovered = false, isDraging = false, isHeld = false;
-	float mouse_global = 0.f, mouse_screen = 0.f;
+	float mouse_global_y = 0.f, mouse_screen_y = 0.f;
+	float mouse_global_x = 0.f, mouse_screen_x = 0.f;
+
 	float scroll_zoom;
 	float size_keyframe = 8.f;
 	float size_offset = size_keyframe / 2.f;
@@ -50,7 +52,9 @@ private:
 
 	void DrawTicks(ImVec2 p_min, ImVec2 p_max);
 	void DrawGraphs(ImVec2 p_min, ImVec2 p_max);
+	void DrawButtons(ImVec2 p_min, ImVec2 p_max);
 
+	float height_menu_buttons = 40.f;
 
 };
 

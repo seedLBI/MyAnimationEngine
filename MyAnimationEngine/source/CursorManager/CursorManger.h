@@ -54,7 +54,7 @@ private:
 	std::vector<GLFWcursor*> cursors;
 	TypeCursor current = TypeCursor::POINTER;
 
-	GLFWcursor* LoadImageCursorFromFile(const std::string& path, int x_offset = 0, int y_offset = 0);
+	GLFWcursor* LoadImageCursorFromFile(const char* path, int x_offset = 0, int y_offset = 0);
 	void LoadCursors();
 	void FreeCursors();
 };

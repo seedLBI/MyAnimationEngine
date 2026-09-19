@@ -225,6 +225,22 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 	const auto props = ctx->selector->getProperties();
 
+
+	float selected_min_time = FLT_MAX, selected_max_time = -FLT_MAX;
+	float selected_min_value = FLT_MAX, selected_max_value = -FLT_MAX;
+
+	bool isHaveSelected = ctx->selector->HasKeyframes();
+	bool isHaveSelectedMoreThenOne = ctx->selector->getKeyframes().size() > 1;
+
+
+	static uint64_t s_drag_layer_id = 0;
+	static std::string s_drag_prop_name = "";
+	static uint64_t s_drag_left_kf_id = 0;
+	static uint64_t s_drag_right_kf_id = 0;
+	static int s_drag_dim_index = -1;
+
+	static bool isDragAll = false;
+
 	for (const auto& selected_property : props) {
 
 		const auto& id_layer = selected_property.layer.id;
@@ -264,17 +280,7 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 			}
 
-			ImColor colors[9] = {
-				ImColor{.82f, .34f, .34f, 1.f},
-				ImColor{.44f, .81f, .47f, 1.f},
-				ImColor{.56f, .76f, .95f, 1.f},
-				ImColor{.95f, .69f, .4f, 1.f},
-				ImColor{.84f, .71f, .82f, 1.f},
-				ImColor{.92f, .79f, .5f, 1.f},
-				ImColor{.97f, .58f, .84f, 1.f},
-				ImColor{.32f, .84f, .8f, 1.f},
-				ImColor{.37f, .75f, .84f, 1.f}
-			};
+
 
 
 			float front_begin = cursor_pos.x;
@@ -285,7 +291,7 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 				const auto& values = propertie.kr.getDefaultValue();
 				for (size_t j = 0; j < values.size(); j++) {
 					float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(values[j]);
-					ImColor color_line = colors[j];
+					ImColor color_line = ctx->colors_params[j];
 					drawlist->AddLine({ front_begin, pos_y }, { back_end,pos_y }, color_line, 2.f);
 				}
 
@@ -300,7 +306,7 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 					float back_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes.back().sample.value[j]);
 
 
-					ImColor color_line = colors[j];
+					ImColor color_line = ctx->colors_params[j];
 
 					if (keyframes.size() == 1) {
 						drawlist->AddLine({ front_begin, front_pos_y }, { back_end,front_pos_y }, color_line, 2.f);
@@ -329,9 +335,11 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 			ImVec2 m = ImGui::GetMousePos();
 
-			bool isHovered_Segment = false;
-			bool isHoveredPoint = false;
 
+			
+			
+
+			bool isHoveredPoint = false;
 
 			for (uint64_t i = 0; i < keyframes.size(); i++) {
 				float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);
@@ -348,97 +356,148 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 					break;
 			}
 
+
 			bool OneIsHovered = false;
+			bool isHovered_CurveSegment = false;
+			int hovered_left_kf = -1;
+			int hovered_right_kf = -1;
+			int hovered_dim_index = -1;
 
-			for (size_t i = 1; i < keyframes.size(); i++) {
-				float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);
-				float prev_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i - 1].sample.time);
+			const auto& samples = propertie.kr.getSamples();
+			if (samples.size() > 1) {
+				if (!kf_DragHandler->IsDragging()) {
 
-				for (size_t j = 0; j < keyframes[i].sample.value.size(); j++) {
-					float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].sample.value[j]);
-					float prev_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i - 1].sample.value[j]);
+					size_t current_kf_idx = 1;
 
-					ImColor color_line = colors[j];
+					for (size_t i = 1; i < samples.size(); i++) {
 
-
-					bool isPressedLBM = false;
-
-					if (keyframes[i - 1].type == TypeKeyframe::BINARY)
-					{
-						ImVec2 b1 = { prev_pos_x, prev_pos_y };
-						ImVec2 e1 = { pos_x,prev_pos_y };
-
-						ImVec2 b2 = { pos_x,prev_pos_y };
-						ImVec2 e2 = { pos_x, pos_y };
-
-						if (isHoveredPoint == false) {
-							isHovered_Segment =  Collision::Check({ m.x,m.y }, Capsule{ Segment{ {b1.x,b1.y},{e1.x,e1.y} }, 4.f });
-							isHovered_Segment |= Collision::Check({ m.x,m.y }, Capsule{ Segment{ {b2.x,b2.y},{e2.x,e2.y} }, 4.f });
+						float t_curr_base = samples[i].time[0];
+						while (current_kf_idx < keyframes.size() && keyframes[current_kf_idx].sample.time < t_curr_base) {
+							current_kf_idx++;
 						}
-						
-						if (isHovered_Segment && OneIsHovered == false) {
-							CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
-							drawlist->AddLine(b1, e1, color_line, 4.f);
-							drawlist->AddLine({ pos_x,prev_pos_y }, { pos_x, pos_y }, color_line, 4.f);
-							OneIsHovered = true;
+						if (isHovered_CurveSegment) break;
 
-							isPressedLBM = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-						}
-						else {
-							drawlist->AddLine(b1, e1, color_line, 2.f);
-							drawlist->AddLine({ pos_x,prev_pos_y }, { pos_x, pos_y }, color_line, 2.f);
+
+
+						for (size_t j = 0; j < samples[i].time.size(); j++) {
+							float t_curr = samples[i].time[j];
+							float t_prev = samples[i - 1].time[j];
+
+							float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + t_curr);
+							float prev_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + t_prev);
+
+							const float capsule_radius = 4.f;
+
+							if (m.x < prev_pos_x - capsule_radius || m.x > pos_x + capsule_radius) {
+								continue;
+							}
+
+							float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(samples[i].value[j]);
+							float prev_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(samples[i - 1].value[j]);
+
+							ImVec2 b = { prev_pos_x, prev_pos_y };
+							ImVec2 e = { pos_x, pos_y };
+
+							if (!isHoveredPoint && !isHovered_CurveSegment) {
+								if (Collision::Check({ m.x, m.y }, Capsule{ Segment{ {b.x, b.y}, {e.x, e.y} }, capsule_radius })) {
+									isHovered_CurveSegment = true;
+									hovered_dim_index = j;
+
+									if (current_kf_idx < keyframes.size()) {
+										hovered_left_kf = current_kf_idx - 1;
+										hovered_right_kf = current_kf_idx;
+									}
+								}
+							}
 						}
 					}
-					else {
+				}
 
+				float active_drag_left_time = -1.f;
+				float active_drag_right_time = -1.f;
+
+				if (kf_DragHandler->IsDragging() && s_drag_layer_id == id_layer && s_drag_prop_name == name_property) {
+					for (const auto& kf : keyframes) {
+						if (kf.id == s_drag_left_kf_id) active_drag_left_time = kf.sample.time;
+						if (kf.id == s_drag_right_kf_id) active_drag_right_time = kf.sample.time;
+					}
+				}
+
+
+				for (size_t i = 1; i < samples.size(); i++) {
+					for (size_t j = 0; j < samples[i].time.size(); j++) {
+						float t_curr = samples[i].time[j];
+						float t_prev = samples[i - 1].time[j];
+
+						float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + t_curr);
+						float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(samples[i].value[j]);
+						float prev_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + t_prev);
+						float prev_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(samples[i - 1].value[j]);
+
+						ImColor color_line = ctx->colors_params[j];
 						ImVec2 b = { prev_pos_x, prev_pos_y };
-						ImVec2 e = { pos_x,pos_y };
+						ImVec2 e = { pos_x, pos_y };
 
-						if (isHoveredPoint == false) {
-							isHovered_Segment = Collision::Check({ m.x,m.y }, Capsule{ Segment{ {b.x,b.y},{e.x,e.y} }, 4.f });
+						float line_thickness = 2.f;
+
+						if (isDragAll == false) {
+							if (kf_DragHandler->IsDragging()) {
+								if (s_drag_layer_id == id_layer &&
+									s_drag_prop_name == name_property &&
+									s_drag_dim_index == j) {
+
+									if (active_drag_left_time != -1.f && active_drag_right_time != -1.f) {
+										if (t_prev >= active_drag_left_time - 0.0001f && t_curr <= active_drag_right_time + 0.0001f) {
+											line_thickness = 4.f;
+										}
+									}
+								}
+							}
+							else {
+								if (hovered_left_kf != -1 && hovered_right_kf != -1 && j == hovered_dim_index) {
+									float kf_left_time = keyframes[hovered_left_kf].sample.time;
+									float kf_right_time = keyframes[hovered_right_kf].sample.time;
+
+									if (t_prev >= kf_left_time - 0.0001f && t_curr <= kf_right_time + 0.0001f) {
+										line_thickness = 4.f;
+									}
+								}
+							}
 						}
 
-						if (isHovered_Segment && OneIsHovered == false) {
-							CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
-							drawlist->AddLine(b, e, color_line, 4.f);
-							OneIsHovered = true;
-							isPressedLBM = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-						}
-						else
-							drawlist->AddLine(b, e, color_line, 2.f);
-						
+						drawlist->AddLine(b, e, color_line, line_thickness);
 					}
-
-
-					if (isPressedLBM) {
-
-						SelectedKeyframe left;
-						left.id = keyframes[i-1].id;
-						left.property.name = name_property;
-						left.property.layer.id = id_layer;
-
-						SelectedKeyframe right;
-						right.id = keyframes[i].id;
-						right.property.name = name_property;
-						right.property.layer.id = id_layer;
-
-						//ctx->selector->UnsetAll();
-						ctx->selector->SelectKeyframe(left);
-						ctx->selector->AddMoreSelectedKeyframe(right);
-
-
-						kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, j, left);
-					}
-
 				}
 			}
 
-			
-			float selected_min_time  = FLT_MAX, selected_max_time  = FLT_MIN;
-			float selected_min_value = FLT_MAX, selected_max_value = FLT_MIN;
+			if (isHovered_CurveSegment && !OneIsHovered && hovered_left_kf != -1 && hovered_right_kf != -1) {
+				CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
+				OneIsHovered = true;
 
-			bool isHaveSelected = ctx->selector->HasKeyframes();
-			bool isHaveSelectedMoreThenOne = ctx->selector->getKeyframes().size() > 1;
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+					SelectedKeyframe left;
+					left.id = keyframes[hovered_left_kf].id;
+					left.property.name = name_property;
+					left.property.layer.id = id_layer;
+
+					SelectedKeyframe right;
+					right.id = keyframes[hovered_right_kf].id;
+					right.property.name = name_property;
+					right.property.layer.id = id_layer;
+
+					ctx->selector->SelectKeyframe(left);
+					ctx->selector->AddMoreSelectedKeyframe(right);
+
+					s_drag_layer_id = id_layer;
+					s_drag_prop_name = name_property;
+					s_drag_left_kf_id = left.id;
+					s_drag_right_kf_id = right.id;
+					s_drag_dim_index = hovered_dim_index;
+
+					kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, hovered_dim_index, left, KeyframeDragMode::TranslateXY);
+				}
+			}
+
 
 			for (uint64_t i = 0; i < keyframes.size(); i++) {
 
@@ -449,15 +508,19 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 				bool isSelected = ctx->selector->ContainsKeyframe(current);
 
+				bool isRightSelected = i != keyframes.size() - 1 ? ctx->selector->ContainsKeyframe({ current.property, keyframes[i + 1].id }) : false;
+				bool isLeftSelected = i != 0 ? ctx->selector->ContainsKeyframe({ current.property, keyframes[i - 1].id }) : false;
+
+
 				if (isSelected) {
 
 					if (selected_min_time == FLT_MAX) {
-						selected_min_time = keyframes[i].sample.time;
-						selected_max_time = keyframes[i].sample.time;
+						selected_min_time = time_begin + keyframes[i].sample.time;
+						selected_max_time = time_begin + keyframes[i].sample.time;
 					}
 
-					selected_min_time = (std::min)(selected_min_time, keyframes[i].sample.time);
-					selected_max_time = (std::max)(selected_max_time, keyframes[i].sample.time);
+					selected_min_time = (std::min)(selected_min_time, time_begin + keyframes[i].sample.time);
+					selected_max_time = (std::max)(selected_max_time, time_begin + keyframes[i].sample.time);
 
 					selected_min_value = (std::min)(selected_min_value, (float)keyframes[i].sample.MinValue());
 					selected_min_value = (std::min)(selected_min_value, (float)keyframes[i].sample.MaxValue());
@@ -465,8 +528,6 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 					selected_max_value = (std::max)(selected_max_value, (float)keyframes[i].sample.MinValue());
 					selected_max_value = (std::max)(selected_max_value, (float)keyframes[i].sample.MaxValue());
 				}
-
-
 
 				float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i].sample.time);
 
@@ -477,7 +538,7 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 					ImVec2 max_hitbox = { pos_x + size_offset, pos_y + size_offset };
 
 					if (
-						ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_VIEWER &&
+						ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_RIGHT_HALF &&
 						ctx->areaSelection->IsActive())
 					{
 
@@ -496,21 +557,22 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 				for (uint64_t j = 0; j < keyframes[i].sample.value.size(); j++) {
 					float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].sample.value[j]);
+
+					ImVec2 pos_current_keyframe = { pos_x,pos_y };
+
 					ImVec2 min_hitbox = { pos_x - size_offset, pos_y - size_offset };
 					ImVec2 max_hitbox = { pos_x + size_offset, pos_y + size_offset };
-					ImColor color_line = colors[j];
+					ImColor color_line = ctx->colors_params[j];
 
 
 					bool isHoveredPoint = ImGui::IsMouseHoveringRect(min_hitbox, max_hitbox);
-
-
 
 					if (isHoveredPoint) {
 						CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
 
 
 						if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-							kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, j, current);
+							kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, j, current, KeyframeDragMode::TranslateXY);
 						}
 
 						if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !kf_DragHandler->IsDragging()) {
@@ -524,7 +586,34 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 						max_hitbox.x += 1.f;
 						max_hitbox.y += 1.f;
 					}
-							
+					
+					if (keyframes[i].anchors.in.has_value() && i != 0 && (isSelected ||  isLeftSelected)) {
+						float prev_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i - 1].sample.time);
+
+						float  pos_anchor_in_x = pos_x - (pos_x - prev_pos_x) * keyframes[i].anchors.in.value().time[j];
+						float  pos_anchor_in_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].anchors.in.value().value[j]);
+
+						ImVec2 pos_anchor_in = { pos_anchor_in_x, pos_anchor_in_y };
+
+						drawlist->AddLine(pos_anchor_in, pos_current_keyframe, ImColor(1.f, 1.f, 0.f, 1.f), 1.f);
+						drawlist->AddCircleFilled(pos_anchor_in, 2.5f, ImColor(1.f, 1.f, 0.f, 1.f));
+
+					}
+
+					if (keyframes[i].anchors.out.has_value() && i != keyframes.size() - 1 && (isSelected || isRightSelected )) {
+						float next_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i + 1].sample.time);
+
+						float  pos_anchor_out_x = pos_x + (next_pos_x - pos_x) * keyframes[i].anchors.out.value().time[j];
+						float  pos_anchor_out_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].anchors.out.value().value[j]);
+
+						ImVec2 pos_anchor_out = { pos_anchor_out_x, pos_anchor_out_y };
+
+						drawlist->AddLine(pos_anchor_out, pos_current_keyframe, ImColor(1.f, 1.f, 0.f, 1.f), 1.f);
+						drawlist->AddCircleFilled(pos_anchor_out, 2.5f, ImColor(1.f, 1.f, 0.f, 1.f));
+
+					}
+
+
 
 					if (isHaveSelected) {
 						if (isSelected)
@@ -540,88 +629,160 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 
 
-			// draw selected zone
-			if (isHaveSelectedMoreThenOne) {
-
-				float min_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + selected_min_time);
-				float max_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + selected_max_time);
-
-				float min_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(selected_max_value);
-				float max_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(selected_min_value);
-
-				static const float padding = 6.f;
-
-				ImVec2 r_min = { min_pos_x - padding, min_pos_y - padding };
-				ImVec2 r_max = { max_pos_x + padding, max_pos_y + padding };
-
-				float r_mid_y = (min_pos_y + max_pos_y) / 2.f;
-
-				ImVec2 s_left_min = { min_pos_x - padding - size_offset, r_mid_y - size_offset };
-				ImVec2 s_left_max = { min_pos_x - padding + size_offset, r_mid_y + size_offset };
-				bool is_left_drag_scale_hovered = ImGui::IsMouseHoveringRect(s_left_min, s_left_max);
-				is_left_drag_scale_hovered |= ImGui::IsMouseHoveringRect(
-					{ min_pos_x - padding - size_offset, min_pos_y - size_offset }, 
-					{ min_pos_x - padding + size_offset, max_pos_y + size_offset });
-
-				if (is_left_drag_scale_hovered) {
-					s_left_min.x -= 1.f;
-					s_left_min.y -= 1.f;
-					s_left_max.x += 1.f;
-					s_left_max.y += 1.f;
-				}
-
-				ImVec2 s_right_min = { max_pos_x + padding - size_offset, r_mid_y - size_offset };
-				ImVec2 s_right_max = { max_pos_x + padding + size_offset, r_mid_y + size_offset };
-				bool is_right_drag_scale_hovered = ImGui::IsMouseHoveringRect(s_right_min, s_right_max);
-				is_right_drag_scale_hovered |= ImGui::IsMouseHoveringRect(
-					{ max_pos_x + padding - size_offset, min_pos_y - size_offset },
-					{ max_pos_x + padding + size_offset, max_pos_y + size_offset });
-
-				if (is_right_drag_scale_hovered) {
-					s_right_min.x -= 1.f;
-					s_right_min.y -= 1.f;
-					s_right_max.x += 1.f;
-					s_right_max.y += 1.f;
-				}
-
-
-
-				drawlist->AddRectFilled(r_min, r_max, ImColor(1.f, 1.f, 1.f, 0.1f), 2.f);
-				drawlist->AddRect(r_min, r_max, ImColor(1.f, 1.f, 1.f, 0.4f), 2.f, 0.f, 2.f);
-
-				drawlist->AddRectFilled(s_left_min, s_left_max, ImColor(1.f, 1.f, 1.f, 1.0f), 0.f);
-				drawlist->AddRectFilled(s_right_min, s_right_max, ImColor(1.f, 1.f, 1.f, 1.0f), 0.f);
-
-
-
-
-				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !kf_DragHandler->IsDragging()) {
-					if (is_left_drag_scale_hovered) {
-						kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, -1, *ctx->selector->getKeyframes().begin(), KeyframeDragMode::ScaleLeft);
-					}
-					else if (is_right_drag_scale_hovered) {
-						kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, -1, *ctx->selector->getKeyframes().begin(), KeyframeDragMode::ScaleRight);
-					}
-					else if (ImGui::IsMouseHoveringRect(r_min, r_max)) {
-						kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, -1, *ctx->selector->getKeyframes().begin(), KeyframeDragMode::Translate);
-					}
-				}
-
-
-			}
+			
 
 
 		}, variant_prop);
+
+
+
+
+	}
+
+	DebugOverlay::AddText("isDragAll" + std::to_string(isDragAll), ImColor{ 1.f,1.f,1.f,1.f });
+
+	if (ImGui::IsMouseDown(ImGuiMouseButton_Left) == false) {
+		isDragAll = false;
+	}
+
+	// draw selected zone
+	if (isHaveSelectedMoreThenOne) {
+
+		float min_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(selected_min_time);
+		float max_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(selected_max_time);
+
+		float min_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(selected_max_value);
+		float max_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(selected_min_value);
+
+		static const float padding = 6.f;
+
+		ImVec2 r_min = { min_pos_x - padding, min_pos_y - padding };
+		ImVec2 r_max = { max_pos_x + padding, max_pos_y + padding };
+
+		float r_mid_y = (min_pos_y + max_pos_y) / 2.f;
+		float r_mid_x = (min_pos_x + max_pos_x) / 2.f;
+
+
+		ImVec2 s_left_min = { min_pos_x - padding - size_offset, r_mid_y - size_offset };
+		ImVec2 s_left_max = { min_pos_x - padding + size_offset, r_mid_y + size_offset };
+		bool is_left_drag_scale_hovered = ImGui::IsMouseHoveringRect(s_left_min, s_left_max);
+		is_left_drag_scale_hovered |= ImGui::IsMouseHoveringRect(
+			{ min_pos_x - padding - size_offset, min_pos_y - size_offset },
+			{ min_pos_x - padding + size_offset, max_pos_y + size_offset });
+
+		if (is_left_drag_scale_hovered) {
+			s_left_min.x -= 1.f;
+			s_left_min.y -= 1.f;
+			s_left_max.x += 1.f;
+			s_left_max.y += 1.f;
+		}
+
+		ImVec2 s_right_min = { max_pos_x + padding - size_offset, r_mid_y - size_offset };
+		ImVec2 s_right_max = { max_pos_x + padding + size_offset, r_mid_y + size_offset };
+		bool is_right_drag_scale_hovered = ImGui::IsMouseHoveringRect(s_right_min, s_right_max);
+		is_right_drag_scale_hovered |= ImGui::IsMouseHoveringRect(
+			{ max_pos_x + padding - size_offset, min_pos_y - size_offset },
+			{ max_pos_x + padding + size_offset, max_pos_y + size_offset });
+
+		if (is_right_drag_scale_hovered) {
+			s_right_min.x -= 1.f;
+			s_right_min.y -= 1.f;
+			s_right_max.x += 1.f;
+			s_right_max.y += 1.f;
+		}
+
+
+		ImVec2 s_up_min = { r_mid_x - size_offset, min_pos_y  - size_offset - padding };
+		ImVec2 s_up_max = { r_mid_x + size_offset, min_pos_y  + size_offset - padding };
+		bool is_up_drag_scale_hovered = ImGui::IsMouseHoveringRect(s_up_min, s_up_max);
+		is_up_drag_scale_hovered |= ImGui::IsMouseHoveringRect(
+			{ min_pos_x - padding - size_offset, min_pos_y - size_offset - padding },
+			{ max_pos_x + padding + size_offset, min_pos_y + size_offset - padding });
+
+		if (is_up_drag_scale_hovered) {
+			s_up_min.x -= 1.f;
+			s_up_min.y -= 1.f;
+			s_up_max.x += 1.f;
+			s_up_max.y += 1.f;
+		}
+
+		ImVec2 s_down_min = { r_mid_x - size_offset, max_pos_y - size_offset + padding };
+		ImVec2 s_down_max = { r_mid_x + size_offset, max_pos_y + size_offset + padding };
+		bool is_down_drag_scale_hovered = ImGui::IsMouseHoveringRect(s_down_min, s_down_max);
+		is_down_drag_scale_hovered |= ImGui::IsMouseHoveringRect(
+			{ min_pos_x - padding - size_offset, max_pos_y - size_offset + padding },
+			{ max_pos_x + padding + size_offset, max_pos_y + size_offset + padding });
+
+		if (is_down_drag_scale_hovered) {
+			s_down_min.x -= 1.f;
+			s_down_min.y -= 1.f;
+			s_down_max.x += 1.f;
+			s_down_max.y += 1.f;
+		}
+
+
+
+
+		// background selection
+		drawlist->AddRectFilled(r_min, r_max, ImColor(1.f, 1.f, 1.f, 0.1f), 2.f);
+		// outline selection
+		drawlist->AddRect(r_min, r_max, ImColor(1.f, 1.f, 1.f, 0.4f), 2.f, 0.f, 2.f);
+
+
+		// left drag scale
+		drawlist->AddRectFilled(s_left_min, s_left_max, ImColor(1.f, 1.f, 1.f, 1.0f), 0.f);
+		// right drag scale 
+		drawlist->AddRectFilled(s_right_min, s_right_max, ImColor(1.f, 1.f, 1.f, 1.0f), 0.f);
+		// up drag scale 
+		drawlist->AddRectFilled(s_up_min, s_up_max, ImColor(1.f, 1.f, 1.f, 1.0f), 0.f);
+		// down drag scale 
+		drawlist->AddRectFilled(s_down_min, s_down_max, ImColor(1.f, 1.f, 1.f, 1.0f), 0.f);
+
+
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !kf_DragHandler->IsDragging()) {
+			if (is_left_drag_scale_hovered) {
+				kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, -1, *ctx->selector->getKeyframes().begin(), KeyframeDragMode::ScaleLeft);
+			}
+			else if (is_right_drag_scale_hovered) {
+				kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, -1, *ctx->selector->getKeyframes().begin(), KeyframeDragMode::ScaleRight);
+			}
+			else if (is_up_drag_scale_hovered) {
+				kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, -1, *ctx->selector->getKeyframes().begin(), KeyframeDragMode::ScaleUp);
+			}
+			else if (is_down_drag_scale_hovered) {
+				kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, -1, *ctx->selector->getKeyframes().begin(), KeyframeDragMode::ScaleDown);
+			}
+			else if (ImGui::IsMouseHoveringRect(r_min, r_max)) {
+				kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, -1, *ctx->selector->getKeyframes().begin(), KeyframeDragMode::TranslateXY);
+			}
+
+			if (kf_DragHandler->IsDragging())
+				isDragAll = true;
+		}
+
+
+
+
 	}
 
 }
 
+void Timeline_Graph::DrawButtons(ImVec2 p_min, ImVec2 p_max) {
+	auto drawlist = ImGui::GetWindowDrawList();
+	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+	ImVec2 region_max = ImGui::GetContentRegionAvail();
+
+
+
+}
 
 void Timeline_Graph::Draw() {
 
 	auto drawlist = ImGui::GetWindowDrawList();
 	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
 	ImVec2 region_max = ImGui::GetContentRegionAvail();
+
+	region_max.y -= height_menu_buttons;
 
 	ImVec2 p_min = cursor_pos;
 	ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
@@ -635,8 +796,12 @@ void Timeline_Graph::Draw() {
 
 	float mouse_real_screen = ImGui::GetMousePos().y;
 	float mouse_fixed = mouse_real_screen - cursor_pos.y;
-	mouse_global = ctx->graphTransformVertical->getPosGlobal_real(mouse_fixed);
-	mouse_screen = ctx->graphTransformVertical->getPosScreen_real(mouse_global);
+	mouse_global_y = ctx->graphTransformVertical->getPosGlobal_real(mouse_fixed);
+	mouse_screen_y = ctx->graphTransformVertical->getPosScreen_real(mouse_global_y);
+
+	mouse_global_x = ctx->horizontalTransform->getPostionGlobal_real(ImGui::GetMousePos().x - cursor_pos.x);
+	mouse_screen_x = ctx->horizontalTransform->getPostionScreen_real(mouse_global_x);
+
 
 	ImGui::SetCursorScreenPos(cursor_pos);
 
@@ -651,23 +816,6 @@ void Timeline_Graph::Draw() {
 	
 	auto rect = getRectGraph();
 
-	DebugOverlay::AddText(
-		"GetRectGraph", ImColor(1.f, 1.f, 1.f, 1.f)
-	);
-	DebugOverlay::AddText({
-			{ "Min: ", ImColor(1.f, 0.2f, 0.2f, 1.f) },
-			{ std::to_string(rect.Min.x), ImColor(1.f,1.f,1.f,1.f)},
-			{ std::to_string(rect.Min.y), ImColor(1.f,1.f,1.f,1.f) }
-		}
-	);
-	DebugOverlay::AddText({
-			{ "Max: ", ImColor(0.2f, 0.2f, 1.f, 1.f) },
-			{ std::to_string(rect.Max.x), ImColor(1.f,1.f,1.f,1.f)},
-			{ std::to_string(rect.Max.y), ImColor(1.f,1.f,1.f,1.f) }
-		}
-	);
-
-
 	float mouse_x_fixed = ImGui::GetMousePos().x - cursor_pos.x;
 	float mouse_y_fixed = ImGui::GetMousePos().y - cursor_pos.y;
 	float mouse_time_global_x = ctx->horizontalTransform->getPostionGlobal_real(mouse_x_fixed);
@@ -675,16 +823,20 @@ void Timeline_Graph::Draw() {
 
 	kf_DragHandler->ProcessDrag(mouse_time_global_x, mouse_time_global_y);
 
-
 	if (ImGui::IsKeyDown(ImGuiKey_LeftShift) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 		ctx->areaSelection->SetStatus(true);
 		ctx->areaSelection->SetStartMousePosition(ImGui::GetMousePos());
-		ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_VIEWER);
+		ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_RIGHT_HALF);
 	}
 	if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 		ctx->areaSelection->SetStatus(false);
 	}
 
+
+	p_min = { p_min.x, p_max.y};
+	p_max = { p_max.x, p_max.y + height_menu_buttons };
+
+	DrawButtons(p_min, p_max);
 }
 
 void Timeline_Graph::Update(const float& dt) {
@@ -720,10 +872,15 @@ void Timeline_Graph::Update(const float& dt) {
 	if (!isHovered) return;
 
 	if (scroll_zoom > 0.f) {
-		ctx->graphTransformVertical->zoomToPointByValue(mouse_global, 1.5f, false);
+		ctx->graphTransformVertical->zoomToPointByValue(mouse_global_y, 1.5f, false);
+		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+			ctx->horizontalTransform->zoomToPointByValue(mouse_global_x, 1.5f, false);
+		
 	}
 	else if (scroll_zoom < 0.f) {
-		ctx->graphTransformVertical->zoomToPointByValue(mouse_global, 0.75f, false);
+		ctx->graphTransformVertical->zoomToPointByValue(mouse_global_y, 0.75f, false);
+		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
+			ctx->horizontalTransform->zoomToPointByValue(mouse_global_x, 0.75f, false);
 	}
 
 	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {

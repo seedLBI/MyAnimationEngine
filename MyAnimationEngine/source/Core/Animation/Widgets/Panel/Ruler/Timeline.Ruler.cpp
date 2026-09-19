@@ -264,7 +264,7 @@ void Timeline_Ruler::Update(const float& dt) {
 
 			CursorManager::getInstance().SetCursor(TypeCursor::MAGNET);
 
-			const float snap_radius_pixels = 15.f;
+			const float snap_radius_pixels = 21.f;
 
 			float snap_radius_global = std::abs(
 				ctx->horizontalTransform->getPostionGlobal_real(snap_radius_pixels) -

@@ -28,6 +28,19 @@ struct TimelineContext {
     Timeline_AreaSelection* areaSelection = nullptr;
 
     Timeline_StatusGlobalButtons* statusGlobalButtons = nullptr;
+
+    const ImColor colors_params[9] = {
+        ImColor{.82f, .34f, .34f, 1.f},
+        ImColor{.44f, .81f, .47f, 1.f},
+        ImColor{.56f, .76f, .95f, 1.f},
+        ImColor{.95f, .69f, .4f, 1.f},
+        ImColor{.84f, .71f, .82f, 1.f},
+        ImColor{.92f, .79f, .5f, 1.f},
+        ImColor{.97f, .58f, .84f, 1.f},
+        ImColor{.32f, .84f, .8f, 1.f},
+        ImColor{.37f, .75f, .84f, 1.f}
+    };
+
 };
 
 

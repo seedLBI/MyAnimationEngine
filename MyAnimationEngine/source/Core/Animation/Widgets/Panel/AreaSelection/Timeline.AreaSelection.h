@@ -6,8 +6,8 @@
 #include "ThirdParty/ImGui/imgui_internal.h"
 
 enum SelectionArea_Type {
-	SELECTION_VIEWER,
-	SELECTION_LIST
+	SELECTION_RIGHT_HALF,
+	SELECTION_LEFT_HALF
 };
 
 
@@ -31,7 +31,7 @@ public:
 	void SetStartMousePosition(const ImVec2& start);
 
 private:
-	SelectionArea_Type area_start = SELECTION_VIEWER;
+	SelectionArea_Type area_start = SELECTION_RIGHT_HALF;
 	bool status = false;
 	ImVec2 pos_start;
 

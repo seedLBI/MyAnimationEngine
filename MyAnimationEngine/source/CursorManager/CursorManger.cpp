@@ -27,11 +27,11 @@ void CursorManager::Update() {
 }
 
 
-GLFWcursor* CursorManager::LoadImageCursorFromFile(const std::string& path, int x_offset, int y_offset) {
+GLFWcursor* CursorManager::LoadImageCursorFromFile(const char* path, int x_offset, int y_offset) {
 	int w, h, c;
 
 	stbi_set_flip_vertically_on_load(false);
-	uint8_t* pixels = stbi_load(path.c_str(), &w, &h, &c, 4);
+	uint8_t* pixels = stbi_load(path, &w, &h, &c, 4);
 
 	GLFWimage image;
 	image.width = w;
@@ -45,20 +45,41 @@ GLFWcursor* CursorManager::LoadImageCursorFromFile(const std::string& path, int 
 	return cursor;
 }
 
-void CursorManager::LoadCursors() {
-	cursors.resize(10);
+#include <magic_enum/magic_enum.hpp>
 
-	cursors[(int)TypeCursor::POINTER]			= LoadImageCursorFromFile("resources/cursors/pointer_c_shaded.png",		4,	2);
-	cursors[(int)TypeCursor::POINT]				= LoadImageCursorFromFile("resources/cursors/hand_thin_point.png",		6,	4);
-	cursors[(int)TypeCursor::HAND_OPEN]			= LoadImageCursorFromFile("resources/cursors/hand_thin_open.png",		8,	6);
-	cursors[(int)TypeCursor::HAND_CLOSED]		= LoadImageCursorFromFile("resources/cursors/hand_thin_closed.png",		8,	6);
-	cursors[(int)TypeCursor::RESIZE_HORIZONTAL] = LoadImageCursorFromFile("resources/cursors/resize_b_horizontal.png",	16,	16);
-	cursors[(int)TypeCursor::RESIZE_VERTICAL]	= LoadImageCursorFromFile("resources/cursors/resize_b_vertical.png",	16, 16);
-	cursors[(int)TypeCursor::TEXT]				= LoadImageCursorFromFile("resources/cursors/bracket_b_vertical.png",	16, 16);
-	cursors[(int)TypeCursor::DISABLED]			= LoadImageCursorFromFile("resources/cursors/disabled.png",				16, 16);
-	cursors[(int)TypeCursor::COPY]				= LoadImageCursorFromFile("resources/cursors/cursor_copy.png",			0, 0);
-	cursors[(int)TypeCursor::MAGNET]			= LoadImageCursorFromFile("resources/cursors/magnet.png",				12, 5);
-	
+void CursorManager::LoadCursors() {
+
+	struct CursorInfo {
+		TypeCursor type;
+		const char* filename;
+		int x_offset;
+		int y_offset;
+	};
+
+	const std::string base_path = "resources/images/cursors/";
+
+	const CursorInfo cursors_data[] = {
+		{ TypeCursor::POINTER,           "pointer_c_shaded.png",     4,  2 },
+		{ TypeCursor::POINT,             "hand_thin_point.png",      6,  4 },
+		{ TypeCursor::HAND_OPEN,         "hand_thin_open.png",       8,  6 },
+		{ TypeCursor::HAND_CLOSED,       "hand_thin_closed.png",     8,  6 },
+		{ TypeCursor::RESIZE_HORIZONTAL, "resize_b_horizontal.png", 16, 16 },
+		{ TypeCursor::RESIZE_VERTICAL,   "resize_b_vertical.png",   16, 16 },
+		{ TypeCursor::TEXT,              "bracket_b_vertical.png",  16, 16 },
+		{ TypeCursor::DISABLED,          "disabled.png",            16, 16 },
+		{ TypeCursor::COPY,              "cursor_copy.png",          0,  0 },
+		{ TypeCursor::MAGNET,            "magnet.png",              12,  5 }
+	};
+
+	constexpr size_t cursor_count = magic_enum::enum_count<TypeCursor>();
+	cursors.resize(cursor_count);
+
+
+	for (const auto& info : cursors_data) {
+		std::string full_path = base_path + info.filename;
+		cursors[(int)info.type] = LoadImageCursorFromFile(full_path.c_str(), info.x_offset, info.y_offset);
+	}
+
 	glfwSetCursor(WindowManager::getInstance().GetHandle(), cursors[(int)current]);
 }
 

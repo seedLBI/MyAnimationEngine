@@ -88,11 +88,13 @@ void KeyframeRenderer::Private::DrawHalf(
 		}
 		case TypeKeyframe::AUTOBEZIER: {
 			if (isL) {
-				draw_list->PathArcTo(pos, params.size, IM_PI / 2.0f, IM_PI * 1.5f, 0);
+				DrawPolyCW({ {pts.MD.x, pts.MD.y - 1.1f}, bMM_D, bMM_U, {pts.MU.x, pts.MU.y + 1.1f} });
+				draw_list->PathArcTo(pos, params.size * 0.97f, IM_PI / 2.0f, IM_PI * 1.5f, 0);
 				draw_list->PathFillConvex(color);
 			}
 			else {
-				draw_list->PathArcTo(pos, params.size, -IM_PI / 2.0f, IM_PI / 2.0f, 0);
+				DrawPolyCW({ {pts.MU.x, pts.MU.y + 1.1f}, bMM_U, bMM_D, {pts.MD.x, pts.MD.y - 1.1f} });
+				draw_list->PathArcTo(pos, params.size * 0.97f, -IM_PI / 2.0f, IM_PI / 2.0f, 0);
 				draw_list->PathFillConvex(color);
 			}
 			break;
@@ -102,19 +104,19 @@ void KeyframeRenderer::Private::DrawHalf(
 }
 
 void KeyframeRenderer::Private::DrawOutline(ImDrawList* draw_list, TypeKeyframe type_in, TypeKeyframe type_out, const ImVec2& pos, const KeyframeRenderer::Parameters& params, const KeyframeRenderer::Private::KeyframePoints& pts) {
-
-	if (type_in == TypeKeyframe::AUTOBEZIER || type_out == TypeKeyframe::AUTOBEZIER) {
-		const float out_size = params.size + (params.size / 3.f);
-		draw_list->AddCircleFilled(pos, out_size, params.outline);
-		return;
-	}
-
-	ImVec2 path[16];
+	ImVec2 path[64];
 	int count = 0;
 
 	path[count++] = pts.MU;
 
-	if (type_out == TypeKeyframe::BEZIER) {
+	if (type_out == TypeKeyframe::AUTOBEZIER) {
+		const int segments = 12;
+		for (int i = 1; i < segments; ++i) {
+			float angle = -IM_PI / 2.0f + ((float)i / (float)segments) * IM_PI;
+			path[count++] = ImVec2(pos.x + cosf(angle) * params.size, pos.y + sinf(angle) * params.size);
+		}
+	}
+	else if (type_out == TypeKeyframe::BEZIER) {
 		path[count++] = pts.RU; path[count++] = pts.b_RU;
 		path[count++] = pts.b_MM_R_U; path[count++] = pts.b_MM_R_D;
 		path[count++] = pts.b_RD; path[count++] = pts.RD;
@@ -128,15 +130,22 @@ void KeyframeRenderer::Private::DrawOutline(ImDrawList* draw_list, TypeKeyframe 
 
 	path[count++] = pts.MD;
 
-	if (type_in == TypeKeyframe::BEZIER) {
+	if (type_in == TypeKeyframe::AUTOBEZIER) {
+		const int segments = 12;
+		for (int i = 1; i < segments; ++i) {
+			float angle = IM_PI / 2.0f + ((float)i / (float)segments) * IM_PI;
+			path[count++] = ImVec2(pos.x + cosf(angle) * params.size, pos.y + sinf(angle) * params.size);
+		}
+	}
+	else if (type_in == TypeKeyframe::BEZIER) {
 		path[count++] = pts.LD; path[count++] = pts.b_LD;
 		path[count++] = pts.b_MM_L_D; path[count++] = pts.b_MM_L_U;
 		path[count++] = pts.b_LU; path[count++] = pts.LU;
 	}
-	else if (type_out == TypeKeyframe::BINARY) {
+	else if (type_in == TypeKeyframe::BINARY) {
 		path[count++] = pts.LD; path[count++] = pts.LU;
 	}
-	else if (type_out == TypeKeyframe::LINEAR) {
+	else if (type_in == TypeKeyframe::LINEAR) {
 		path[count++] = pts.LM;
 	}
 

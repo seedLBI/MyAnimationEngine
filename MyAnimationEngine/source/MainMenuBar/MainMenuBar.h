@@ -15,7 +15,7 @@
 
 class MainMenuBar {
 private:
-	std::string Path2IconLogo = u8"resources\\logo\\transparent.png";
+	std::string Path2IconLogo = u8"resources\\images\\logo\\transparent.png";
 	ImVec4 colorLogo = ImVec4(1.f, 1.f, 1.f, 1.f);
 public:
 	MainMenuBar();

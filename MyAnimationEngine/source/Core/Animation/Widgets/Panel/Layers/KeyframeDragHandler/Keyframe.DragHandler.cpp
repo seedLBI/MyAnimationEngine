@@ -22,11 +22,15 @@ void KeyframeDragHandler::BeginDrag(float start_global_x, float start_global_y, 
         properties.applyToKr(sel_kf.property.name, [&](auto& kr) {
             auto* kf = kr.getKeyframeByID(sel_kf.id);
             if (kf) {
-                float orig_val = 0.0f;
-                if (dragged_value_index != -1 && dragged_value_index < kf->sample.value.size()) {
-                    orig_val = kf->sample.value[dragged_value_index];
-                }
-                original_times.push_back({ sel_kf, kf->sample.time, orig_val });
+                std::vector<float> orig_vals;
+
+                if (dragged_value_index != -1 && dragged_value_index < kf->sample.value.size())
+                    orig_vals.push_back(kf->sample.value[dragged_value_index]);
+                else if (dragged_value_index == -1)
+                    for (auto v : kf->sample.value) 
+                        orig_vals.push_back(v);
+
+                original_times.push_back({ sel_kf, kf->sample.time, orig_vals });
             }
         });
     };
@@ -47,9 +51,17 @@ void KeyframeDragHandler::BeginDrag(float start_global_x, float start_global_y, 
 
     selection_min_time = FLT_MAX;
     selection_max_time = -FLT_MAX;
+
+    selection_min_value = FLT_MAX;
+    selection_max_value = -FLT_MAX;
     for (const auto& drag_keyframe : original_times) {
         selection_min_time = (std::min)(selection_min_time, drag_keyframe.original_time);
         selection_max_time = (std::max)(selection_max_time, drag_keyframe.original_time);
+
+        for (float val : drag_keyframe.original_values) {
+            selection_min_value = (std::min)(selection_min_value, val);
+            selection_max_value = (std::max)(selection_max_value, val);
+        }
     }
 }
 
@@ -62,6 +74,8 @@ void KeyframeDragHandler::ProcessDrag(float current_global_x, float current_glob
     if (is_mouse_down) {
         if (current_mode == KeyframeDragMode::ScaleLeft || current_mode == KeyframeDragMode::ScaleRight)
             CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_HORIZONTAL);
+        else if (current_mode == KeyframeDragMode::ScaleUp || current_mode == KeyframeDragMode::ScaleDown)
+            CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_VERTICAL);
         else
             CursorManager::getInstance().SetCursor(TypeCursor::HAND_CLOSED);
 
@@ -70,17 +84,17 @@ void KeyframeDragHandler::ProcessDrag(float current_global_x, float current_glob
         float total_delta_y = current_global_y - startedDrag_global_y;
 
         float original_width = selection_max_time - selection_min_time;
-        if (std::abs(original_width) < 0.0001f) {
-            original_width = 0.0001f;
-        }
+        if (std::abs(original_width) < 0.0001f) original_width = 0.0001f;
 
+        float original_height = selection_max_value - selection_min_value;
+        if (std::abs(original_height) < 0.0001f) original_height = 0.0001f;
 
         for (const auto& drag_keyframe : original_times) {
             float orig_time = drag_keyframe.original_time;
-            float target_time = orig_time + total_delta_x;
+            float target_time = orig_time;
 
 
-            if (current_mode == KeyframeDragMode::Translate) {
+            if (current_mode == KeyframeDragMode::TranslateX || current_mode == KeyframeDragMode::TranslateXY) {
                 target_time = orig_time + total_delta_x;
             }
             else if (current_mode == KeyframeDragMode::ScaleLeft) {
@@ -106,43 +120,73 @@ void KeyframeDragHandler::ProcessDrag(float current_global_x, float current_glob
 
             properties.applyToKr(drag_keyframe.keyframe.property.name, [&](auto& kr) {
                 auto* kf = kr.getKeyframeByID(drag_keyframe.keyframe.id);
-                if (kf) {
+                if (kf)
+                {
+                    bool value_changed = false;
 
-                    if (
-                        current_mode == KeyframeDragMode::Translate && 
-                        dragged_value_index != -1 && 
-                        dragged_value_index < kf->sample.value.size()) 
-                    {
-
-                        kf->sample.value[dragged_value_index] = drag_keyframe.original_value + total_delta_y;
-
-                        const auto& range = kr.getRange();
-                        if (range.has_value()) {
-                            const auto& r = range.value();
-                            auto& i = dragged_value_index;
-                            kf->sample.value[i] = std::clamp(kf->sample.value[i], r.Min[i], r.Max[i]);
+                    auto apply_y_transformation = [&](size_t i, float orig_val) {
+                        if (current_mode == KeyframeDragMode::TranslateXY) {
+                            kf->sample.value[i] = orig_val + total_delta_y;
+                            value_changed = true;
                         }
-                            
+                        else if (current_mode == KeyframeDragMode::ScaleUp) {
+                            float new_max = selection_max_value + total_delta_y;
+                            float scale = (new_max - selection_min_value) / original_height;
+                            kf->sample.value[i] = selection_min_value + (orig_val - selection_min_value) * scale;
+                            value_changed = true;
+                        }
+                        else if (current_mode == KeyframeDragMode::ScaleDown) {
+                            float new_min = selection_min_value + total_delta_y;
+                            float scale = (selection_max_value - new_min) / original_height;
+                            kf->sample.value[i] = selection_max_value - (selection_max_value - orig_val) * scale;
+                            value_changed = true;
+                        }
+
+                        if (value_changed) {
+                            const auto& range = kr.getRange();
+                            if (range.has_value()) {
+                                const auto& r = range.value();
+                                kf->sample.value[i] = std::clamp(kf->sample.value[i], r.Min[i], r.Max[i]);
+                            }
+                        }
+                    };
+
+                    if (dragged_value_index != -1 && dragged_value_index < kf->sample.value.size()) {
+                        if (!drag_keyframe.original_values.empty())
+                            apply_y_transformation(dragged_value_index, drag_keyframe.original_values[0]);
+                    }
+                    else if (dragged_value_index == -1) {
+                        for (size_t i = 0; i < kf->sample.value.size(); i++) {
+                            if (i < drag_keyframe.original_values.size())
+                                apply_y_transformation(i, drag_keyframe.original_values[i]);
+                        }
                     }
 
+                    if (value_changed) kr.setNeedPrecompute();
+
                     float delta_to_apply = target_time - kf->sample.time;
-                    if (delta_to_apply != 0.f) 
+                    if (delta_to_apply != 0.f)
                         kr.setDeltaTimeForKeyframeByID(delta_to_apply, drag_keyframe.keyframe.id);
+
 
                 }
             });
         }
     }
     else {
-        for (const auto& drag_keyframe : original_times) {
-            const auto& layer = ctx->layersData->GetLayerByID(drag_keyframe.keyframe.property.layer.id);
-            auto& properties = layer.get()->GetProperties();
-            properties.applyToKr(drag_keyframe.keyframe.property.name, [&](auto& kr) {
-                    kr.resolveOverlaps(drag_keyframe.keyframe.id);
-                }
-            );
+        if (drag_started) {
+            for (const auto& drag_keyframe : original_times) {
+                const auto& layer = ctx->layersData->GetLayerByID(drag_keyframe.keyframe.property.layer.id);
+                auto& properties = layer.get()->GetProperties();
+                properties.applyToKr(drag_keyframe.keyframe.property.name, [&](auto& kr) {
+                        kr.applyDeltaTime();
+                        kr.resolveOverlaps(drag_keyframe.keyframe.id);
+                    }
+                );
+            }
+
+            drag_started = false;
+            original_times.clear();
         }
-        drag_started = false;
-        original_times.clear();
     }
 }

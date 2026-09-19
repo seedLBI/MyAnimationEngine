@@ -56,7 +56,7 @@ static std::unordered_map<HWND, GLFWwindow*> g_hwnd_to_window;
 class Application {
 private:
 	const std::string Title = u8"My Animation Engine";
-	const std::string Path2IconApplication = u8"resources\\logo\\small.png";
+	const std::string Path2IconApplication = u8"resources\\images\\logo\\small.png";
 public:
 	Application();
 	~Application();

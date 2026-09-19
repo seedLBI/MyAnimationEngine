@@ -5,16 +5,19 @@
 #include <vector>
 
 enum class KeyframeDragMode {
-    Translate,
+    TranslateX,
+    TranslateXY,
     ScaleLeft,
-    ScaleRight
+    ScaleRight,
+    ScaleUp,
+    ScaleDown
 };
 
 class KeyframeDragHandler {
 public:
     KeyframeDragHandler(TimelineContext* ctx);
 
-    void BeginDrag(float start_global_x, float start_global_y, int64_t index_value, const SelectedKeyframe& current, KeyframeDragMode mode = KeyframeDragMode::Translate);
+    void BeginDrag(float start_global_x, float start_global_y, int64_t index_value, const SelectedKeyframe& current, KeyframeDragMode mode = KeyframeDragMode::TranslateX);
     void ProcessDrag(float current_global_x, float current_global_y);
 
     bool IsDragging() const { return drag_started; }
@@ -27,14 +30,17 @@ private:
     float startedDrag_global_y = 0.0f;
     int64_t dragged_value_index = -1;
 
-    KeyframeDragMode current_mode = KeyframeDragMode::Translate;
+    KeyframeDragMode current_mode = KeyframeDragMode::TranslateX;
     float selection_min_time = 0.f;
     float selection_max_time = 0.f;
+
+    float selection_min_value = 0.f;
+    float selection_max_value = 0.f;
 
     struct DragData {
         SelectedKeyframe keyframe;
         float original_time;
-        float original_value;
+        std::vector<float> original_values;
     };
 
     std::vector<DragData> original_times;

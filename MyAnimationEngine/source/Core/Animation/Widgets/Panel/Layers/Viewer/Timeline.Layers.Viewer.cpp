@@ -338,7 +338,7 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 
 
 						if (
-							ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_VIEWER &&
+							ctx->areaSelection->GetTypeAreaStart() == SelectionArea_Type::SELECTION_RIGHT_HALF &&
 							ctx->areaSelection->IsActive())
 						{
 
@@ -481,7 +481,7 @@ void Timeline_Layers_Viewer::HandleKeyframeDragging() {
 		ctx->selector->UnsetAll();
 		ctx->areaSelection->SetStatus(true);
 		ctx->areaSelection->SetStartMousePosition(ImGui::GetMousePos());
-		ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_VIEWER);
+		ctx->areaSelection->SetAreaStart(SelectionArea_Type::SELECTION_RIGHT_HALF);
 
 	}
 
