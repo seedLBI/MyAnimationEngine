@@ -4,6 +4,8 @@
 #include "CursorManager/CursorManger.h"
 #include <Utils/Math/Math.Collision.h>
 
+#include "ThirdParty/LivePT/LivePT.h"
+
 Timeline_Graph::Timeline_Graph(
 	TimelineContext* ctx,
 	KeyframeDragHandler* kf_DragHandler,
@@ -281,8 +283,6 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 			}
 
 
-
-
 			float front_begin = cursor_pos.x;
 			float back_end = cursor_pos.x + region_max.x;
 
@@ -334,10 +334,6 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 			}
 
 			ImVec2 m = ImGui::GetMousePos();
-
-
-			
-			
 
 			bool isHoveredPoint = false;
 
@@ -498,7 +494,6 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 				}
 			}
 
-
 			for (uint64_t i = 0; i < keyframes.size(); i++) {
 
 				SelectedKeyframe current;
@@ -626,11 +621,6 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 				}
 				
 			}
-
-
-
-			
-
 
 		}, variant_prop);
 
@@ -777,18 +767,14 @@ void Timeline_Graph::DrawSpeedGraph(ImVec2 p_min, ImVec2 p_max) {
 
 	const auto props = ctx->selector->getProperties();
 
-	struct CurveLine {
-		ImColor color;
-		std::vector<ImVec2> points;
-	};
-	std::vector<CurveLine> draw_lines;
+	float min_vertical_bound = ctx->graphTransformVertical->getMinBoundView_lerped();
+	float max_vertical_bound = ctx->graphTransformVertical->getMaxBoundView_lerped();
 
+	float height_vertical_bound = (max_vertical_bound - min_vertical_bound);
+	float padding_vertical_bound = height_vertical_bound * (1.f - eval(0.9f));
 
-
-
-	// Жестко фиксируем min_speed на 0, так как мы используем модуль скорости (abs)
-	float min_speed = FLT_MAX;
-	float max_speed = -FLT_MAX; // Начнем с 0 и будем искать максимум
+	min_vertical_bound += padding_vertical_bound / 2.f;
+	max_vertical_bound -= padding_vertical_bound / 2.f;
 
 	for (const auto& selected_property : props) {
 		const auto& id_layer = selected_property.layer.id;
@@ -800,158 +786,52 @@ void Timeline_Graph::DrawSpeedGraph(ImVec2 p_min, ImVec2 p_max) {
 		auto& variant_prop = layerObject->GetProperties().getVariant(name_property);
 
 		std::visit([&](auto& propertie) {
-			auto& keyframes = propertie.kr.getKeyframes();
-			size_t dimensions = keyframes.empty() ? propertie.kr.getDefaultValue().size() : keyframes.front().sample.value.size();
+			const auto& speed_samples = propertie.kr.getSpeedSamples();
 
-			if (keyframes.size() < 2) {
-				float front_begin = cursor_pos.x;
-				float back_end = cursor_pos.x + region_max.x;
+			const float& min_speed = propertie.kr.getMinSpeed();
+			const float& max_speed = propertie.kr.getMaxSpeed();
 
-				for (size_t j = 0; j < dimensions; j++) {
+			float height_speed = max_speed - min_speed;
+
+			
+
+			for (size_t i = 1; i < speed_samples.size(); i++)
+			{
+				for (size_t j = 0; j < speed_samples[i].time.size(); j++) {
+					float t_curr = speed_samples[i].time[j];
+					float t_prev = speed_samples[i - 1].time[j];
+
+					float v_curr_norm = (speed_samples[i].value[j] - min_speed) / height_speed;
+					float v_prev_norm = (speed_samples[i - 1].value[j] - min_speed) / height_speed;
+
+					float v_curr = min_vertical_bound + v_curr_norm * (max_vertical_bound - min_vertical_bound);
+					float v_prev = min_vertical_bound + v_prev_norm * (max_vertical_bound - min_vertical_bound);
+
+					float pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + t_curr);
+					float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(v_curr);
+
+					float prev_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + t_prev);
+					float prev_pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(v_prev);
+					
 					ImColor color_line = ctx->colors_params[j];
-					color_line.Value.w = 0.4f;
-					draw_lines.push_back({ color_line, {{front_begin, 0.f}, {back_end, 0.f}} });
-				}
-				return;
-			}
+					color_line.Value.w = 0.25f;
 
-			std::vector<CurveLine> dim_lines(dimensions);
-			for (size_t d = 0; d < dimensions; d++) {
-				dim_lines[d].color = ctx->colors_params[d];
-				dim_lines[d].color.Value.w = 0.4f;
-			}
+					ImVec2 b = { prev_pos_x, prev_pos_y };
+					ImVec2 e = { pos_x, pos_y };
 
-			for (size_t i = 0; i < keyframes.size() - 1; i++) {
-				const auto& k1 = keyframes[i];
-				const auto& k2 = keyframes[i + 1];
+					float line_thickness = 2.f;
 
-				float dt = k2.sample.time - k1.sample.time;
-				if (dt <= 0.0001f) continue;
-
-				for (size_t d = 0; d < dimensions; d++) {
-					switch (k1.type) {
-					case TypeKeyframe::BINARY: {
-						float start_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + k1.sample.time);
-						float end_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + k2.sample.time);
-
-						dim_lines[d].points.push_back({ start_x, 0.f });
-						dim_lines[d].points.push_back({ end_x, 0.f });
-						break;
-					}
-					case TypeKeyframe::LINEAR: {
-						// ПРИМЕНЯЕМ std::abs К ЛИНЕЙНОЙ СКОРОСТИ
-						float speed = std::abs(static_cast<float>(k2.sample.value[d] - k1.sample.value[d]) / dt);
-						float start_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + k1.sample.time);
-						float end_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + k2.sample.time);
-
-						dim_lines[d].points.push_back({ start_x, speed });
-						dim_lines[d].points.push_back({ end_x, speed });
-						
-						min_speed = (std::min)(min_speed, speed);
-						max_speed = (std::max)(max_speed, speed);
-						break;
-					}
-					case TypeKeyframe::BEZIER:
-					case TypeKeyframe::AUTOBEZIER: {
-						uint32_t rate = k1.need_sample.has_value() ? k1.need_sample.value() : 64;
-						float step = 1.f / static_cast<float>(rate - 1);
-
-						float t0 = k1.sample.time;
-						float v0 = static_cast<float>(k1.sample.value[d]);
-						float t_out = t0, v_out = v0;
-
-						if (k1.anchors.out.has_value()) {
-							t_out = t0 + k1.anchors.out->time[d] * dt;
-							v_out = static_cast<float>(k1.anchors.out->value[d]);
-						}
-
-						float t1 = k2.sample.time;
-						float v1 = static_cast<float>(k2.sample.value[d]);
-						float t_in = t1, v_in = v1;
-
-						if (k2.anchors.in.has_value()) {
-							t_in = t1 - k2.anchors.in->time[d] * dt;
-							v_in = static_cast<float>(k2.anchors.in->value[d]);
-						}
-
-						for (uint32_t j = (i==0?0:1) ; j < rate; j++) {
-							float u = step * static_cast<float>(j);
-							float one_minus_u = 1.f - u;
-
-							float dt_du = 3.f * one_minus_u * one_minus_u * (t_out - t0) +
-								6.f * one_minus_u * u * (t_in - t_out) +
-								3.f * u * u * (t1 - t_in);
-
-							float dv_du = 3.f * one_minus_u * one_minus_u * (v_out - v0) +
-								6.f * one_minus_u * u * (v_in - v_out) +
-								3.f * u * u * (v1 - v_in);
-
-							float speed = 0.f;
-							if (std::abs(dt_du) > 1e-6f) {
-								// ПРИМЕНЯЕМ std::abs К ПРОИЗВОДНОЙ БЕЗЬЕ
-								speed = (dv_du / dt_du);
-							}
-
-							float curr_t = one_minus_u * one_minus_u * one_minus_u * t0 +
-								3.f * one_minus_u * one_minus_u * u * t_out +
-								3.f * one_minus_u * u * u * t_in +
-								u * u * u * t1;
-
-							float screen_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + curr_t);
-
-							dim_lines[d].points.push_back({ screen_x, speed });
-							min_speed = (std::min)(min_speed, speed);
-							max_speed = (std::max)(max_speed, speed);
-						}
-						break;
-					}
-					}
+					drawlist->AddLine(b, e, color_line, line_thickness);
 				}
 			}
 
-			for (auto& line : dim_lines) {
-				if (!line.points.empty()) {
-					draw_lines.push_back(std::move(line));
-				}
-			}
+		}, variant_prop);
 
-			}, variant_prop);
 	}
 
-	if (draw_lines.empty()) return;
-
-	// Предотвращаем деление на 0 при полностью нулевой скорости
-	if (max_speed < 1e-5f) {
-		max_speed = 10.f;
-	}
-
-	const float padding_y = 25.f;
-	float top_y = p_min.y;
-	float bottom_y = p_max.y;
-
-	float available_height = bottom_y - top_y;
-	float draw_height = (std::max)(1.f, available_height - (padding_y * 2.f));
-
-	// min_speed всегда 0, поэтому delta = max_speed
-	float scale_y = draw_height / (max_speed-min_speed);
-	
-
-	// Линия 0 больше не плавает, она всегда находится на (bottom_y - padding_y).
-	// Отрисуем её для визуальной опоры:
-	float zero_screen_y = top_y + padding_y + max_speed * scale_y;
-	drawlist->AddLine({ p_min.x, zero_screen_y }, { p_max.x, zero_screen_y }, IM_COL32(255, 255, 255, 60), 1.f);
-
-	for (auto& line : draw_lines) {
-		for (auto& pt : line.points) {
-			float normalized_y = (max_speed - pt.y) * scale_y;
-			pt.y = top_y + padding_y + normalized_y;
-		}
-
-		drawlist->AddPolyline(line.points.data(), (int)line.points.size(), line.color, ImDrawFlags_None, 2.0f);
-	}
 }
 
-#include "ThirdParty/LivePT/LivePT.h"
+
 void Timeline_Graph::Draw() {
 
 	auto drawlist = ImGui::GetWindowDrawList();

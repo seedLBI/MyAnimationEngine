@@ -41,9 +41,16 @@ public:
 
 	void setNeedPrecompute();
 	void precompute();
+	void precompute_speed();
+
+	
 
 	std::array<T, N>  evaluate(float time);
 	
+	const std::vector<LerpedSample<float, N>>& getSpeedSamples();
+	const float& getMinSpeed();
+	const float& getMaxSpeed();
+
 	const std::vector<LerpedSample<T, N>>& getSamples();
 	const std::optional<RangeValueKeyframe<T,N>>& getRange();
 	const std::vector<Keyframe<T, N>>& getKeyframes();
@@ -83,8 +90,11 @@ private:
 	std::vector<Keyframe<T, N>> keyframes;
 	std::vector<LerpedSample<T, N>> samples;
 	std::vector<TypeKeyframe> type_restrictions;
-
 	std::optional<RangeValueKeyframe<T, N>> range;
+
+	std::vector<LerpedSample<float, N>> speed_samples;
+	float speed_max;
+	float speed_min;
 
 	float deltaTime = 0.f;
 
@@ -96,6 +106,13 @@ private:
 		const Keyframe<T, N>& b,
 		float t
 	);
+
+	LerpedSample<T, N> lerpDerivativeCubicBezier(
+		const Keyframe<T, N>& a,
+		const Keyframe<T, N>& b,
+		float t
+	);
+
 
 	uint64_t getCountForReserve();
 	void sortKeyframes();
@@ -181,7 +198,22 @@ KeyframeResolver<T, N>::~KeyframeResolver()
 
 template<typename T, uint8_t N>
 const std::vector<LerpedSample<T, N>>& KeyframeResolver<T, N>::getSamples() {
-	return samples;
+	return this->samples;
+}
+
+template<typename T, uint8_t N>
+const float& KeyframeResolver<T, N>::getMinSpeed() {
+	return this->speed_min;
+}
+
+template<typename T, uint8_t N>
+const float& KeyframeResolver<T, N>::getMaxSpeed() {
+	return this->speed_max;
+}
+
+template<typename T, uint8_t N>
+const std::vector<LerpedSample<float, N>>& KeyframeResolver<T, N>::getSpeedSamples() {
+	return this->speed_samples;
 }
 
 template<typename T, uint8_t N>
@@ -472,6 +504,60 @@ uint64_t KeyframeResolver<T, N>::add(float time, std::array<T, N>& value, TypeKe
 	return add(keyframe);
 }
 
+template<typename T, uint8_t N>
+LerpedSample<T, N> KeyframeResolver<T, N>::lerpDerivativeCubicBezier(
+	const Keyframe<T, N>& a,
+	const Keyframe<T, N>& b,
+	float t
+) {
+	LerpedSample<T, N> result;
+
+	float t1 = 3.f * (1.f - t) * (1.f - t);
+	float t2 = 6.f * t * (1.f - t);
+	float t3 = 3.f * t * t;
+
+	float dt = b.sample.time - a.sample.time;
+
+	for (uint8_t i = 0; i < N; i++) {
+
+		float out_time = a.sample.time;
+		T out_val = a.sample.value[i];
+		if (a.anchors.out.has_value()) {
+			out_time = a.sample.time + (a.anchors.out->time[i] * dt);
+			out_val = a.anchors.out->value[i];
+		}
+
+		float in_time = b.sample.time;
+		T in_val = b.sample.value[i];
+		if (b.anchors.in.has_value()) {
+			in_time = b.sample.time - (b.anchors.in->time[i] * dt);
+			in_val = b.anchors.in->value[i];
+		}
+
+		const float& p0_t = a.sample.time;
+		const float& p1_t = out_time;
+		const float& p2_t = in_time;
+		const float& p3_t = b.sample.time;
+
+		const float& p0_v = a.sample.value[i];
+		const float& p1_v = out_val;
+		const float& p2_v = in_val;
+		const float& p3_v = b.sample.value[i];
+
+		result.time[i] =
+			t1 * (p1_t - p0_t) +
+			t2 * (p2_t - p1_t) +
+			t3 * (p3_t - p2_t);
+
+		result.value[i] =
+			t1 * (p1_v - p0_v) +
+			t2 * (p2_v - p1_v) +
+			t3 * (p3_v - p2_v);
+	}
+
+	return result;
+}
+
 
 template<typename T, uint8_t N>
 LerpedSample<T, N> KeyframeResolver<T, N>::lerpCubicBezier(
@@ -553,6 +639,141 @@ uint64_t KeyframeResolver<T, N>::getCountForReserve() {
 	return result;
 }
 
+
+template<typename T, uint8_t N>
+void KeyframeResolver<T, N>::precompute_speed() 
+{
+	speed_samples.clear();
+	speed_samples.reserve(getCountForReserve());
+
+
+	this->speed_min =  FLT_MAX;
+	this->speed_max = -FLT_MAX;
+	constexpr float epsilon = 1e-6f;
+
+	auto calcSpeed_Linear = [&](
+		const Keyframe<T, N>& a, 
+		const Keyframe<T, N>& b
+		) -> std::array<float,N> 
+	{
+		std::array<float, N> speed;
+
+		float deriv_x = b.sample.time - a.sample.time;
+		for (size_t i = 0; i < N; i++) {
+			float deriv_y = (b.sample.value[i] - a.sample.value[i]);
+			speed[i] = deriv_x > epsilon ? deriv_y / deriv_x : 0.f;
+			speed[i] *= -1.f;
+
+			this->speed_min = (std::min)(this->speed_min, speed[i]);
+			this->speed_max = (std::max)(this->speed_max, speed[i]);
+		}
+
+		return speed;
+	};
+
+	auto calcSpeed_Bezier = [&](
+		const Keyframe<T, N>& a, 
+		const Keyframe<T, N>& b, 
+		float t
+		) -> std::array<float, N> 
+	{
+		std::array<float, N> speed;
+
+		for (size_t i = 0; i < N; i++) {
+			LerpedSample<T, N> deriv = lerpDerivativeCubicBezier(a, b, t);
+
+			if (std::abs(deriv.time[i]) > epsilon)
+				speed[i] = deriv.value[i] / deriv.time[i];
+			else
+				speed[i] = 0.f;
+			speed[i] *= -1.f;
+
+			this->speed_min = (std::min)(this->speed_min, speed[i]);
+			this->speed_max = (std::max)(this->speed_max, speed[i]);
+		}
+
+		return speed;
+	};
+
+
+
+	for (size_t i = 0; i < keyframes.size() - 1; i++) {
+
+		const auto& key1 = keyframes[i];
+		const auto& key2 = keyframes[i + 1];
+
+		switch (key1.type) {
+		case TypeKeyframe::BINARY: {
+			LerpedSample<float, N> start, end;
+
+			start.time.fill((float)key1.sample.time);
+			start.value.fill(0.f);
+
+			end.time.fill((float)key2.sample.time);
+			end.value.fill(0.f);
+
+			this->speed_min = (std::min)(this->speed_min, 0.f);
+			this->speed_max = (std::max)(this->speed_max, 0.f);
+
+			speed_samples.push_back(start);
+			speed_samples.push_back(end);
+			break;
+		}
+		case TypeKeyframe::LINEAR: {
+			auto value = calcSpeed_Linear(key1, key2);
+			LerpedSample<float, N> start, end;
+
+			start.time.fill((float)key1.sample.time);
+			end.time.fill((float)key2.sample.time);
+
+			for (size_t j = 0; j < N; j++) {
+				start.value[j] = value[j];
+				end.value[j] = value[j];
+			}
+
+			speed_samples.push_back(start);
+			speed_samples.push_back(end);
+			break;
+		}
+		case TypeKeyframe::BEZIER:
+		case TypeKeyframe::AUTOBEZIER: {
+			uint32_t rate = default_sample_rate;
+			if (key1.need_sample.has_value())
+				rate = key1.need_sample.value();
+
+			float step = 1.f / float(rate - 1);
+
+			for (size_t j = 0; j < rate; j++) {
+				float t = step * float(j);
+
+				if (t <= 0.0f && !key1.anchors.out.has_value()) t = 0.001f;
+				if (t >= 1.0f && !key2.anchors.in.has_value())  t = 0.999f;
+
+				auto value = calcSpeed_Bezier(key1, key2, t);
+
+				LerpedSample<T, N> sample = lerpCubicBezier(key1, key2, step * float(j));
+
+				LerpedSample<float, N> point;
+
+				for (size_t k = 0; k < N; k++) {
+					point.time[k] = (float)sample.time[k];
+					point.value[k] = value[k];
+				}
+
+				speed_samples.push_back(point);
+			}
+
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
+
+}
+
+
 template<typename T, uint8_t N>
 void KeyframeResolver<T, N>::precompute()
 {
@@ -575,7 +796,6 @@ void KeyframeResolver<T, N>::precompute()
 			keyframes[i].anchors.out.value().time.fill(1.f / 3.f);
 
 			if (i == 0 || i == keyframes.size() - 1) {
-				// Плоские касательные для начала и конца
 				std::copy(keyframes[i].sample.value.begin(), keyframes[i].sample.value.end(), keyframes[i].anchors.in.value().value.begin());
 				std::copy(keyframes[i].sample.value.begin(), keyframes[i].sample.value.end(), keyframes[i].anchors.out.value().value.begin());
 			}
@@ -587,7 +807,7 @@ void KeyframeResolver<T, N>::precompute()
 				float dx = k_next.sample.time - k_prev.sample.time;
 				for (size_t j = 0; j < N; j++) {
 					float dy = k_next.sample.value[j] - k_prev.sample.value[j];
-					float slope = (dx != 0.f) ? (dy / dx) : 0.f; // Защита от деления на ноль
+					float slope = (dx != 0.f) ? (dy / dx) : 0.f;
 
 					float dt_out = (k_next.sample.time - k_curr.sample.time) / 3.f;
 					float dt_in = (k_curr.sample.time - k_prev.sample.time) / 3.f;
@@ -621,7 +841,8 @@ void KeyframeResolver<T, N>::precompute()
 			samples.push_back(key2.sample);
 			break;
 		}
-		case TypeKeyframe::BEZIER: {
+		case TypeKeyframe::BEZIER:
+		case TypeKeyframe::AUTOBEZIER: {
 			uint32_t rate = default_sample_rate;
 			if (key1.need_sample.has_value())
 				rate = key1.need_sample.value();
@@ -630,23 +851,6 @@ void KeyframeResolver<T, N>::precompute()
 
 			for (size_t j = (i == 0 ? 0 : 1); j < rate; j++)
 				samples.push_back(lerpCubicBezier(key1, key2, step * float(j)));
-
-			break;
-		}
-		case TypeKeyframe::AUTOBEZIER: {
-			uint32_t rate = default_sample_rate;
-			if (key1.need_sample.has_value())
-				rate = key1.need_sample.value();
-
-			float step = 1.f / float(rate - 1);
-
-			Keyframe<T, N> k1, k2;
-
-			k1 = keyframes[i];
-			k2 = keyframes[i + 1];
-
-			for (size_t j = (i == 0 ? 0 : 1); j < rate; j++)
-				samples.push_back(lerpCubicBezier(k1, k2, step * float(j)));
 
 			break;
 		}
@@ -667,7 +871,7 @@ void KeyframeResolver<T, N>::precompute()
 
 	}
 
-
+	precompute_speed();
 }
 
 template<typename T, uint8_t N>
