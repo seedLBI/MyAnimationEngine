@@ -1,5 +1,6 @@
 ﻿#include "Application.h"
 
+
 LRESULT CALLBACK custom_wndproc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 Application::Application() {
@@ -17,7 +18,7 @@ Application::Application() {
 	FontManager::getInstance().Update();
 
 	fps_limiter = new FPS_Timer;
-	fps_limiter->SetTargetFPS(180);
+	fps_limiter->SetTargetFPS(1800);
 	glfwSwapInterval(0);
 
 	layersData			= new LayersDataProvider();
@@ -180,7 +181,14 @@ void Application::Init_DockLayout(ImGuiViewport* viewport, const ImGuiID& docksp
 
 
 void Application::Run() {
+
+
+
 	while (WindowManager::getInstance().IsShouldClose() == false) {
+#if LivePT_EditMode
+		LivePT::ProcessEdit();
+#endif
+
 		Update();
 
 		BeginDraw();
@@ -190,7 +198,7 @@ void Application::Run() {
 	}
 }
 
-#include "ThirdParty/ImGui/imgui_internal.h"
+
 
 void UpdateDockingCursorOnly()
 {
@@ -229,9 +237,14 @@ void Application::Draw() {
 	auto drawlist = ImGui::GetForegroundDrawList();
 	drawlist->AddCircleFilled(ImGui::GetMousePos(), 1.f, ImColor(1.f, 0.f, 0.f, 1.f));
 }
+
+
+
 void Application::Update() {
+
+
 	CursorManager::getInstance().Update();
-	CursorManager::getInstance().SetCursor(TypeCursor::POINTER);
+	CursorManager::getInstance().SetCursor(eval(TypeCursor::HAND_OPEN));
 
 
 	if (ImGui::IsKeyPressed(ImGuiKey_Tab)) {

@@ -411,6 +411,9 @@
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\KeyframeDragHandler\Keyframe.DragHandler.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Graph\ButtonsDrawer\Graph.Buttons.Drawer.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Application\Application.h">
@@ -702,6 +705,24 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\KeyframeDragHandler\Keyframe.DragHandler.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Graph\ButtonsDrawer\Graph.Buttons.Drawer.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ThirdParty\LivePT\vsEditor.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ThirdParty\LivePT\enumMenu.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ThirdParty\LivePT\eval.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ThirdParty\LivePT\LivePT.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ThirdParty\LivePT\liveWheelEdit.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

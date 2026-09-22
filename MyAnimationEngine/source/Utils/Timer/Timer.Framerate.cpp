@@ -10,9 +10,12 @@ double FPS_Timer::GetDeltaTime() {
 	return Delta;
 }
 
+#include <iostream>
+
 void FPS_Timer::wait() {
 	timer.stop();
 	Delta = timer.elapsedSeconds();
+	
 
 	if (targetFPS == 0) {
 		timer.start();

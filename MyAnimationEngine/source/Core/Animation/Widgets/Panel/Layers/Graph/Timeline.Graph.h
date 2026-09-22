@@ -8,6 +8,7 @@
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
 #include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
 
+#include "ButtonsDrawer/Graph.Buttons.Drawer.h"
 
 #include "Utils/ImGui/Utils.ImGui.h"
 
@@ -31,6 +32,7 @@ private:
 	Timeline_TimeCursor* timeCursor;
 	HorizontalTickRenderer* horizontalTickRenderer;
 
+	GraphButtonsDrawer* graphButtonsDrawer;
 
 	ImRect getRectGraph();
 
@@ -50,9 +52,12 @@ private:
 	ImColor colorLight = ImColor(0.2f, 0.2f, 0.2f, 1.f);
 	ImColor colorDark  = ImColor(0.15f, 0.15f, 0.15f, 1.f);
 
+
+	void DrawSpeedGraph(ImVec2 p_min, ImVec2 p_max);
+
+
 	void DrawTicks(ImVec2 p_min, ImVec2 p_max);
 	void DrawGraphs(ImVec2 p_min, ImVec2 p_max);
-	void DrawButtons(ImVec2 p_min, ImVec2 p_max);
 
 	float height_menu_buttons = 40.f;
 

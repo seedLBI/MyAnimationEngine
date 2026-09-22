@@ -24,13 +24,31 @@ void KeyframeDragHandler::BeginDrag(float start_global_x, float start_global_y, 
             if (kf) {
                 std::vector<float> orig_vals;
 
-                if (dragged_value_index != -1 && dragged_value_index < kf->sample.value.size())
+
+                bool has_in = kf->anchors.in.has_value();
+                bool has_out = kf->anchors.out.has_value();
+                std::vector<float> orig_in_vals;
+                std::vector<float> orig_out_vals;
+
+                if (dragged_value_index != -1 && dragged_value_index < kf->sample.value.size()) {
                     orig_vals.push_back(kf->sample.value[dragged_value_index]);
-                else if (dragged_value_index == -1)
+                    if (has_in) 
+                        orig_in_vals.push_back(kf->anchors.in->value[dragged_value_index]);
+                    if (has_out) 
+                        orig_out_vals.push_back(kf->anchors.out->value[dragged_value_index]);
+                }
+                else if (dragged_value_index == -1) {
                     for (auto v : kf->sample.value) 
                         orig_vals.push_back(v);
+                    if (has_in) 
+                        for (auto v : kf->anchors.in->value) 
+                            orig_in_vals.push_back(v);
+                    if (has_out) 
+                        for (auto v : kf->anchors.out->value) 
+                            orig_out_vals.push_back(v);
+                }
 
-                original_times.push_back({ sel_kf, kf->sample.time, orig_vals });
+                original_times.push_back({ sel_kf, kf->sample.time, orig_vals, has_in, orig_in_vals, has_out, orig_out_vals });
             }
         });
     };
@@ -124,41 +142,61 @@ void KeyframeDragHandler::ProcessDrag(float current_global_x, float current_glob
                 {
                     bool value_changed = false;
 
-                    auto apply_y_transformation = [&](size_t i, float orig_val) {
-                        if (current_mode == KeyframeDragMode::TranslateXY) {
-                            kf->sample.value[i] = orig_val + total_delta_y;
-                            value_changed = true;
-                        }
-                        else if (current_mode == KeyframeDragMode::ScaleUp) {
-                            float new_max = selection_max_value + total_delta_y;
-                            float scale = (new_max - selection_min_value) / original_height;
-                            kf->sample.value[i] = selection_min_value + (orig_val - selection_min_value) * scale;
-                            value_changed = true;
-                        }
-                        else if (current_mode == KeyframeDragMode::ScaleDown) {
-                            float new_min = selection_min_value + total_delta_y;
-                            float scale = (selection_max_value - new_min) / original_height;
-                            kf->sample.value[i] = selection_max_value - (selection_max_value - orig_val) * scale;
-                            value_changed = true;
-                        }
+                    auto apply_y_transformation = [&](size_t i, float orig_val, const float* orig_in_val, const float* orig_out_val) {
+                        auto transform_val = [&](float v) -> float {
+                            if (current_mode == KeyframeDragMode::TranslateXY) {
+                                return v + total_delta_y;
+                            }
+                            else if (current_mode == KeyframeDragMode::ScaleUp) {
+                                float new_max = selection_max_value + total_delta_y;
+                                float scale = (new_max - selection_min_value) / original_height;
+                                return selection_min_value + (v - selection_min_value) * scale;
+                            }
+                            else if (current_mode == KeyframeDragMode::ScaleDown) {
+                                float new_min = selection_min_value + total_delta_y;
+                                float scale = (selection_max_value - new_min) / original_height;
+                                return selection_max_value - (selection_max_value - v) * scale;
+                            }
+                            return v;
+                            };
 
-                        if (value_changed) {
+                        if (current_mode == KeyframeDragMode::TranslateXY || current_mode == KeyframeDragMode::ScaleUp || current_mode == KeyframeDragMode::ScaleDown) {
+                            kf->sample.value[i] = transform_val(orig_val);
+                            value_changed = true;
+
+                            if (orig_in_val && kf->anchors.in.has_value()) {
+                                kf->anchors.in->value[i] = transform_val(*orig_in_val);
+                            }
+                            if (orig_out_val && kf->anchors.out.has_value()) {
+                                kf->anchors.out->value[i] = transform_val(*orig_out_val);
+                            }
+
                             const auto& range = kr.getRange();
                             if (range.has_value()) {
                                 const auto& r = range.value();
                                 kf->sample.value[i] = std::clamp(kf->sample.value[i], r.Min[i], r.Max[i]);
+                                if (orig_in_val && kf->anchors.in.has_value())
+                                    kf->anchors.in->value[i] = std::clamp(kf->anchors.in->value[i], r.Min[i], r.Max[i]);
+                                if (orig_out_val && kf->anchors.out.has_value())
+                                    kf->anchors.out->value[i] = std::clamp(kf->anchors.out->value[i], r.Min[i], r.Max[i]);
                             }
                         }
                     };
 
                     if (dragged_value_index != -1 && dragged_value_index < kf->sample.value.size()) {
-                        if (!drag_keyframe.original_values.empty())
-                            apply_y_transformation(dragged_value_index, drag_keyframe.original_values[0]);
+                        if (!drag_keyframe.original_values.empty()) {
+                            const float* in_val = (drag_keyframe.has_in_anchor && !drag_keyframe.original_in_anchor_values.empty()) ? &drag_keyframe.original_in_anchor_values[0] : nullptr;
+                            const float* out_val = (drag_keyframe.has_out_anchor && !drag_keyframe.original_out_anchor_values.empty()) ? &drag_keyframe.original_out_anchor_values[0] : nullptr;
+                            apply_y_transformation(dragged_value_index, drag_keyframe.original_values[0], in_val, out_val);
+                        }
                     }
                     else if (dragged_value_index == -1) {
                         for (size_t i = 0; i < kf->sample.value.size(); i++) {
-                            if (i < drag_keyframe.original_values.size())
-                                apply_y_transformation(i, drag_keyframe.original_values[i]);
+                            if (i < drag_keyframe.original_values.size()) {
+                                const float* in_val = (drag_keyframe.has_in_anchor && i < drag_keyframe.original_in_anchor_values.size()) ? &drag_keyframe.original_in_anchor_values[i] : nullptr;
+                                const float* out_val = (drag_keyframe.has_out_anchor && i < drag_keyframe.original_out_anchor_values.size()) ? &drag_keyframe.original_out_anchor_values[i] : nullptr;
+                                apply_y_transformation(i, drag_keyframe.original_values[i], in_val, out_val);
+                            }
                         }
                     }
 

@@ -34,9 +34,13 @@ void HorizontalTickRenderer::DrawTicks(
 	float size_main_tick_text = 52.f;
 
 
-	if (distance_between_main_ticks < size_main_tick_text) {
+	if (distance_between_main_ticks > 0.0001f && distance_between_main_ticks < size_main_tick_text) {
 		float count = std::round(size_main_tick_text / distance_between_main_ticks);
+		count = (std::max)(1.0f, count);
+
 		float countTicks = std::floor(count_main_tick / count);
+		countTicks = (std::max)(1.0f, countTicks);
+
 		float stepTick = ctx->timelineData->GetData().totalTime / countTicks;
 		step_Main = stepTick;
 		count_main_tick = countTicks;

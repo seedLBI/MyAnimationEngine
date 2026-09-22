@@ -1,6 +1,8 @@
 ﻿#ifndef APPLICATION_H
 #define APPLICATION_H
 
+#include "ThirdParty/LivePT/LivePT.h"
+
 #include <Windows.h>
 #include <stb_image.h>
 #include <dwmapi.h>
@@ -10,12 +12,14 @@
 #pragma comment(lib, "winmm.lib")
 #pragma comment(lib, "dwmapi.lib")
 
+
 #include "ThirdParty/ImGui/imgui.h"
+#include "ThirdParty/ImGui/imgui_internal.h"
 #include "ThirdParty/ImGui/imgui_impl_glfw.h"
 #include "ThirdParty/ImGui/imgui_impl_opengl3.h"
-
-
+#ifndef _DEBUG
 #define GLEW_STATIC
+#endif
 #include <GL/glew.h>
 
 #define GLFW_EXPOSE_NATIVE_WIN32

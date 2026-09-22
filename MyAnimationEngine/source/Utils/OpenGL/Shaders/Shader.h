@@ -1,4 +1,4 @@
-#ifndef SHADER_H
+﻿#ifndef SHADER_H
 #define SHADER_H
 #include <string>
 #include <fstream>
@@ -8,7 +8,9 @@
 #include <sstream>
 #include <regex>
 
+#ifndef _DEBUG
 #define GLEW_STATIC
+#endif
 #include <GL/glew.h>
 
 #ifdef _WIN32

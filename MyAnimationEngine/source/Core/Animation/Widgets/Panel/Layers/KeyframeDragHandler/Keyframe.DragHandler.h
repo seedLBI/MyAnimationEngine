@@ -41,6 +41,11 @@ private:
         SelectedKeyframe keyframe;
         float original_time;
         std::vector<float> original_values;
+
+        bool has_in_anchor = false;
+        std::vector<float> original_in_anchor_values;
+        bool has_out_anchor = false;
+        std::vector<float> original_out_anchor_values;
     };
 
     std::vector<DragData> original_times;

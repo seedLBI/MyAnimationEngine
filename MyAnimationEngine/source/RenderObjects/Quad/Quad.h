@@ -1,7 +1,9 @@
-#ifndef QUAD_H
+﻿#ifndef QUAD_H
 #define QUAD_H
 
+#ifndef _DEBUG
 #define GLEW_STATIC
+#endif
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "RenderObjects/RenderableObject.h"

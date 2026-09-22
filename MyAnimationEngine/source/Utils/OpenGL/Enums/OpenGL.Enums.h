@@ -2,7 +2,9 @@
 #define OPENGL_ENUMS_H
 
 
+#ifndef _DEBUG
 #define GLEW_STATIC
+#endif
 #include <GL/glew.h>
 
 enum BufferBit {

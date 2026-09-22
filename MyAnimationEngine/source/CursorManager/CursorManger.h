@@ -5,7 +5,9 @@
 #include "ThirdParty/ImGui/imgui_impl_glfw.h"
 #include "ThirdParty/ImGui/imgui_impl_opengl3.h"
 
+#ifndef _DEBUG
 #define GLEW_STATIC
+#endif
 #include <GL/glew.h>
 
 #define GLFW_EXPOSE_NATIVE_WIN32

@@ -97,24 +97,6 @@ private:
 		float t
 	);
 
-	LerpedSample<T, N> lerpCatmullRom(
-		const Keyframe<T, N>& p0,
-		const Keyframe<T, N>& p1,
-		const Keyframe<T, N>& p2,
-		const Keyframe<T, N>& p3,
-		float t,
-		float alpha = 0.5
-	);
-
-	std::array<LerpedSample<T, N>, 2> getTangentCatmullRomForCubicBezier(
-		const Keyframe<T, N>& p0,
-		const Keyframe<T, N>& p1,
-		const Keyframe<T, N>& p2,
-		const Keyframe<T, N>& p3,
-		float alpha = 0.5
-	);
-
-
 	uint64_t getCountForReserve();
 	void sortKeyframes();
 };
@@ -377,9 +359,6 @@ void KeyframeResolver<T, N>::changeType(uint64_t index, TypeKeyframe type) {
 	if (index > keyframes.size() - 1)
 		return;
 
-	if (keyframes[index].type == type)
-		return;
-
 
 	keyframes[index].type = type;
 	switch (type) {
@@ -542,164 +521,6 @@ LerpedSample<T, N> KeyframeResolver<T, N>::lerpCubicBezier(
 	return result;
 }
 
-template<typename T, uint8_t N>
-LerpedSample<T, N> KeyframeResolver<T, N>::lerpCatmullRom(
-	const Keyframe<T, N>& p0,
-	const Keyframe<T, N>& p1,
-	const Keyframe<T, N>& p2,
-	const Keyframe<T, N>& p3,
-	float t,
-	float alpha
-) {
-
-	auto RemapT = [](std::array<T, N> t, const Keyframe<T, N>& p0, const Keyframe<T, N>& p1, float alpha) -> std::array<T, N> {
-		std::array<T, N> remapped_t;
-
-		for (size_t i = 0; i < N; i++) {
-			float  timeDelta = p1.sample.time - p0.sample.time;
-			float valueDelta = p1.sample.value[i] - p0.sample.value[i];
-
-			float distance = std::sqrt(timeDelta * timeDelta + valueDelta * valueDelta);
-
-			remapped_t[i] = t[i] + powf(distance, alpha);
-		}
-
-		return remapped_t;
-	};
-
-	auto CalcPyramidNode = [](
-		const std::array<T, N>& t_start, 
-		const std::array<T, N>& t_end, 
-		const std::array<T, N>& t_current,
-		const LerpedSample<T, N>& p_start, 
-		const LerpedSample<T, N>& p_end ) -> LerpedSample<T, N> {
-
-		LerpedSample<T, N> result;
-
-		for (size_t i = 0; i < N; i++) {
-
-			float denom = t_end[i] - t_start[i];
-
-			if (std::abs(denom) < 1e-6f) {
-				result.time[i] = p_start.time[i];
-				result.value[i] = p_start.value[i];
-			}
-			else {
-				T w1 = (t_end[i] - t_current[i]) / denom;
-				T w2 = (t_current[i] - t_start[i]) / denom;
-
-				result.time[i]  = p_start.time[i]  * w1 + p_end.time[i] * w2;
-				result.value[i] = p_start.value[i] * w1 + p_end.value[i] * w2;
-			}
-
-		}
-
-		return result;
-
-	};
-
-	auto mix = [](const std::array<T, N>& t_start, const std::array<T, N>& t_end, float t) -> std::array<T, N> {
-		std::array<T, N> result;
-
-		for (size_t i = 0; i < N; i++){
-			result[i] = t_start[i] * (1.f - t) + t_end[i] * t;
-		}
-
-		return result;
-	};
-
-	std::array<T, N> t0; t0.fill(T(0.f));
-	std::array<T, N> t1 = RemapT(t0, p0, p1, alpha);
-	std::array<T, N> t2 = RemapT(t1, p1, p2, alpha);
-	std::array<T, N> t3 = RemapT(t2, p2, p3, alpha);
-
-	std::array<T, N> t_current = mix(t1, t2, t);
-
-	LerpedSample<T, N> l0(p0.sample);
-	LerpedSample<T, N> l1(p1.sample);
-	LerpedSample<T, N> l2(p2.sample);
-	LerpedSample<T, N> l3(p3.sample);
-
-	LerpedSample<T, N> a1 = CalcPyramidNode(t0, t1, t_current, l0, l1);
-	LerpedSample<T, N> a2 = CalcPyramidNode(t1, t2, t_current, l1, l2);
-	LerpedSample<T, N> a3 = CalcPyramidNode(t2, t3, t_current, l2, l3);
-
-	LerpedSample<T, N> b1 = CalcPyramidNode(t0, t2, t_current, a1, a2);
-	LerpedSample<T, N> b2 = CalcPyramidNode(t1, t3, t_current, a2, a3);
-
-	LerpedSample<T, N> c = CalcPyramidNode(t1, t2, t_current, b1, b2);
-
-	return c;
-}
-
-template<typename T, uint8_t N>
-std::array<LerpedSample<T, N>, 2> KeyframeResolver<T, N>::getTangentCatmullRomForCubicBezier(
-	const Keyframe<T, N>& p0,
-	const Keyframe<T, N>& p1,
-	const Keyframe<T, N>& p2,
-	const Keyframe<T, N>& p3,
-	float alpha
-) {
-	std::array<LerpedSample<T, N>, 2> anchors;
-
-	auto RemapT = [](std::array<T, N> t, const Keyframe<T, N>& p0, const Keyframe<T, N>& p1, float alpha) -> std::array<T, N> {
-		std::array<T, N> remapped_t;
-
-		for (size_t i = 0; i < N; i++) {
-			float  timeDelta = p1.sample.time - p0.sample.time;
-			float valueDelta = p1.sample.value[i] - p0.sample.value[i];
-
-			float distance = std::sqrt(timeDelta * timeDelta + valueDelta * valueDelta);
-
-			remapped_t[i] = t[i] + powf(distance, alpha);
-		}
-
-		return remapped_t;
-	};
-
-	std::array<T, N> t0; t0.fill(T(0.f));
-	std::array<T, N> t1 = RemapT(t0, p0, p1, alpha);
-	std::array<T, N> t2 = RemapT(t1, p1, p2, alpha);
-	std::array<T, N> t3 = RemapT(t2, p2, p3, alpha);
-
-	auto safe_div = [](float num, float den) -> float {
-		return (std::abs(den) > 1e-6f) ? (num / den) : 0.0f;
-	};
-
-	// anchors cubic bezier for p1 and p2 from CatmullRom
-	LerpedSample<T, N> V1, V2;
-
-	for (size_t i = 0; i < N; i++) {
-		float p1p0_v = p1.sample.value[i] - p0.sample.value[i];
-		float p1p0_t = p1.sample.time - p0.sample.time;
-
-		float p2p1_v = p2.sample.value[i] - p1.sample.value[i];
-		float p2p1_t = p2.sample.time - p1.sample.time;
-
-		float p3p2_v = p3.sample.value[i] - p2.sample.value[i];
-		float p3p2_t = p3.sample.time - p2.sample.time;
-
-		float t2t1 = t2[i] - t1[i];
-		float t3t2 = t3[i] - t2[i];
-		float t3t1 = t3[i] - t1[i];
-
-		float s = t2t1 / 3.f;
-
-		V1.time[i]  = p1.sample.time     + s * (safe_div(t2t1, t2[i]) * safe_div(p1p0_t, t1[i]) + safe_div(t1[i], t2[i]) * safe_div(p2p1_t,t2t1));
-		V1.value[i] = p1.sample.value[i] + s * (safe_div(t2t1, t2[i]) * safe_div(p1p0_v, t1[i]) + safe_div(t1[i], t2[i]) * safe_div(p2p1_v,t2t1));
-
-		V2.time[i]  = p2.sample.time     - s * (safe_div(t3t2, t3t1) * safe_div(p2p1_t, t2t1) + safe_div(t2t1, t3t1) * safe_div(p3p2_t, t3t2));
-		V2.value[i] = p2.sample.value[i] - s * (safe_div(t3t2, t3t1) * safe_div(p2p1_v, t2t1) + safe_div(t2t1, t3t1) * safe_div(p3p2_v, t3t2));
-	}
-
-	anchors[0] = V1;
-	anchors[1] = V2;
-
-	return anchors;
-}
-
-
-
 
 template<typename T, uint8_t N>
 uint64_t KeyframeResolver<T, N>::getCountForReserve() {
@@ -746,6 +567,37 @@ void KeyframeResolver<T, N>::precompute()
 		return;
 	}
 
+	for (size_t i = 0; i < keyframes.size(); i++) {
+		if (keyframes[i].type == TypeKeyframe::AUTOBEZIER) {
+			keyframes[i].anchors.in = BezierAnchor<T, N>();
+			keyframes[i].anchors.out = BezierAnchor<T, N>();
+			keyframes[i].anchors.in.value().time.fill(1.f / 3.f);
+			keyframes[i].anchors.out.value().time.fill(1.f / 3.f);
+
+			if (i == 0 || i == keyframes.size() - 1) {
+				// Плоские касательные для начала и конца
+				std::copy(keyframes[i].sample.value.begin(), keyframes[i].sample.value.end(), keyframes[i].anchors.in.value().value.begin());
+				std::copy(keyframes[i].sample.value.begin(), keyframes[i].sample.value.end(), keyframes[i].anchors.out.value().value.begin());
+			}
+			else {
+				const auto& k_prev = keyframes[i - 1];
+				auto& k_curr = keyframes[i];
+				const auto& k_next = keyframes[i + 1];
+
+				float dx = k_next.sample.time - k_prev.sample.time;
+				for (size_t j = 0; j < N; j++) {
+					float dy = k_next.sample.value[j] - k_prev.sample.value[j];
+					float slope = (dx != 0.f) ? (dy / dx) : 0.f; // Защита от деления на ноль
+
+					float dt_out = (k_next.sample.time - k_curr.sample.time) / 3.f;
+					float dt_in = (k_curr.sample.time - k_prev.sample.time) / 3.f;
+
+					k_curr.anchors.out.value().value[j] = k_curr.sample.value[j] + slope * dt_out;
+					k_curr.anchors.in.value().value[j] = k_curr.sample.value[j] - slope * dt_in;
+				}
+			}
+		}
+	}
 
 	for (size_t i = 0; i < keyframes.size() - 1; i++) {
 
@@ -788,137 +640,10 @@ void KeyframeResolver<T, N>::precompute()
 
 			float step = 1.f / float(rate - 1);
 
-			Keyframe<T, N> k0, k1, k2, k3;
+			Keyframe<T, N> k1, k2;
 
 			k1 = keyframes[i];
 			k2 = keyframes[i + 1];
-
-			if (i == 0) {
-				k0.sample.time = (2.f * k1.sample.time - k2.sample.time);
-				k0.sample.value = k1.sample.value;
-			}
-			else {
-				k0 = keyframes[i - 1];
-			}
-
-			if (i == keyframes.size() - 2) {
-				k3.sample.time = (2.f * k2.sample.time - k1.sample.time);
-				k3.sample.value = k2.sample.value;
-			}
-			else {
-				k3 = keyframes[i + 2];
-			}
-
-			//for (size_t j = (i == 0 ? 0 : 1); j < rate; j++)
-			//	samples.push_back(lerpCatmullRom(k0, k1, k2, k3, step * float(j), 0.5f));
-
-			std::array<LerpedSample<T, N>, 2> anchors = getTangentCatmullRomForCubicBezier(k0, k1, k2, k3, 0.5f);
-
-			if (i == 0) {
-				anchors[0].value = k1.sample.value;
-			}
-
-			if (i == keyframes.size() - 2) {
-				anchors[1].value = k2.sample.value;
-			}
-
-			if ((i > 0 && k0.type == TypeKeyframe::BINARY)) {
-				for (size_t d = 0; d < N; d++) {
-					float dt_orig = anchors[0].time[d] - k1.sample.time;
-					float dv_orig = float(anchors[0].value[d] - k1.sample.value[d]);
-					float orig_length = std::sqrt(dt_orig * dt_orig + dv_orig * dv_orig);
-					float sign = (keyframes[i].sample.value[d] > keyframes[i-1].sample.value[d]) ? 1.0f : -1.0f;
-
-					anchors[0].time[d] = k1.sample.time;
-					anchors[0].value[d] = k1.sample.value[d] + T(sign * orig_length * 2.f);
-				}
-			}
-			if (k2.type == TypeKeyframe::BINARY) {
-				anchors[1].value = k2.sample.value;
-			}
-
-			if (i > 0 && k0.type == TypeKeyframe::LINEAR) {
-				float dt_lin = k1.sample.time - k0.sample.time;
-				if (dt_lin > 0.0001f) {
-					for (size_t d = 0; d < N; d++) {
-						float dv_lin = float(k1.sample.value[d] - k0.sample.value[d]);
-
-						float dt_orig = anchors[0].time[d] - k1.sample.time;
-						float dv_orig = float(anchors[0].value[d] - k1.sample.value[d]);
-						float orig_length = std::sqrt(dt_orig * dt_orig + dv_orig * dv_orig);
-
-						float lin_length = std::sqrt(dt_lin * dt_lin + dv_lin * dv_lin);
-						if (lin_length > 0.0001f && orig_length > 0.0001f) {
-							float dir_t = dt_lin / lin_length;
-							float dir_v = dv_lin / lin_length;
-
-							anchors[0].time[d] = k1.sample.time + dir_t * orig_length * 2.f;
-							anchors[0].value[d] = k1.sample.value[d] + T(dir_v * orig_length * 2.f);
-						}
-					}
-				}
-			}
-
-			if (i < keyframes.size() - 2 && k2.type == TypeKeyframe::LINEAR) {
-				float dt_lin = k3.sample.time - k2.sample.time;
-				if (dt_lin > 0.0001f) {
-					for (size_t d = 0; d < N; d++) {
-						float dv_lin = float(k3.sample.value[d] - k2.sample.value[d]);
-
-						float dt_orig = k2.sample.time - anchors[1].time[d];
-						float dv_orig = float(k2.sample.value[d] - anchors[1].value[d]);
-						float orig_length = std::sqrt(dt_orig * dt_orig + dv_orig * dv_orig);
-
-						float lin_length = std::sqrt(dt_lin * dt_lin + dv_lin * dv_lin);
-						if (lin_length > 0.0001f && orig_length > 0.0001f) {
-							float dir_t = dt_lin / lin_length;
-							float dir_v = dv_lin / lin_length;
-
-							anchors[1].time[d] = k2.sample.time - dir_t * orig_length * 2.f;
-							anchors[1].value[d] = k2.sample.value[d] - T(dir_v * orig_length * 2.f);
-						}
-					}
-				}
-			}
-
-			float t1 = k1.sample.time;
-			float t2 = k2.sample.time;
-
-			float dt_width = std::max(t2 - t1, 0.00001f);
-
-			for (size_t d = 0; d < N; d++) {
-				float t_out = anchors[0].time[d];
-				if (t_out > t2) {
-					float scale = (t2 - t1) / (t_out - t1);
-					anchors[0].time[d] = t1 + (t_out - t1) * scale;
-					anchors[0].value[d] = k1.sample.value[d] + (anchors[0].value[d] - k1.sample.value[d]) * scale;
-				}
-				else if (t_out < t1) {
-					anchors[0].time[d] = t1;
-					anchors[0].value[d] = k1.sample.value[d];
-				}
-
-				float t_in = anchors[1].time[d];
-				if (t_in < t1) {
-					float scale = (t2 - t1) / (t2 - t_in);
-					anchors[1].time[d] = t2 - (t2 - t_in) * scale;
-					anchors[1].value[d] = k2.sample.value[d] - (k2.sample.value[d] - anchors[1].value[d]) * scale;
-				}
-				else if (t_in > t2) {
-					anchors[1].time[d] = t2;
-					anchors[1].value[d] = k2.sample.value[d];
-				}
-
-				anchors[0].time[d] = (anchors[0].time[d] - t1) / dt_width;
-				anchors[1].time[d] = (t2 - anchors[1].time[d]) / dt_width;
-			}
-
-
-			k1.anchors.out = BezierAnchor<T, N>{ anchors[0].time, anchors[0].value };
-			k2.anchors.in  = BezierAnchor<T, N>{ anchors[1].time, anchors[1].value };
-
-			keyframes[i] = k1;
-			keyframes[i + 1] = k2;
 
 			for (size_t j = (i == 0 ? 0 : 1); j < rate; j++)
 				samples.push_back(lerpCubicBezier(k1, k2, step * float(j)));

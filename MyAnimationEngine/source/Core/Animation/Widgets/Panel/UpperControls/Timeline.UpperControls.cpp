@@ -226,7 +226,6 @@ float Timeline_UpperControls::DrawButtons() {
 
 	bool mb_hovered, mb_held;
 
-
 	if (MyButtonBehavior(mb_min, mb_max, "MOTION_BLUR_TOGGLE", mb_hovered, mb_held)) {
 		ctx->statusGlobalButtons->SetFlag_MotionBlurMode(!ctx->statusGlobalButtons->isMotionBlurMode());
 	}

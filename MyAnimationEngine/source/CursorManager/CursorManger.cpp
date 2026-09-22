@@ -74,7 +74,6 @@ void CursorManager::LoadCursors() {
 	constexpr size_t cursor_count = magic_enum::enum_count<TypeCursor>();
 	cursors.resize(cursor_count);
 
-
 	for (const auto& info : cursors_data) {
 		std::string full_path = base_path + info.filename;
 		cursors[(int)info.type] = LoadImageCursorFromFile(full_path.c_str(), info.x_offset, info.y_offset);

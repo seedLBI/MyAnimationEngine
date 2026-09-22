@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36310.24 d17.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.10.12210.168 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyAnimationEngine", "MyAnimationEngine\MyAnimationEngine.vcxproj", "{C926D00E-4800-42F9-9628-AF893D31BE06}"
 EndProject
@@ -11,6 +11,8 @@ Global
 		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
+		ReleaseVS2019|x64 = ReleaseVS2019|x64
+		ReleaseVS2019|x86 = ReleaseVS2019|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{C926D00E-4800-42F9-9628-AF893D31BE06}.Debug|x64.ActiveCfg = Debug|x64
@@ -21,6 +23,10 @@ Global
 		{C926D00E-4800-42F9-9628-AF893D31BE06}.Release|x64.Build.0 = Release|x64
 		{C926D00E-4800-42F9-9628-AF893D31BE06}.Release|x86.ActiveCfg = Release|Win32
 		{C926D00E-4800-42F9-9628-AF893D31BE06}.Release|x86.Build.0 = Release|Win32
+		{C926D00E-4800-42F9-9628-AF893D31BE06}.ReleaseVS2019|x64.ActiveCfg = ReleaseVS2019|x64
+		{C926D00E-4800-42F9-9628-AF893D31BE06}.ReleaseVS2019|x64.Build.0 = ReleaseVS2019|x64
+		{C926D00E-4800-42F9-9628-AF893D31BE06}.ReleaseVS2019|x86.ActiveCfg = ReleaseVS2019|Win32
+		{C926D00E-4800-42F9-9628-AF893D31BE06}.ReleaseVS2019|x86.Build.0 = ReleaseVS2019|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

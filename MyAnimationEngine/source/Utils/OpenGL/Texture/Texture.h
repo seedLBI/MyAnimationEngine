@@ -2,7 +2,9 @@
 #define TEXTURE_H
 
 
+#ifndef _DEBUG
 #define GLEW_STATIC
+#endif
 #include <GL/glew.h>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
