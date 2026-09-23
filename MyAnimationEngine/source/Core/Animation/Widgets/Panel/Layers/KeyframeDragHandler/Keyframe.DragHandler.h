@@ -10,7 +10,9 @@ enum class KeyframeDragMode {
     ScaleLeft,
     ScaleRight,
     ScaleUp,
-    ScaleDown
+    ScaleDown,
+    DragAnchorIn,
+    DragAnchorOut
 };
 
 class KeyframeDragHandler {
@@ -24,6 +26,10 @@ public:
 
 private:
     TimelineContext* ctx;
+
+
+    const float max_angle_rad = 80.0f * 3.14159265358979323846f / 180.0f;
+
 
     bool drag_started = false;
     float startedDrag_global_x = 0.0f;
@@ -44,8 +50,22 @@ private:
 
         bool has_in_anchor = false;
         std::vector<float> original_in_anchor_values;
+        std::vector<float> original_in_anchor_times;
+
         bool has_out_anchor = false;
         std::vector<float> original_out_anchor_values;
+        std::vector<float> original_out_anchor_times;
+
+        float prev_kf_time = 0.f;
+        float next_kf_time = 0.f;
+
+        bool fix_prev_out = false;
+        uint64_t prev_neighbor_id = 0;
+        std::vector<float> prev_neighbor_out_values;
+
+        bool fix_next_in = false;
+        uint64_t next_neighbor_id = 0;
+        std::vector<float> next_neighbor_in_values;
     };
 
     std::vector<DragData> original_times;

@@ -746,8 +746,8 @@ void KeyframeResolver<T, N>::precompute_speed()
 			for (size_t j = 0; j < rate; j++) {
 				float t = step * float(j);
 
-				if (t <= 0.0f && !key1.anchors.out.has_value()) t = 0.001f;
-				if (t >= 1.0f && !key2.anchors.in.has_value())  t = 0.999f;
+				if (t <= 0.0f && !key1.anchors.out.has_value()) t = 0.0001f;
+				if (t >= 1.0f && !key2.anchors.in.has_value())  t = 0.9999f;
 
 				auto value = calcSpeed_Bezier(key1, key2, t);
 

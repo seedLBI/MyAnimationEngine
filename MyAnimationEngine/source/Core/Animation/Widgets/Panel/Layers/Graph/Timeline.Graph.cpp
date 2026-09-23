@@ -335,6 +335,8 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 			ImVec2 m = ImGui::GetMousePos();
 
+
+
 			bool isHoveredPoint = false;
 
 			for (uint64_t i = 0; i < keyframes.size(); i++) {
@@ -550,6 +552,9 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 
 				}
 
+
+
+
 				for (uint64_t j = 0; j < keyframes[i].sample.value.size(); j++) {
 					float pos_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].sample.value[j]);
 
@@ -609,6 +614,45 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 					}
 
 
+					if (keyframes[i].anchors.in.has_value() && i != 0 && (isSelected || isLeftSelected)) {
+						float prev_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i - 1].sample.time);
+						float pos_anchor_in_x = pos_x - (pos_x - prev_pos_x) * keyframes[i].anchors.in.value().time[j];
+						float pos_anchor_in_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].anchors.in.value().value[j]);
+
+						ImVec2 pos_anchor_in = { pos_anchor_in_x, pos_anchor_in_y };
+						drawlist->AddLine(pos_anchor_in, pos_current_keyframe, ImColor(1.f, 1.f, 0.f, 1.f), 1.f);
+						drawlist->AddCircleFilled(pos_anchor_in, 2.5f, ImColor(1.f, 1.f, 0.f, 1.f));
+
+						ImVec2 min_hitbox_in = { pos_anchor_in_x - size_offset, pos_anchor_in_y - size_offset };
+						ImVec2 max_hitbox_in = { pos_anchor_in_x + size_offset, pos_anchor_in_y + size_offset };
+						if (ImGui::IsMouseHoveringRect(min_hitbox_in, max_hitbox_in)) {
+							CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
+							if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+								kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, j, current, KeyframeDragMode::DragAnchorIn);
+							}
+						}
+					}
+
+					if (keyframes[i].anchors.out.has_value() && i != keyframes.size() - 1 && (isSelected || isRightSelected)) {
+						float next_pos_x = cursor_pos.x + ctx->horizontalTransform->getPostionScreen_lerped(time_begin + keyframes[i + 1].sample.time);
+						float pos_anchor_out_x = pos_x + (next_pos_x - pos_x) * keyframes[i].anchors.out.value().time[j];
+						float pos_anchor_out_y = cursor_pos.y + ctx->graphTransformVertical->getPosScreen_lerped(keyframes[i].anchors.out.value().value[j]);
+
+						ImVec2 pos_anchor_out = { pos_anchor_out_x, pos_anchor_out_y };
+						drawlist->AddLine(pos_anchor_out, pos_current_keyframe, ImColor(1.f, 1.f, 0.f, 1.f), 1.f);
+						drawlist->AddCircleFilled(pos_anchor_out, 2.5f, ImColor(1.f, 1.f, 0.f, 1.f));
+
+						ImVec2 min_hitbox_out = { pos_anchor_out_x - size_offset, pos_anchor_out_y - size_offset };
+						ImVec2 max_hitbox_out = { pos_anchor_out_x + size_offset, pos_anchor_out_y + size_offset };
+						if (ImGui::IsMouseHoveringRect(min_hitbox_out, max_hitbox_out)) {
+							CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
+							if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+								kf_DragHandler->BeginDrag(mouse_time_global_x, mouse_time_global_y, j, current, KeyframeDragMode::DragAnchorOut);
+							}
+						}
+					}
+
+
 
 					if (isHaveSelected) {
 						if (isSelected)
@@ -621,6 +665,10 @@ void Timeline_Graph::DrawGraphs(ImVec2 p_min, ImVec2 p_max) {
 				}
 				
 			}
+
+
+
+
 
 		}, variant_prop);
 
