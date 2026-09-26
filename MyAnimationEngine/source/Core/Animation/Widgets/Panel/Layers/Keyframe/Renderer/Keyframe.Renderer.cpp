@@ -1,27 +1,47 @@
-﻿#include "KeyframeRenderer.h"
+﻿#include "Keyframe.Renderer.h"
 
 
 #include <vector>
 #include "Utils/Math/Math.h"
 
+#include <Core/Animation/Widgets/Panel/Layers/Keyframe/ColorManager/Keyframe.Colors.h>
+
+ImColor KeyframeRenderer::Private::GetColorTone(const KeyframeRenderer::Parameters& p, bool isDark) {
+	const auto& kc = KeyframeColors::getColorByID(p.id_color);
+	if (!isDark)
+		return kc.color;
+
+	auto c = kc.color.Value;
+	float h, s, l;
+	ImGui::ColorConvertRGBtoHSV(c.x, c.y, c.z, h, s, l);
+	l *= 0.6087f;
+	float r, g, b;
+	ImGui::ColorConvertHSVtoRGB(h, s, l, r, g, b);
+
+	return ImColor{ r,g,b, 1.f };
+}
+
 ImColor KeyframeRenderer::Private::GetHalfColor(KeyframeRenderer::Private::Side side, TypeKeyframe type_in, TypeKeyframe type_out, const KeyframeRenderer::Parameters& p) {
-	if (p.isOnlyOne) return p.color;
+	const bool DARK = true;
+	const bool LIGHT = false;
+
+	if (p.isOnlyOne) return GetColorTone(p, DARK);
 
 	if (side == KeyframeRenderer::Private::Side::LEFT) {
-		if (p.isLeft) return p.color;
+		if (p.isLeft) return GetColorTone(p, DARK);
 
 		if (type_in == TypeKeyframe::BINARY && type_out != TypeKeyframe::AUTOBEZIER) {
-			return p.color;
+			return GetColorTone(p, DARK);
 		}
-		return p.color_side;
+		return GetColorTone(p, LIGHT);
 	}
 	else {
-		if (p.isRight) return p.color;
+		if (p.isRight) return GetColorTone(p, DARK);
 
 		if (type_out == TypeKeyframe::BINARY && p.isLeft) {
-			return p.color;
+			return GetColorTone(p, DARK);
 		}
-		return p.color_side;
+		return GetColorTone(p, LIGHT);
 	}
 }
 
@@ -169,10 +189,10 @@ void KeyframeRenderer::Private::DrawOutline(ImDrawList* draw_list, TypeKeyframe 
 		draw_path_side.push_back(ImVec2(p.x, p.y));
 
 	if (!draw_path_color.empty())
-		draw_list->AddPolyline(draw_path_color.data(), draw_path_color.size(), params.color, ImDrawFlags_Closed, 2.7f);
+		draw_list->AddPolyline(draw_path_color.data(), draw_path_color.size(), COLOR_KEYFRAME, ImDrawFlags_Closed, 2.8f);
 
 	if (!draw_path_side.empty())
-		draw_list->AddPolyline(draw_path_side.data(), draw_path_side.size(), params.outline, ImDrawFlags_Closed, 1.5f);
+		draw_list->AddPolyline(draw_path_side.data(), draw_path_side.size(), COLOR_KEYFRAME_OUTLINE, ImDrawFlags_Closed, 1.5f);
 }
 
 KeyframeRenderer::Private::KeyframePoints

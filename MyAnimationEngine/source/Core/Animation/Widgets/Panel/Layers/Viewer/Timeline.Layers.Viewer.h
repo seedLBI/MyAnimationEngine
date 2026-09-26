@@ -3,7 +3,8 @@
 
 #include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 #include "Core/Animation/Widgets/Panel/Layers/ContextMenuManager/Layers.ContextMenu.Manager.h"
-#include "Core/Animation/Widgets/Panel/Layers/KeyframeDragHandler/Keyframe.DragHandler.h"
+#include "Core/Animation/Widgets/Panel/Layers/Keyframe/DragHandler/Keyframe.DragHandler.h"
+#include "Core/Animation/Widgets/Panel/Layers/Keyframe/Renderer/Keyframe.Renderer.h"
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
 
 

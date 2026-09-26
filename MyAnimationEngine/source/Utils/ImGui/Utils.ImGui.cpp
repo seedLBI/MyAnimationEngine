@@ -1,5 +1,8 @@
 ﻿#include "Utils.ImGui.h"
 
+bool IsAnyPopupOpen() {
+	return ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel);
+}
 
 void RenderTextWrapped(const char* text, bool bIndentToHere = false) {
 	const char* text_end = text + strlen(text);

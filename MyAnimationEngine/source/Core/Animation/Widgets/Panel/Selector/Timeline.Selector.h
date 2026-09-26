@@ -43,6 +43,9 @@ struct SelectedKeyframe {
 	}
 };
 
+
+
+
 class Timeline_Selector{
 public:
 	Timeline_Selector() = default;
@@ -50,6 +53,7 @@ public:
 
 	void UnsetAll();
 	void UnsetAll_Keyframes();
+
 
 	void SelectLayer(SelectedLayer layer);
 	void SelectProperty(const SelectedProperty& propertу);
@@ -59,7 +63,6 @@ public:
 	bool HaveSelectedPropertiesInLayer(SelectedLayer layer);
 	bool HaveSelectedKeyframesInLayer(SelectedLayer layer);
 	bool HaveSelectedKeyframesInProperty(const SelectedProperty& propertу);
-
 
 	void EraseLayer(SelectedLayer layer);
 	void ErasePropertie(const SelectedProperty& propertу);

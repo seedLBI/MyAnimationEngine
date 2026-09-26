@@ -22,7 +22,8 @@ Timeline_Graph::Timeline_Graph(
 	ctx->graphTransformVertical->setBoundsOffset(-10.f - 0.01f, 10.f + 0.01f);
 	ctx->graphTransformVertical->setBoundsScale(0.1f, 100.f);
 	
-	graphButtonsDrawer = new GraphButtonsDrawer(ctx);
+	graphControls = new GraphControls(ctx);
+	graphButtonsDrawer = new GraphButtonsDrawer(ctx, graphControls);
 }
 
 Timeline_Graph::~Timeline_Graph() {
@@ -32,63 +33,6 @@ Timeline_Graph::~Timeline_Graph() {
 void Timeline_Graph::NeedCenterize() {
 	this->NeedCenterized = true;
 }
-
-
-ImRect Timeline_Graph::getRectGraph() {
-	ImRect result;
-	result.Min = { FLT_MAX, FLT_MAX };
-	result.Max = { FLT_MIN, FLT_MIN };
-
-	for (const auto& selected_property : ctx->selector->getProperties()) {
-		const auto& id_layer = selected_property.layer.id;
-		const auto& name_property = selected_property.name;
-		auto* layerObject = ctx->layersData->GetLayerByID(id_layer).get();
-		auto& variant_prop = layerObject->GetProperties().getVariant(name_property);
-
-		std::visit([&](auto& propertie) {
-			auto& keyframes = propertie.kr.getKeyframes();
-
-			if (keyframes.empty()) {
-				const auto& values = propertie.kr.getDefaultValue();
-
-				for (size_t i = 0; i < values.size(); i++) {
-					result.Min.y = (std::min)(result.Min.y, (float)values[i]);
-					result.Max.y = (std::max)(result.Max.y, (float)values[i]);
-				}
-
-			}
-			else {
-				result.Min.x = keyframes.front().sample.time;
-				result.Max.x = keyframes.back().sample.time;
-
-				for (size_t i = 0; i < keyframes.size(); i++) {
-					result.Min.y = (std::min)(result.Min.y, (float)keyframes[i].sample.MinValue());
-					result.Max.y = (std::max)(result.Max.y, (float)keyframes[i].sample.MaxValue());
-				}
-			}
-
-
-		}, variant_prop);
-	}
-
-	if ((result.Min.x == FLT_MAX && result.Min.y == FLT_MAX) &&
-		(result.Max.x != FLT_MIN && result.Max.y != FLT_MIN)) {
-
-		result.Min.x = ctx->timelineData->GetData().currentTime - 0.1f;
-		result.Max.x = ctx->timelineData->GetData().currentTime + 0.1f;
-	}
-
-	if (result.Min.x == result.Max.x) {
-		float temp = result.Min.x;
-		result.Min.x -= 0.1f;
-		result.Max.x += 0.1f;
-	}
-
-
-
-	return result;
-}
-
 
 void Timeline_Graph::DrawTicks(ImVec2 p_min, ImVec2 p_max) {
 	auto drawlist = ImGui::GetWindowDrawList();
@@ -920,8 +864,6 @@ void Timeline_Graph::Draw() {
 	float right_range = ctx->horizontalTransform->getPostionScreen_lerped(ctx->timelineData->GetData().right_range_repeat);
 
 	drawlist->AddRectFilled({ p_min.x + left_range, p_min.y }, { p_min.x + right_range, p_max.y }, ImColor(1.f, 1.f, 1.f, 0.1f), 0.f, 0);
-	
-	auto rect = getRectGraph();
 
 	float mouse_x_fixed = ImGui::GetMousePos().x - cursor_pos.x;
 	float mouse_y_fixed = ImGui::GetMousePos().y - cursor_pos.y;
@@ -994,27 +936,7 @@ void Timeline_Graph::Update(const float& dt) {
 	}
 
 	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-		auto rect = getRectGraph();
-		if (((rect.Min.x != FLT_MAX && rect.Min.y != FLT_MAX) && (rect.Max.x != FLT_MIN && rect.Max.y != FLT_MIN))) {
-
-			float width = rect.GetWidth()/1.8f;
-			float height = rect.GetHeight()/4.f;
-
-			rect.Min.x -= width / 2.f;
-			rect.Max.x += width / 2.f;
-
-			rect.Min.y -= height / 2.f;
-			rect.Max.y += height / 2.f;
-
-
-			ctx->graphTransformVertical->fitToRanges(rect.Max.y, rect.Min.y);
-
-			ctx->horizontalTransform->fitToRanges(rect.Min.x, rect.Max.x);
-		}
-		else {
-			ctx->graphTransformVertical->centerize(0.f);
-		}
-
+		graphControls->FitSelectedGraph();
 	}
 
 }

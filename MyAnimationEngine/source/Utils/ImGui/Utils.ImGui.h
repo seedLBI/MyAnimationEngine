@@ -11,6 +11,9 @@
 #include <string>
 #include <vector>
 
+bool IsAnyPopupOpen();
+
+
 void RenderTextWrapped(const char* text, bool bIndentToHere);
 
 void TextCenteredOnLine(const char* label, int col, int row, float alignment, bool AndY);

@@ -343,6 +343,16 @@ void Timeline_Panel::Update() {
 
 	//timelineTransformHorizontal->centerize(timelineData->GetData().currentTime, false);
 
+	static bool popup_was_open = false;
+	const bool popup_open = IsAnyPopupOpen();
+
+	timelineContext->isInputBlocked = popup_open || popup_was_open;
+	popup_was_open = popup_open;
+
+	if (popup_open)
+		timelineContext->areaSelection->SetStatus(false);
+
+
 	float delta_time = deltaTime->GetDeltaTime();
 
 	timelineTransformHorizontal->update(delta_time);

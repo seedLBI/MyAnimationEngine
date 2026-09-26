@@ -1,6 +1,7 @@
 ﻿#include "Timeline.Selector.h"
 
 
+
 std::set<uint64_t> ConvertToIndices(const std::set<SelectedLayer>& selectedLayers) {
 	std::set<uint64_t> result;
 
@@ -19,8 +20,6 @@ void Timeline_Selector::UnsetAll() {
 void Timeline_Selector::UnsetAll_Keyframes() {
 	keyframes.clear();
 }
-
-
 
 
 bool Timeline_Selector::HaveSelectedPropertiesInLayer(SelectedLayer layer) {

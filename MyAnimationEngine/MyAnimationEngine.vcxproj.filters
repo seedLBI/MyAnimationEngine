@@ -372,7 +372,7 @@
     <ClCompile Include="source\Core\Animation\Layer\ProviderData\Layers.Data.Provider.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Viewer\KeyframeRenderer\KeyframeRenderer.cpp">
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Keyframe\Renderer\Keyframe.Renderer.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="source\Utils\Math\AABB\AABB.cpp">
@@ -408,10 +408,13 @@
     <ClCompile Include="source\Utils\Math\Circle\Circle.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\KeyframeDragHandler\Keyframe.DragHandler.cpp">
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Keyframe\DragHandler\Keyframe.DragHandler.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Graph\ButtonsDrawer\Graph.Buttons.Drawer.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Graph\Controls\Graph.Controls.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -665,7 +668,7 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Context\Timeline.Context.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Viewer\KeyframeRenderer\KeyframeRenderer.h">
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Keyframe\Renderer\Keyframe.Renderer.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Utils\Math\AABB\AABB.h">
@@ -704,7 +707,7 @@
     <ClInclude Include="source\Utils\Math\Circle\Circle.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\KeyframeDragHandler\Keyframe.DragHandler.h">
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Keyframe\DragHandler\Keyframe.DragHandler.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Graph\ButtonsDrawer\Graph.Buttons.Drawer.h">
@@ -723,6 +726,12 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\ThirdParty\LivePT\liveWheelEdit.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Graph\Controls\Graph.Controls.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Keyframe\ColorManager\Keyframe.Colors.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

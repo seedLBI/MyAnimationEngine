@@ -14,6 +14,8 @@
 
 
 struct TimelineContext {
+    bool isInputBlocked = false;
+
     LayerFactory* layerFactory = nullptr;
     LayersDataProvider* layersData = nullptr;
 

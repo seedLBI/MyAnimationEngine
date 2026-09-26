@@ -5,8 +5,6 @@
 #include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
 
 
-#include "KeyframeRenderer/KeyframeRenderer.h"
-
 Timeline_Layers_Viewer::Timeline_Layers_Viewer(
 	TimelineContext* ctx,
 	KeyframeDragHandler* kf_DragHandler,
@@ -174,6 +172,8 @@ void Timeline_Layers_Viewer::DrawRange() {
 }
 
 void Timeline_Layers_Viewer::ProcessLayers() {
+	const bool input = !ctx->isInputBlocked;
+
 	float itemHeight = ctx->verticalTransform->getScaledHeightOneObject();
 	float width_window = ImGui::GetWindowWidth();
 
@@ -241,7 +241,7 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 
 		if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && isHovered == ObjectStatus::BODY_MOVE)
 			ctx->horizontalTransform->fitToRanges(time_begin - 0.1f, time_end + 0.1f);
-		else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+		else if (input && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 			pressed_status = isHovered;
 
 			if (pressed_status != ObjectStatus::NOTHING) {
@@ -279,7 +279,7 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 			index_drag = UINT64_MAX;
 		}
 
-		if (isHoveredLayerLine && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+		if (input && isHoveredLayerLine && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
 			layers_ctx_menu->OpenMenu_LayerSetting( id_layer );
 			ctx->selector->AddMoreSelectedLayer({ id_layer });
 		}
@@ -366,7 +366,7 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 							CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
 						}
 
-						if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+						if (input && isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 							kf_DragHandler->BeginDrag(ui_info.relative_mouse_global_pos_x,0.f,-1, current);
 						}
 
@@ -376,14 +376,12 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 						}
 
 
-						KeyframeRenderer::Parameters params;
-						params.color = COLOR_KEYFRAME;
-						params.color_side = COLOR_KEYFRAME_SIDE;
-						params.outline = COLOR_KEYFRAME_OUTLINE;
-						params.isLeft = i == 0;
-						params.isRight = i == keyframes.size() - 1;
-						params.isMiddle = !params.isLeft && !params.isMiddle;
-						params.isOnlyOne = keyframes.size() == 1;
+						KeyframeRenderer::Parameters params{};
+						params.id_color = (keyframes[i].type_color);
+						params.isLeft = (i == 0);
+						params.isRight = (i == keyframes.size() - 1);
+						params.isMiddle = (!params.isLeft && !params.isMiddle);
+						params.isOnlyOne = (keyframes.size() == 1);
 						params.isSelected = isSelected;
 						params.size = textHeight / 4.f;
 
@@ -414,7 +412,7 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 
 			ImVec2 p_prop_end = p;
 
-			if (ImGui::IsMouseHoveringRect(p_prop_begin, { ui_info.p_max.x, p_prop_end.y }) &&  ImGui::IsMouseClicked(ImGuiMouseButton_Right) && layer->GetProperties().isEmpty() == false) {
+			if (input && ImGui::IsMouseHoveringRect(p_prop_begin, { ui_info.p_max.x, p_prop_end.y }) &&  ImGui::IsMouseClicked(ImGuiMouseButton_Right) && layer->GetProperties().isEmpty() == false) {
 				layers_ctx_menu->OpenMenu_Creation();
 			}
 
@@ -431,6 +429,7 @@ void Timeline_Layers_Viewer::ProcessLayers() {
 }
 
 void Timeline_Layers_Viewer::HandleGlobalInput() {
+	if (ctx->isInputBlocked) return;
 
 	const auto& layers = ctx->layersData->GetData().layers;
 
@@ -476,7 +475,8 @@ void Timeline_Layers_Viewer::HandleKeyframeDragging() {
 		index_drag == UINT64_MAX && 
 		ui_info.isHoveredArea && 
 		ImGui::IsMouseClicked(ImGuiMouseButton_Left) && 
-		!kf_DragHandler->IsDragging() )
+		!kf_DragHandler->IsDragging() &&
+		!ctx->isInputBlocked)
 	{
 		ctx->selector->UnsetAll();
 		ctx->areaSelection->SetStatus(true);
@@ -491,6 +491,12 @@ void Timeline_Layers_Viewer::HandleKeyframeDragging() {
 }
 
 void Timeline_Layers_Viewer::HandleLayerDragging() {
+	if (ctx->isInputBlocked) {
+		pressed_status = draging_status = ObjectStatus::NOTHING;
+		index_drag = UINT64_MAX;
+		return;
+	}
+
 	float delta = ctx->horizontalTransform->getPostionGlobal_lerped(ImGui::GetMousePos().x - ui_info.p_min.x) - drag_start_mouse_global;
 
 	const auto& layers = ctx->layersData->GetData().layers;

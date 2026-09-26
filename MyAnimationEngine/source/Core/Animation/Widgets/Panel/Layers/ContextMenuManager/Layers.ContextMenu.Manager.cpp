@@ -55,6 +55,17 @@ void LayersContextMenu_Manager::DrawMenu_LayerSetting() {
             pressedRename = true;
         }
 
+        if (ImGui::MenuItem(u8"Обратить выделение")) {
+
+            ctx->layersData->forEach(
+                [&](LayerObject* layer, uint64_t number_layer) {
+                    const auto& id_layer = layer->GetLayerInfo().id;
+                    ctx->selector->AddMoreSelectedLayer_Toggle({ id_layer });
+                }
+            );
+
+        }
+
         ImGui::EndPopup();
     }
 }

@@ -28,7 +28,7 @@ private:
     TimelineContext* ctx;
 
 
-    const float max_angle_rad = 80.0f * 3.14159265358979323846f / 180.0f;
+    const float max_angle_rad = 90.0f * 3.14159265358979323846f / 180.0f;
 
 
     bool drag_started = false;

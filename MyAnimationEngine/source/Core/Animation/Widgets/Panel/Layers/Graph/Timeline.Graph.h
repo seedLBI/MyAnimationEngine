@@ -4,11 +4,12 @@
 
 #include "Core/Animation/Widgets/Panel/Context/Timeline.Context.h"
 #include "Core/Animation/Widgets/Panel/HorizontalTickRenderer/Horizontal.Tick.Renderer.h"
-#include "Core/Animation/Widgets/Panel/Layers/KeyframeDragHandler/Keyframe.DragHandler.h"
+#include "Core/Animation/Widgets/Panel/Layers/Keyframe/DragHandler/Keyframe.DragHandler.h"
 #include "Core/Animation/Widgets/Panel/TimeCursor/Timeline.TimeCursor.h"
 #include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
 
 #include "ButtonsDrawer/Graph.Buttons.Drawer.h"
+#include "Controls/Graph.Controls.h"
 
 #include "Utils/ImGui/Utils.ImGui.h"
 
@@ -33,9 +34,7 @@ private:
 	HorizontalTickRenderer* horizontalTickRenderer;
 
 	GraphButtonsDrawer* graphButtonsDrawer;
-
-	ImRect getRectGraph();
-
+	GraphControls* graphControls;
 
 	bool isHovered = false, isDraging = false, isHeld = false;
 	float mouse_global_y = 0.f, mouse_screen_y = 0.f;

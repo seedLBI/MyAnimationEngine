@@ -25,7 +25,7 @@
 #include "Layers/Viewer/Timeline.Layers.Viewer.h"
 #include "Layers/Graph/Timeline.Graph.h"
 #include "Layers/ContextMenuManager/Layers.ContextMenu.Manager.h"
-#include "Layers/KeyframeDragHandler/Keyframe.DragHandler.h"
+#include "Layers/Keyframe/DragHandler/Keyframe.DragHandler.h"
 
 #include "UpperControls/Timeline.UpperControls.h"
 #include "HorizontalTickRenderer/Horizontal.Tick.Renderer.h"

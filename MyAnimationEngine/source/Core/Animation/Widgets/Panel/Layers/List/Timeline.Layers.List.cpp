@@ -526,7 +526,7 @@ bool Timeline_Layers_List::DrawLayerName(LayerObject* object, uint64_t index) {
         ImGui::PopStyleColor(3);
         Pop_SmallestFont();
 
-        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsMouseHoveringRect(min_text, max_text)) {
+        if (!ctx->isInputBlocked && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsMouseHoveringRect(min_text, max_text)) {
             InRenamingMode = false;
             object->GetLayerInfo().name = buffer;
         }
@@ -544,9 +544,6 @@ bool Timeline_Layers_List::DrawLayerName(LayerObject* object, uint64_t index) {
 
             draw_list->AddRectFilled(min_text, max_text, COLOR_BG_LAYER_NAME_CHOOSED, 0.f);
         }
-
-
-        
 
         ImGui::SetCursorPosY(ImGui::GetCursorPosY() - offsetY);
         Push_SmallFont();
@@ -571,7 +568,7 @@ void Timeline_Layers_List::DrawEmptyState(const ImVec2& center) {
     }
 }
 void Timeline_Layers_List::HandleScroll(const ImVec2& p_min,const ImVec2& p_max, float itemHeight) {
-    if (ImGui::IsMouseHoveringRect(p_min, p_max)) {
+    if (!ctx->isInputBlocked && ImGui::IsMouseHoveringRect(p_min, p_max)) {
         float scrol_zoom = ImGui::GetIO().MouseWheel;
         ctx->verticalTransform->addOffset(scrol_zoom * itemHeight);
     }
@@ -607,7 +604,7 @@ void Timeline_Layers_List::HandleSelectionLayer(LayerObject* layerlayer, uint64_
             ctx->selector->EraseLayer({ id_layer });
     }
 
-    if (dragStaff.isHoveredLayer && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    if (!ctx->isInputBlocked && dragStaff.isHoveredLayer && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
         if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl))
             ctx->selector->AddMoreSelectedLayer_Toggle({ id_layer });
         else if (ImGui::IsKeyDown(ImGuiKey_LeftShift) && ctx->selector->getLayers().empty() == false) {
@@ -655,7 +652,7 @@ void Timeline_Layers_List::HandleSelectionLayer(LayerObject* layerlayer, uint64_
     }
 }
 void Timeline_Layers_List::HandleAreaSelectionStart(const ImVec2& p, const ImVec2& p_max) {
-    if (ImGui::IsMouseHoveringRect(p, p_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    if (!ctx->isInputBlocked && ImGui::IsMouseHoveringRect(p, p_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
         ctx->selector->UnsetAll();
         ctx->areaSelection->SetStatus(true);
         ctx->areaSelection->SetStartMousePosition(ImGui::GetMousePos());
@@ -693,6 +690,13 @@ void Timeline_Layers_List::DrawDragAndDropIndicators(uint64_t index, const ImVec
 
 }
 void Timeline_Layers_List::ProcessDragLogic(float itemHeight) {
+    if (ctx->isInputBlocked) {
+        dragStaff.isGrabingLayer = false;
+        dragStaff.indexGrabbingLayer = UINT64_MAX;
+        dragStaff.DragDrawedOnce = false;
+        return;
+    }
+
     if (dragStaff.isGrabingLayer && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
         dragStaff.timer_AfterPress.stop();
 
@@ -1037,7 +1041,7 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
         ImVec2 propertie_max = { p.x + offsetX + 22.f + (columns[TOGGLES].startCursorPos - offsetX - 22.f - itemHeight / 2.f - 8.f), p.y + itemHeight };
 
 
-        if (ImGui::IsMouseHoveringRect(propertie_min, propertie_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        if (!ctx->isInputBlocked && ImGui::IsMouseHoveringRect(propertie_min, propertie_max) && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
             if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
                 ctx->selector->AddMoreSelectedLayer({ id_layer });
                 ctx->selector->AddMoreSelectedProperty_Toggle({ id_layer, name });

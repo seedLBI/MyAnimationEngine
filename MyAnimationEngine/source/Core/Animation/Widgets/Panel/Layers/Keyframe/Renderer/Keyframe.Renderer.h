@@ -7,13 +7,12 @@
 #include "ThirdParty/ImGui/imgui_impl_opengl3.h"
 
 #include "Core/Animation/Keyframe/Keyframe.h"
+#include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
 
 namespace KeyframeRenderer {
 
     struct Parameters {
-        ImColor color;
-        ImColor color_side;
-        ImColor outline;
+        uint8_t id_color;
         bool isLeft;
         bool isMiddle;
         bool isRight;
@@ -44,6 +43,7 @@ namespace KeyframeRenderer {
 
         enum class Side { LEFT, RIGHT };
 
+        ImColor GetColorTone(const KeyframeRenderer::Parameters& p, bool isDark = false);
         ImColor GetHalfColor(Side side, TypeKeyframe type_in, TypeKeyframe type_out, const Parameters& p);
         void DrawHalf(ImDrawList* draw_list, const Side side, const ImVec2& pos, TypeKeyframe type_in, TypeKeyframe type_out, const Parameters& params, const KeyframePoints& pts);
         void DrawOutline(ImDrawList* draw_list, TypeKeyframe type_in, TypeKeyframe type_out, const ImVec2& pos, const Parameters& params, const KeyframePoints& pts);
