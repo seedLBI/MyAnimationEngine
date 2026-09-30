@@ -51,7 +51,7 @@ struct LerpedSample {
 template<typename T, uint8_t N>
 struct Keyframe {
 	uint64_t id = 0;
-	uint8_t type_color = 1;
+	uint8_t type_color = 0;
 	KeyframeSample<T, N> sample;
 	BezierAnchors<T, N>	anchors;
 	TypeKeyframe type;

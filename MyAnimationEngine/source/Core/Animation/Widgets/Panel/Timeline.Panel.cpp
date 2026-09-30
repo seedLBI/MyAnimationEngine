@@ -100,6 +100,7 @@ void Timeline_Panel::Draw() {
 
 		layers_ctx_menu->Draw();
 
+		/*
 		std::string str_s_mouse = "screen: " + std::to_string(timelineRuler->getScreenMouse());
 		std::string str_g_mouse = "global: " + std::to_string(timelineRuler->getGlobalMouse());
 		std::string str_offset =  "offset: " + std::to_string(timelineTransformHorizontal->getOffset().GetReal());
@@ -145,6 +146,8 @@ void Timeline_Panel::Draw() {
 			}
 
 		);
+
+		*/
 
 		DrawBorderForFocusedWindow(COLOR_WINDOW_BORDER_FOCUS);
 	

@@ -51,7 +51,8 @@
     <ClCompile Include="source\Core\Animation\Widgets\Panel\StatusGlobalButtons\Timeline.StatusGlobalButtons.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Textures\Noise\Texture.Noise.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.cpp" />
-    <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\TransformScaled\Transform.Scaled.cpp" />
+    <ClCompile Include="source\Utils\OpenGL\PixelReadback\PixelReadback.cpp" />
+    <ClCompile Include="source\Utils\TransformScaled\Transform.Scaled.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\Vertical\Timeline.Transform.Vertical.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\List\Timeline.Layers.List.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Markers\Timeline.Markers.cpp" />
@@ -146,7 +147,8 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\StatusGlobalButtons\Timeline.StatusGlobalButtons.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Textures\Noise\Texture.Noise.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.h" />
-    <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\TransformScaled\Transform.Scaled.h" />
+    <ClInclude Include="source\Utils\OpenGL\PixelReadback\PixelReadback.h" />
+    <ClInclude Include="source\Utils\TransformScaled\Transform.Scaled.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Vertical\Timeline.Transform.Vertical.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\List\Timeline.Layers.List.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Markers\Timeline.Markers.h" />
@@ -420,6 +422,8 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

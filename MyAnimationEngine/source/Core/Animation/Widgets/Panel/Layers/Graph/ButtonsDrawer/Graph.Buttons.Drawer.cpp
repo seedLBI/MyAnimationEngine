@@ -100,7 +100,7 @@ void GraphButtonsDrawer::Draw(const ImVec2& p_min, const ImVec2& p_max) {
 
 	float separator_width = eval(4.f);
 	float space_width = eval(8.f);
-	float gap = eval(7.f);
+	float gap = eval(7.9f);
 
 	float full_width = 0.f;
 

@@ -930,7 +930,7 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                 if (isEqual)
                     value.kr.erase(indexEqual);
                 else {
-                    uint64_t id_keyframe = value.kr.add(eval_time, evaluated_value);
+                    uint64_t id_keyframe = value.kr.addInherited(eval_time, evaluated_value);
                     SelectedKeyframe sel_kf;
                     sel_kf.id = id_keyframe;
                     sel_kf.property.name = name;
@@ -1141,7 +1141,7 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                         if (value.kr.getKeyframes().empty() == false) {
 
                             SelectedKeyframe selectedKeyframe;
-                            selectedKeyframe.id = value.kr.add(eval_time, def_val, TypeKeyframe::AUTOBEZIER);
+                            selectedKeyframe.id = value.kr.addInherited(eval_time, def_val);
                             selectedKeyframe.property = selectedProperty;
 
                             ctx->selector->SelectKeyframe(selectedKeyframe);
@@ -1239,7 +1239,7 @@ void Timeline_Layers_List::DrawLayerProperties(LayerObject* layer, uint64_t inde
                             selectedLayer.id = id_layer;
                             selectedProperty.layer = selectedLayer;
                             selectedProperty.name = name;
-                            selectedKeyframe.id = value.kr.add(eval_time, evaluated_value, TypeKeyframe::LINEAR);
+                            selectedKeyframe.id = value.kr.addInherited(eval_time, evaluated_value);
                             selectedKeyframe.property = selectedProperty;
 
 
@@ -1564,7 +1564,6 @@ void Timeline_Layers_List::Draw() {
 
     ctx->verticalTransform->updateContentHeight(heightContent);
 }
-
 
 void Timeline_Layers_List::Update() {
 

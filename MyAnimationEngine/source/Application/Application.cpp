@@ -18,7 +18,7 @@ Application::Application() {
 	FontManager::getInstance().Update();
 
 	fps_limiter = new FPS_Timer;
-	fps_limiter->SetTargetFPS(1800);
+	fps_limiter->SetTargetFPS(1800.01);
 	glfwSwapInterval(0);
 
 	layersData			= new LayersDataProvider();
@@ -31,7 +31,13 @@ Application::Application() {
 
 	playerComposition	= new Timeline_Player(timelineController);
 
-	preview = new Timeline_Preview(renderer);
+	preview = new Timeline_Preview(fps_limiter, renderer);
+
+
+	auto& g = DebugOverlay::Graph("DeltaTime");
+	g.windowSec = 10.f;
+	g.color = ImColor(255, 180, 0);
+	//g.smooth = DebugOverlay::SmoothMode::Box;
 
 }
 Application::~Application() {
@@ -182,8 +188,6 @@ void Application::Init_DockLayout(ImGuiViewport* viewport, const ImGuiID& docksp
 
 void Application::Run() {
 
-
-
 	while (WindowManager::getInstance().IsShouldClose() == false) {
 #if LivePT_EditMode
 		LivePT::ProcessEdit();
@@ -221,8 +225,7 @@ void Application::Draw() {
 
 	//DebugOverlay::AddText("FPS_imgui_io: " + std::to_string(ImGui::GetIO().Framerate), ImColor{ 0.5f,0.5f,1.f,1.f });
 	DebugOverlay::AddText("FPS_limiter : " + std::to_string(1.f / fps_limiter->GetDeltaTime()), ImColor{ 0.5f,0.5f,1.f,1.f });
-
-	renderer->Draw(timelineData->GetData().currentTime);
+	DebugOverlay::Plot("DeltaTime", fps_limiter->GetDeltaTime() * 1000.f);
 
 	mainMenuBar->Draw();
 
@@ -255,7 +258,10 @@ void Application::Update() {
 	timelinePanel->Update();
 	timelineController->Update();
 	playerComposition->Update();
+
 	renderer->Update();
+	renderer->Draw(timelineData->GetData().currentTime);
+
 	UpdateDockingCursorOnly();
 }
 

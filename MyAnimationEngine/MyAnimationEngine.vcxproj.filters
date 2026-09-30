@@ -360,7 +360,7 @@
     <ClCompile Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\TransformScaled\Transform.Scaled.cpp">
+    <ClCompile Include="source\Utils\TransformScaled\Transform.Scaled.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="source\Core\Animation\Camera\Global\Global.Camera.cpp">
@@ -415,6 +415,9 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Graph\Controls\Graph.Controls.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Utils\OpenGL\PixelReadback\PixelReadback.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -656,7 +659,7 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\HorizontalTickRenderer\Horizontal.Tick.Renderer.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\TransformScaled\Transform.Scaled.h">
+    <ClInclude Include="source\Utils\TransformScaled\Transform.Scaled.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Core\Animation\Camera\Global\Global.Camera.h">
@@ -732,6 +735,9 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Layers\Keyframe\ColorManager\Keyframe.Colors.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Utils\OpenGL\PixelReadback\PixelReadback.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

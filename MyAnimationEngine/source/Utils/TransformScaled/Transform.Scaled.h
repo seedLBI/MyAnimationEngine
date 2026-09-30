@@ -41,6 +41,7 @@ public:
 	float getMaxBoundView_lerped();
 
 	void centerize(float relative_point, bool isScreen = false);
+	void centerizeForce(float relative_point, bool isScreen = false);
 	void fitToRanges(float global_min, float global_max);
 
 	void zoomToPointByValue(float relative_point, float value, bool isScreen = true);
@@ -77,7 +78,6 @@ private:
 
 	void clampScale();
 	float clampOffset(float target_offset);
-
 };
 
 

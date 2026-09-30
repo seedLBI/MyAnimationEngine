@@ -1,5 +1,4 @@
 ﻿#include "Timeline.Transform.Vertical.h"
-#include "Core/DebugOverlay/DebugOverlay.h"
 
 TimelineTransformVertical::TimelineTransformVertical() {
 	offset.SetAll(0.f);

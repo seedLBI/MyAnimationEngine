@@ -1,5 +1,4 @@
 ﻿#include "Transform.Scaled.h"
-
 #include <algorithm>
 
 TransformScaled::TransformScaled() : offset(0.f), scale(1.f) {
@@ -91,6 +90,11 @@ void TransformScaled::centerize(float relative_point, bool isScreen) {
 
 }
 
+void TransformScaled::centerizeForce(float relative_point, bool isScreen) {
+	centerize(relative_point, isScreen);
+	getOffset().SetAll(getOffset().GetReal());
+}
+
 void TransformScaled::fitToRanges(float global_min, float global_max) {
 	float screen_min = getPosScreen_real(global_min);
 	float screen_max = getPosScreen_real(global_max);
@@ -105,7 +109,6 @@ void TransformScaled::fitToRanges(float global_min, float global_max) {
 		getOffset().GetReal() - getPosScreen_real(global_min)
 	);
 
-	//real_scale = getScale().GetReal();
 	real_offset = getOffset().GetReal();
 }
 

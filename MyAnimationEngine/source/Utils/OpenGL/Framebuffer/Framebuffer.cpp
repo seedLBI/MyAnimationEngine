@@ -1,4 +1,4 @@
-#include "Framebuffer.h"
+﻿#include "Framebuffer.h"
 
 Framebuffer::Framebuffer() {
 	Init();
@@ -51,4 +51,6 @@ void Framebuffer::UnBind() {
 }
 void Framebuffer::Init() {
 	glGenFramebuffers(1, &ID);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "FRAMEBUFFER CREATED " << ID << std::endl;
 }

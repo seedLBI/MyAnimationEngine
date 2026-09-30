@@ -1,5 +1,4 @@
 ﻿#include "Timeline.Transform.Horizontal.h"
-#include "Core/DebugOverlay/DebugOverlay.h"
 #include <algorithm>
 
 TimelineTransformHorizontal::TimelineTransformHorizontal(TimelineProviderData* providerData) 

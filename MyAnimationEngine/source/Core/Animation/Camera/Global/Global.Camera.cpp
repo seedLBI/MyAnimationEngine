@@ -3,7 +3,7 @@
 
 
 Camera_Global::Camera_Global() {
-	Pos.SetAll({ 0.f,0.f,-2.4f });
+	Pos.SetAll({ 0.f,1.f,-2.4f });
 	Front.SetAll({ 0.f,0.f,-1.f });
 	Up.SetAll({ 0.f,1.f,0.f });
 
@@ -65,8 +65,8 @@ void Camera_Global::UpdateMovement(float dt) {
 	glm::vec3 frontReal = Front.GetReal();
 	glm::vec3 upReal = Up.GetReal();
 
-	if (isMoving_Forward) currentPos -= cameraSpeed * frontReal;
-	if (isMoving_Backward) currentPos += cameraSpeed * frontReal;
+	if (isMoving_Forward) currentPos += cameraSpeed * frontReal;
+	if (isMoving_Backward) currentPos -= cameraSpeed * frontReal;
 	if (isMoving_Left) currentPos -= cameraSpeed * glm::normalize(glm::cross(frontReal, upReal));
 	if (isMoving_Right) currentPos += cameraSpeed * glm::normalize(glm::cross(frontReal, upReal));
 	if (isMoving_Up) currentPos += cameraSpeed * glm::normalize(upReal);

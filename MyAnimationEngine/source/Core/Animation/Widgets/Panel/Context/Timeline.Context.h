@@ -9,7 +9,7 @@
 #include "Core/Animation/Layer/Factory/Layer.Factory.h"
 #include "Core/Animation/Timeline/ProviderData/Timeline.ProviderData.h"
 #include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
-#include "Core/Animation/Widgets/Panel/Transform/TransformScaled/Transform.Scaled.h"
+#include "Utils/TransformScaled/Transform.Scaled.h"
 #include <Core/Animation/Widgets/Panel/StatusGlobalButtons/Timeline.StatusGlobalButtons.h>
 
 

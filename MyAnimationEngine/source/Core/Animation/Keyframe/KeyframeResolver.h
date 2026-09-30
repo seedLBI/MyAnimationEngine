@@ -66,6 +66,9 @@ public:
 	uint64_t addFromDefaultValue(float time);
 	uint64_t add(const Keyframe<T, N>& keyframe);
 	uint64_t add(float time, std::array<T,N>& value, TypeKeyframe type = TypeKeyframe::AUTOBEZIER);
+	uint64_t addInherited(float time, const std::array<T, N>& value);
+
+
 	void changeKeyframe(uint64_t index, const Keyframe<T, N>& keyframe);
 	void changeType(uint64_t index, TypeKeyframe type);
 	void erase(uint64_t index);
@@ -116,6 +119,8 @@ private:
 
 	uint64_t getCountForReserve();
 	void sortKeyframes();
+	void computeCollinearAnchors(size_t index);
+
 };
 
 template<typename T, uint8_t N>
@@ -401,6 +406,11 @@ void KeyframeResolver<T, N>::changeType(uint64_t index, TypeKeyframe type) {
 		break;
 	}
 	case TypeKeyframe::BEZIER: {
+		if (!keyframes[index].anchors.in.has_value() || !keyframes[index].anchors.out.has_value())
+			computeCollinearAnchors(index);
+		break;
+	}
+	case TypeKeyframe::AUTOBEZIER: {
 		BezierAnchor<T, N> in, out;
 
 		for (size_t i = 0; i < N; i++) {
@@ -414,8 +424,6 @@ void KeyframeResolver<T, N>::changeType(uint64_t index, TypeKeyframe type) {
 
 		break;
 	}
-	case TypeKeyframe::AUTOBEZIER:
-		break;
 	default:
 		break;
 	}
@@ -437,6 +445,41 @@ template<typename T, uint8_t N>
 void KeyframeResolver<T, N>::clear() {
 	keyframes.clear();
 	this->is_dirty = true;
+}
+
+
+template<typename T, uint8_t N>
+void KeyframeResolver<T, N>::computeCollinearAnchors(size_t i) {
+	if (keyframes.empty() || i >= keyframes.size())
+		return;
+
+	BezierAnchor<T, N> in, out;
+	in.time.fill(1.f / 3.f);
+	out.time.fill(1.f / 3.f);
+
+	if (i == 0 || i == keyframes.size() - 1) {
+		std::copy(keyframes[i].sample.value.begin(), keyframes[i].sample.value.end(), in.value.begin());
+		std::copy(keyframes[i].sample.value.begin(), keyframes[i].sample.value.end(), out.value.begin());
+	}
+	else {
+		const auto& k_prev = keyframes[i - 1];
+		const auto& k_next = keyframes[i + 1];
+
+		float dx = k_next.sample.time - k_prev.sample.time;
+		for (size_t j = 0; j < N; j++) {
+			float dy = (float)k_next.sample.value[j] - (float)k_prev.sample.value[j];
+			float slope = (dx != 0.f) ? (dy / dx) : 0.f;
+
+			float dt_out = (k_next.sample.time - keyframes[i].sample.time) / 3.f;
+			float dt_in = (keyframes[i].sample.time - k_prev.sample.time) / 3.f;
+
+			out.value[j] = keyframes[i].sample.value[j] + slope * dt_out;
+			in.value[j] = keyframes[i].sample.value[j] - slope * dt_in;
+		}
+	}
+
+	keyframes[i].anchors.in = in;
+	keyframes[i].anchors.out = out;
 }
 
 template<typename T, uint8_t N>
@@ -502,6 +545,46 @@ uint64_t KeyframeResolver<T, N>::add(float time, std::array<T, N>& value, TypeKe
 	keyframe.type = type;
 
 	return add(keyframe);
+}
+
+
+
+template<typename T, uint8_t N>
+uint64_t KeyframeResolver<T, N>::addInherited(float time, const std::array<T, N>& value) {
+	Keyframe<T, N> keyframe;
+	keyframe.sample.time = time;
+	keyframe.sample.value = value;
+	keyframe.type = TypeKeyframe::AUTOBEZIER;
+
+	const Keyframe<T, N>* same = nullptr;
+	const Keyframe<T, N>* left = nullptr;
+	for (const auto& k : keyframes) {
+		if (std::abs(k.sample.time - time) < 0.0001f) { same = &k; break; }
+		if (k.sample.time < time) left = &k;
+		else break;
+	}
+
+	if (same) { 
+		keyframe.type = same->type;
+		keyframe.anchors = same->anchors;
+	}
+	else if (left)
+		keyframe.type = left->type;
+	else if (!keyframes.empty())
+		keyframe.type = keyframes.front().type;
+
+	uint64_t id = add(keyframe);
+
+	if (keyframe.type == TypeKeyframe::BEZIER || keyframe.type == TypeKeyframe::AUTOBEZIER) {
+		auto* added = getKeyframeByID(id);
+		if (added && (!added->anchors.in.has_value() || !added->anchors.out.has_value())) {
+			uint64_t index = GetIndexByID(id);
+			if (index != UINT64_MAX)
+				computeCollinearAnchors((size_t)index);
+		}
+	}
+
+	return id;
 }
 
 template<typename T, uint8_t N>
@@ -790,32 +873,7 @@ void KeyframeResolver<T, N>::precompute()
 
 	for (size_t i = 0; i < keyframes.size(); i++) {
 		if (keyframes[i].type == TypeKeyframe::AUTOBEZIER) {
-			keyframes[i].anchors.in = BezierAnchor<T, N>();
-			keyframes[i].anchors.out = BezierAnchor<T, N>();
-			keyframes[i].anchors.in.value().time.fill(1.f / 3.f);
-			keyframes[i].anchors.out.value().time.fill(1.f / 3.f);
-
-			if (i == 0 || i == keyframes.size() - 1) {
-				std::copy(keyframes[i].sample.value.begin(), keyframes[i].sample.value.end(), keyframes[i].anchors.in.value().value.begin());
-				std::copy(keyframes[i].sample.value.begin(), keyframes[i].sample.value.end(), keyframes[i].anchors.out.value().value.begin());
-			}
-			else {
-				const auto& k_prev = keyframes[i - 1];
-				auto& k_curr = keyframes[i];
-				const auto& k_next = keyframes[i + 1];
-
-				float dx = k_next.sample.time - k_prev.sample.time;
-				for (size_t j = 0; j < N; j++) {
-					float dy = k_next.sample.value[j] - k_prev.sample.value[j];
-					float slope = (dx != 0.f) ? (dy / dx) : 0.f;
-
-					float dt_out = (k_next.sample.time - k_curr.sample.time) / 3.f;
-					float dt_in = (k_curr.sample.time - k_prev.sample.time) / 3.f;
-
-					k_curr.anchors.out.value().value[j] = k_curr.sample.value[j] + slope * dt_out;
-					k_curr.anchors.in.value().value[j] = k_curr.sample.value[j] - slope * dt_in;
-				}
-			}
+			computeCollinearAnchors(i);
 		}
 	}
 
