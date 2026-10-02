@@ -1,4 +1,4 @@
-#ifndef FRAMEBUFFER_H
+﻿#ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
 #include "Utils/OpenGL/Texture/Texture.h"
@@ -12,14 +12,26 @@ public:
 	~Framebuffer();
 
 	void SetCountDrawBuffers(const int& count);
-	void AttachTexture(Texture& texture, const Buffer_Attachment& attachment);
-	void AttachRenderBuffer(Renderbuffer& buffer, const Buffer_Attachment& attachment);
+	void AttachTexture(Texture& texture, const FramebufferAttachment& attachment);
+	void AttachRenderBuffer(Renderbuffer& buffer, const FramebufferAttachment& attachment);
+
+	bool CheckStatus();
+
+	GLuint GetID();
+
+	void Resize(int width, int height);
 
 	void Bind();
 	static void UnBind();
 
 private:
 	GLuint ID = 0;
+
+	struct Attachment {
+		Texture* texture = nullptr;
+		Renderbuffer* renderbuffer = nullptr;
+	};
+	std::vector<Attachment> attachments;
 
 	void Init();
 };

@@ -7,31 +7,51 @@
 #endif
 #include <GL/glew.h>
 
-enum BufferBit {
-	COLOR_BUFFER_BIT = GL_COLOR_BUFFER_BIT,
-	DEPTH_BUFFER_BIT = GL_DEPTH_BUFFER_BIT,
-	STENCIL_BUFFER_BIT = GL_STENCIL_BUFFER_BIT,
+enum class BufferBit : GLbitfield {
+	COLOR = GL_COLOR_BUFFER_BIT,
+	DEPTH = GL_DEPTH_BUFFER_BIT,
+	STENCIL = GL_STENCIL_BUFFER_BIT,
 };
 
-enum TextureDataType {
-	_UNSIGNED_BYTE = GL_UNSIGNED_BYTE,
-	_BYTE = GL_BYTE,
-	_UNSIGNED_SHORT = GL_UNSIGNED_SHORT,
-	_SHORT = GL_SHORT,
-	_UNSIGNED_INT = GL_UNSIGNED_INT,
-	_INT = GL_INT,
-	_FLOAT = GL_FLOAT
+inline BufferBit operator|(BufferBit a, BufferBit b) {
+	return static_cast<BufferBit>(
+		static_cast<GLbitfield>(a) | static_cast<GLbitfield>(b));
+}
+inline BufferBit& operator|=(BufferBit& a, BufferBit b) {
+	return a = a | b;
+}
+
+enum class TextureDataType : GLenum {
+	Unsigned_byte = GL_UNSIGNED_BYTE,
+	Byte = GL_BYTE,
+	Unsigned_short = GL_UNSIGNED_SHORT,
+	Short = GL_SHORT,
+	Unsigned_int = GL_UNSIGNED_INT,
+	Int = GL_INT,
+	Float = GL_FLOAT,
+	HalfFloat = GL_HALF_FLOAT,
 };
 
-enum TexturePixelFormat {
+enum class TexturePixelFormat : GLenum {
 	RED = GL_RED,
 	RG = GL_RG,
 	RGB = GL_RGB,
 	RGBA = GL_RGBA,
-	DEPTH = GL_DEPTH_COMPONENT,
+	BGR = GL_BGR,
+	BGRA = GL_BGRA,
+	DEPTH_COMPONENT = GL_DEPTH_COMPONENT,
+	DEPTH_STENCIL = GL_DEPTH_STENCIL,
+	STENCIL_INDEX = GL_STENCIL_INDEX,
+	RED_INTEGER = GL_RED_INTEGER,
+	RG_INTEGER = GL_RG_INTEGER,
+	RGB_INTEGER = GL_RGB_INTEGER,
+	RGBA_INTEGER = GL_RGBA_INTEGER,
+	BGR_INTEGER = GL_BGR_INTEGER,
+	BGRA_INTEGER = GL_BGRA_INTEGER,
+
 };
 
-enum TextureInternalPixelFormat {
+enum class TextureInternalPixelFormat : GLenum {
 	RGBA32F = GL_RGBA32F,
 	RGBA32I = GL_RGBA32I,
 	RGBA32UI = GL_RGBA32UI,
@@ -73,6 +93,11 @@ enum TextureInternalPixelFormat {
 	R32I = GL_R32I,
 	R32UI = GL_R32UI,
 
+	RED = GL_RED,
+	RG = GL_RG,
+	RGB = GL_RGB,
+	RGBA = GL_RGBA,
+
 	DEPTH_COMPONENT = GL_DEPTH_COMPONENT,
 	DEPTH_COMPONENT32F = GL_DEPTH_COMPONENT32F,
 	DEPTH_COMPONENT24 = GL_DEPTH_COMPONENT24,
@@ -82,14 +107,17 @@ enum TextureInternalPixelFormat {
 	DEPTH24_STENCIL8 = GL_DEPTH24_STENCIL8,
 };
 
-enum TextureWrap {
+
+
+
+enum class TextureWrap : GLenum {
 	REPEAT = GL_REPEAT,
 	MIRRORED_REPEAT = GL_MIRRORED_REPEAT,
 	CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE,
 	CLAMP_TO_BORDER = GL_CLAMP_TO_BORDER,
 };
 
-enum TextureFilter {
+enum class TextureFilter : GLenum {
 	NEAREST = GL_NEAREST,
 	LINEAR = GL_LINEAR,
 	NEAREST_MIPMAP_NEAREST = GL_NEAREST_MIPMAP_NEAREST,
@@ -98,7 +126,15 @@ enum TextureFilter {
 	LINEAR_MIPMAP_LINEAR = GL_LINEAR_MIPMAP_LINEAR,
 };
 
-enum Buffer_Attachment {
+enum class TextureFilterAnisotropic {
+	VALUE_1 = 1,
+	VALUE_2 = 2,
+	VALUE_4 = 4,
+	VALUE_8 = 8,
+	VALUE_16 = 16
+};
+
+enum class FramebufferAttachment : GLenum {
 	COLOR_ATTACHMENT0 = GL_COLOR_ATTACHMENT0,
 	COLOR_ATTACHMENT1 = GL_COLOR_ATTACHMENT1,
 	COLOR_ATTACHMENT2 = GL_COLOR_ATTACHMENT2,

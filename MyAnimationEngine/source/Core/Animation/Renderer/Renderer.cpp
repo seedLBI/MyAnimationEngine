@@ -3,20 +3,20 @@
 RendererAnimationScene::RendererAnimationScene(LayersDataProvider* layersData) : layersData(layersData) {
 
 	TextureSetting ts;
-	ts.Min = TextureFilter::LINEAR;
-	ts.Max = TextureFilter::LINEAR;
+	ts.Min = TextureFilter::LINEAR_MIPMAP_LINEAR;
+	ts.Max = TextureFilter::NEAREST;
 	ts.WrapX = TextureWrap::CLAMP_TO_EDGE;
 	ts.WrapY = TextureWrap::CLAMP_TO_EDGE;
 
 	const int width = 2560;
 	const int height = 1440;
 
-	output_texture = new Texture(ts, 0, TextureInternalPixelFormat::RGBA8, width, height, TexturePixelFormat::RGBA, TextureDataType::_BYTE, nullptr);
+	output_texture = new Texture(ts, 0, TextureInternalPixelFormat::RGBA, width, height, TexturePixelFormat::RGBA, TextureDataType::Byte, nullptr);
 	renderbuffer_depth = new Renderbuffer(TextureInternalPixelFormat::DEPTH_COMPONENT, width, height);
 
 	output_framebuffer = new Framebuffer;
-	output_framebuffer->AttachTexture(*output_texture, Buffer_Attachment::COLOR_ATTACHMENT0);
-	output_framebuffer->AttachRenderBuffer(*renderbuffer_depth, Buffer_Attachment::DEPTH_ATTACHMENT);
+	output_framebuffer->AttachTexture(*output_texture, FramebufferAttachment::COLOR_ATTACHMENT0);
+	output_framebuffer->AttachRenderBuffer(*renderbuffer_depth, FramebufferAttachment::DEPTH_ATTACHMENT);
 	output_framebuffer->SetCountDrawBuffers(1);
 	
 
@@ -65,7 +65,7 @@ void main() {
 
 
 	shader_grid = new Shader("SHADER_GRID_VIEWPORT",
-R"VERTEX(
+		R"VERTEX(
 #version 330 core
 out vec2 v_ndc;
 void main() {
@@ -88,57 +88,77 @@ layout (std140) uniform MainBlock {
 uniform mat4 u_invPV;
 uniform vec3 u_camPos;
 
-uniform float u_cell      = 1.0;
-uniform int   u_major     = 5;
-uniform float u_fadeStart = 10.0;
-uniform float u_fadeEnd   = 180.0;
+uniform float u_cell       = 1.0;
+uniform int   u_major      = 5;
+uniform float u_fadeStart  = 10.0;
+uniform float u_fadeEnd    = 180.0;
+uniform float u_minorWidth = 0.02;
+uniform float u_majorWidth = 0.03;
 
 in vec2 v_ndc;
 out vec4 fragColor;
 
-float gridLine(vec2 q) {
-    vec2 w = fwidth(q);
-    vec2 a = abs(fract(q - 0.5) - 0.5) / w;
-    return 1.0 - min(min(a.x, a.y), 1.0);
+vec2 footprint(vec2 p) {
+    vec2 ddx = dFdx(p);
+    vec2 ddy = dFdy(p);
+    return vec2(length(vec2(ddx.x, ddy.x)),
+                length(vec2(ddx.y, ddy.y)));
+}
+
+vec2 lineFamily(vec2 q, vec2 fw, float halfW) {
+    vec2 f  = max(fw, vec2(1e-7));
+    vec2 d  = abs(fract(q - 0.5) - 0.5);
+    vec2 hw = clamp(vec2(halfW), f, vec2(0.5));
+    vec2 m  = vec2(1.0) - smoothstep(max(hw - f, vec2(0.0)), hw + f, d);
+    m *= clamp(vec2(halfW) / hw, vec2(0.0), vec2(1.0));
+    m *= vec2(1.0) - smoothstep(vec2(0.25), vec2(0.45), f);
+    return m;
 }
 
 void main() {
-    vec4 f = u_invPV * vec4(v_ndc,  1.0, 1.0);
-    vec4 n = u_invPV * vec4(v_ndc, -1.0, 1.0);
-    vec3 ro = u_camPos;
-    vec3 rd = normalize(f.xyz / f.w - n.xyz / n.w);
+    vec4 nc = u_invPV * vec4(v_ndc, -1.0, 1.0);
+    vec3 rd = nc.xyz / nc.w - u_camPos;
 
-    if (abs(rd.y) < 1e-6) discard;
-    float dist = -ro.y / rd.y;
-    if (dist <= 0.0) discard;
+    float dy = rd.y;
+    dy = (abs(dy) < 1e-6) ? ((dy < 0.0) ? -1e-6 : 1e-6) : dy;
+    float tt   = -u_camPos.y / dy;
+    vec3  P    = u_camPos + rd * tt;
+    float dist = tt * length(rd);
 
-    vec3 P = ro + rd * dist;
-    vec2 p = P.xz;
+    vec2 p  = P.xz;
+    vec2 fw = footprint(p);
+
+    if (tt <= 0.0 || dist >= u_fadeEnd) discard;
 
     vec4 clip  = pv * vec4(P, 1.0);
     float depth = (clip.z / clip.w) * 0.5 + 0.5;
     if (depth <= 0.0 || depth >= 1.0) discard;
     gl_FragDepth = depth;
 
-    float dfw = max(fwidth(p.x), fwidth(p.y));
+    float mjr = float(u_major);
+    float ic  = 1.0 / u_cell;
 
-    float minor = gridLine(p / u_cell)
-                * (1.0 - smoothstep(0.35, 0.65, dfw / u_cell));
-    float major = gridLine(p / (u_cell * float(u_major)))
-                * (1.0 - smoothstep(0.35, 0.65, dfw / (u_cell * float(u_major))));
+    vec2 q   = p * ic;
+    vec2 fwq = fw * ic;
+
+    vec2 mnr  = lineFamily(q,       fwq,       u_minorWidth);
+    vec2 mjl  = lineFamily(q / mjr, fwq / mjr, u_majorWidth / mjr);
+
+    float minor = max(mnr.x, mnr.y);
+    float major = max(mjl.x, mjl.y);
 
     float fade = 1.0 - smoothstep(u_fadeStart, u_fadeEnd, dist);
 
-    float ax = 1.0 - min(abs(p.y) / (dfw * 1.5), 1.0);
-    float az = 1.0 - min(abs(p.x) / (dfw * 1.5), 1.0);
+    vec2 fwa = max(vec2(fw.y, fw.x), vec2(1e-7));
+    vec2 axz = vec2(1.0) - smoothstep(vec2(0.5), vec2(1.5), abs(vec2(p.y, p.x)) / fwa);
 
     vec3  col   = mix(vec3(0.32), vec3(0.60), major);
     float alpha = max(minor, major);
 
-    col   = mix(col, vec3(0.85, 0.25, 0.25), ax);
-    alpha = max(alpha, ax);
-    col   = mix(col, vec3(0.25, 0.35, 0.90), az);
-    alpha = max(alpha, az);
+    col   = mix(col, vec3(0.85, 0.25, 0.25), axz.x);
+    alpha = max(alpha, axz.x);
+    col   = mix(col, vec3(0.25, 0.35, 0.90), axz.y);
+    alpha = max(alpha, axz.y);
 
     alpha *= fade;
     if (alpha < 0.004) discard;
@@ -162,15 +182,27 @@ void main() {
 
 	glGenVertexArrays(1, &emptyVAO);
 
+	pixelReader = new AsyncPixelReader();
+	pixelReader->init();
+
+	getColorPixel(0, 0);
 }
 
 RendererAnimationScene::~RendererAnimationScene() {
-	output_texture->~Texture();
 	delete output_texture;
-
-	output_framebuffer->~Framebuffer();
 	delete output_framebuffer;
+	delete shader;
+	delete shader_grid;
 }
+
+void RendererAnimationScene::Resize(int width, int height) {
+	if (width <= 0 || height <= 0) return;
+	if (width == output_texture->GetWidth() && height == output_texture->GetHeight()) return;
+
+	output_framebuffer->Resize(width, height);
+	Update();
+}
+
 
 void RendererAnimationScene::UpdateUBO() {
 
@@ -182,24 +214,39 @@ void RendererAnimationScene::UpdateUBO() {
 	ubo_MainBlock.dt = 0.f;
 	ubo_MainBlock.t = 0.f;
 	ubo_MainBlock.res = { width,height };
-	ubo_MainBlock.pv = glm::perspective(camera.getFOV() * glm::pi<float>()/180.f, aspect, 0.1f,100.f) * camera.getMatrixView();
+	ubo_MainBlock.pv = glm::perspective(camera.getFOV() * glm::pi<float>()/180.f, aspect, 1.f, 100.f) * camera.getMatrixView();
 
 
 	inv_pv = glm::inverse(ubo_MainBlock.pv);
 	cam_pos = glm::vec3(glm::inverse(camera.getMatrixView())[3]);
 }
 
+
+glm::vec3 RendererAnimationScene::getColorPixel(int x, int y) {
+	this->x_picker = std::clamp(x, 0, output_texture->GetWidth());
+	this->y_picker = std::clamp(y, 0, output_texture->GetHeight());
+
+	return { (float)currentColor_picker.x / 255.f, (float)currentColor_picker.y / 255.f, (float)currentColor_picker.z / 255.f };
+}
+
+
+
 void RendererAnimationScene::Draw(float time) {
+
+	pixelReader->fetch(currentColor_picker);
+
+
 	output_framebuffer->Bind();
-	
+	glViewport(0, 0, output_texture->GetWidth(), output_texture->GetHeight());
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glClear(BufferBit::COLOR_BUFFER_BIT | BufferBit::DEPTH_BUFFER_BIT);
-	glClearColor(0.f, 1.f, 0.f, 1.f);
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClear((unsigned int)BufferBit::COLOR | (unsigned int)BufferBit::DEPTH);
+
 
 	shader->use();
 	auto& layers = layersData->GetData().layers;
@@ -230,6 +277,11 @@ void RendererAnimationScene::Draw(float time) {
 	glDepthMask(GL_TRUE);
 
 	output_framebuffer->UnBind();
+
+	glBindTexture(GL_TEXTURE_2D, output_texture->GetID());
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	pixelReader->request(output_framebuffer->GetID(), x_picker, y_picker);
 
 }
 

@@ -11,6 +11,7 @@
 #include <Utils/OpenGL/Shaders/Shader.h>
 #include <Utils/OpenGL/UBO/UBO.h>
 
+#include <Utils/OpenGL/AsyncPixelReader/AsyncPixelReader.h>
 
 
 #include <glm/glm.hpp>
@@ -27,6 +28,10 @@ public:
 	Framebuffer& getFramebuffer();
 	Camera_Global& getCamera();
 
+	void Resize(int width, int height);
+
+	glm::vec3 getColorPixel(int x, int y);
+
 private:
 	LayersDataProvider* layersData;
 	Framebuffer* output_framebuffer;
@@ -40,6 +45,10 @@ private:
 	GLuint emptyVAO;
 
 	Camera_Global camera;
+
+	AsyncPixelReader* pixelReader;
+	int x_picker = 0, y_picker = 0;
+	glm::u8vec4 currentColor_picker;
 
 	struct UBO_MainBlock {
 		glm::mat4 pv;

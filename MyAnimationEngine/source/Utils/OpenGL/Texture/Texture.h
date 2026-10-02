@@ -25,6 +25,7 @@ struct TextureSetting {
 	TextureWrap WrapY = TextureWrap::CLAMP_TO_EDGE;
 	TextureFilter Min = TextureFilter::LINEAR;
 	TextureFilter Max = TextureFilter::LINEAR;
+	float Anisotropy = 0.f;
 };
 
 struct TextureInfo {
@@ -51,12 +52,17 @@ public:
 	~Texture();
 
 	void SetSetting(const TextureSetting& setting);
+	const TextureSetting& GetSetting() const;
+
 	void LoadTexture(const std::string& Path2Image,const int& desiredCount_channels = 0);
+
+	void Resize(int width, int height);
 
 	void Init();
 
 	int GetWidth();
 	int GetHeight();
+	float GetAspectRatio();
 
 	GLuint GetID();
 private:
@@ -64,15 +70,18 @@ private:
 	TextureSetting setting;
 	TextureInfo info;
 
+	TextureInternalPixelFormat internalFormat = TextureInternalPixelFormat::RGBA8;
+	TexturePixelFormat         pixelFormat = TexturePixelFormat::RGBA;
+	TextureDataType            dataType = TextureDataType::Unsigned_byte;
+
 	uint8_t* dataImage = nullptr;
 
-	int GetTypeImageData(const int& channels);
+	TextureInternalPixelFormat GetImageInternalPixelFormat(const int& channels);
+	TexturePixelFormat GetImageTexturePixelFormat(const int& channels);
+
+	void ApplySetting();
+	bool IsMipmapFilter(TextureFilter f);
+	bool NeedMipmaps();
 };
-
-
-
-
-
-
 
 #endif

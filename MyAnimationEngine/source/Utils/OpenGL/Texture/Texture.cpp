@@ -49,6 +49,57 @@ Texture::Texture(const TextureSetting& setting, const std::string& Path2Image, c
 	Init();
 }
 
+
+void Texture::Resize(int width, int height) {
+	if (width <= 0 || height <= 0)
+		throw std::runtime_error("Texture::Resize(): invalid size");
+	if (width == info.width && height == info.height)
+		return;
+	if (dataImage)
+		throw std::runtime_error("Texture::Resize(): call Init() first (CPU data pending)");
+
+	info.width = width;
+	info.height = height;
+
+	glBindTexture(GL_TEXTURE_2D, ID);
+	glTexImage2D(GL_TEXTURE_2D, 0, (GLenum)this->internalFormat, width, height, 0, (GLenum)this->pixelFormat, (GLenum)this->dataType, nullptr);
+
+	if (NeedMipmaps())
+		glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+void Texture::ApplySetting() {
+	glBindTexture(GL_TEXTURE_2D, ID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (GLenum)setting.WrapX);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (GLenum)setting.WrapY);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLenum)setting.Min);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (GLenum)setting.Max);
+
+	if (setting.Anisotropy > 1.f) {
+		GLfloat maxAniso = 1.0f;
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAniso);
+		GLfloat a = (setting.Anisotropy < maxAniso) ? setting.Anisotropy : maxAniso;
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, a);
+	}
+}
+
+bool Texture::IsMipmapFilter(TextureFilter f) {
+	switch (f) {
+	case TextureFilter::NEAREST_MIPMAP_NEAREST:
+	case TextureFilter::NEAREST_MIPMAP_LINEAR:
+	case TextureFilter::LINEAR_MIPMAP_NEAREST:
+	case TextureFilter::LINEAR_MIPMAP_LINEAR:
+		return true;
+	default: return false;
+	}
+}
+
+bool Texture::NeedMipmaps() {
+	return IsMipmapFilter(setting.Min) || IsMipmapFilter(setting.Max);
+}
+
+
 Texture::Texture(
 	TextureSetting setting,
 	const int& MipMapLevel,
@@ -60,17 +111,21 @@ Texture::Texture(
 	const void* data) : Texture()
 {
 	SetSetting(setting);
+	this->internalFormat = internalFormat;
+	this->pixelFormat = format;
+	this->dataType = type;
 	info.width = width;
 	info.height = height;
 
-	glBindTexture(GL_TEXTURE_2D, ID);
+	ApplySetting();
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,		setting.WrapX);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,		setting.WrapY);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,	setting.Min);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,	setting.Max);
+	glTexImage2D(GL_TEXTURE_2D, MipMapLevel, (GLenum)internalFormat, info.width, info.height, 0, (GLenum)format, (GLenum)type, data);
 
-	glTexImage2D(GL_TEXTURE_2D, MipMapLevel, internalFormat, info.width, info.height, 0, format, type, data);
+	if (NeedMipmaps() && data != nullptr) {
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+
+
 }
 
 
@@ -79,6 +134,10 @@ int Texture::GetWidth() {
 }
 int Texture::GetHeight() {
 	return info.height;
+}
+
+float Texture::GetAspectRatio() {
+	return (float)info.width / (float)info.height;
 }
 
 GLuint Texture::GetID() {
@@ -90,21 +149,48 @@ void Texture::SetSetting(const TextureSetting& setting) {
 	std::cout << "void Texture::SetSetting(const TextureSetting& setting)\n";
 #endif
 	this->setting = setting;
+
+	ApplySetting();
+	if (NeedMipmaps())
+		glGenerateMipmap(GL_TEXTURE_2D);
+
 }
 
-int Texture::GetTypeImageData(const int& channels) {
+TexturePixelFormat Texture::GetImageTexturePixelFormat(const int& channels) {
 	switch (channels) {
 	case 4:
-		return GL_RGBA;
+		return TexturePixelFormat::RGBA;
 		break;
 	case 3:
-		return GL_RGB;
+		return TexturePixelFormat::RGB;
 		break;
 	case 2:
-		return GL_RG;
+		return TexturePixelFormat::RG;
 		break;
 	case 1:
-		return GL_R;
+		return TexturePixelFormat::RED;
+		break;
+	case 0:
+		exit(100);
+		break;
+	default:
+		break;
+	}
+}
+
+TextureInternalPixelFormat Texture::GetImageInternalPixelFormat(const int& channels) {
+	switch (channels) {
+	case 4:
+		return TextureInternalPixelFormat::RGBA8;
+		break;
+	case 3:
+		return TextureInternalPixelFormat::RGB8;
+		break;
+	case 2:
+		return TextureInternalPixelFormat::RG8;
+		break;
+	case 1:
+		return TextureInternalPixelFormat::R8;
 		break;
 	case 0:
 		exit(100);
@@ -137,51 +223,24 @@ void Texture::Init() {
 #ifdef _DEBUG
 	std::cout << "Texture::Init()\n";
 #endif
-	glBindTexture(GL_TEXTURE_2D, ID);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, setting.WrapX);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, setting.WrapY);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, setting.Min);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, setting.Max);
-
-	GLfloat maxAnisotropy;
-	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
-
-	const int mipmapFilters[4] = {
-		GL_NEAREST_MIPMAP_NEAREST,
-		GL_NEAREST_MIPMAP_LINEAR,
-		GL_LINEAR_MIPMAP_NEAREST,
-		GL_LINEAR_MIPMAP_LINEAR };
-	bool haveMipmapFilter = false;
-	for (int i = 0; i < 4; i++)
-	{
-		if (setting.Min == mipmapFilters[i]
-			|| setting.Max == mipmapFilters[i])
-		{
-			haveMipmapFilter = true;
-			break;
-		}
-	}
+	ApplySetting();
 
 	if (dataImage) {
-		int TypeData = GetTypeImageData(info.channels);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, TypeData, info.width, info.height, 0, TypeData, GL_UNSIGNED_BYTE, dataImage);
 
-		if (haveMipmapFilter) {
+		this->internalFormat	= GetImageInternalPixelFormat(info.channels);
+		this->pixelFormat		= GetImageTexturePixelFormat(info.channels);
+		this->dataType			= TextureDataType::Unsigned_byte;
+
+		glTexImage2D(GL_TEXTURE_2D, 0, (GLenum)this->internalFormat, info.width, info.height, 0, (GLenum)this->pixelFormat, (GLenum)this->dataType, dataImage);
+
+		if (NeedMipmaps())
 			glGenerateMipmap(GL_TEXTURE_2D);
-		}
 
 		stbi_image_free(dataImage);
 		dataImage = nullptr;
 	}
 	else
 		throw std::runtime_error("Load image before initialization!!!");
-
-
-
-
-
 
 }

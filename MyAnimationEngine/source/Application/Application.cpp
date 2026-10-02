@@ -233,7 +233,7 @@ void Application::Draw() {
 	timelinePanel->Draw();
 	preview->Draw();
 
-	//ImGui::ShowDemoWindow();
+	ImGui::ShowDemoWindow();
 
 	DebugOverlay::DrawDebug();
 
@@ -258,6 +258,7 @@ void Application::Update() {
 	timelinePanel->Update();
 	timelineController->Update();
 	playerComposition->Update();
+	preview->Update();
 
 	renderer->Update();
 	renderer->Draw(timelineData->GetData().currentTime);
@@ -269,7 +270,7 @@ void Application::BeginDraw() {
 	glfwPollEvents();
 
 	glClearColor(0.2f, 0.2f, 0.2f, 1.f);
-	glClear(BufferBit::COLOR_BUFFER_BIT | BufferBit::DEPTH_BUFFER_BIT);
+	glClear((unsigned int)BufferBit::COLOR | (unsigned int)BufferBit::DEPTH);
 
 	FontManager::getInstance().Update();
 

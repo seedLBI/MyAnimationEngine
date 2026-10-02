@@ -9,9 +9,9 @@
 #include "Utils/TransformScaled/Transform.Scaled.h"
 
 #include <Utils/OpenGL/Texture/Texture.h>
-#include <Utils/OpenGL/PixelReadback/PixelReadback.h>
 
 #include "Core/DebugOverlay/DebugOverlay.h"
+#include <CursorManager/CursorManger.h>
 
 
 
@@ -35,7 +35,24 @@ private:
 	bool mouseIsDraging = false;
 
 	Texture* temp;
-	PixelReadback pixelPicker;
+
+	float height_bottom_menu;
+
+	const float padding = 20.f;
+
+	struct PreviewContext {
+		ImVec2 mouse_global_relative;
+		ImVec2 mouse_screen_relative;
+
+		bool isHoveredTextureFramebuffer;
+		bool isHoveredWidgetRegion;
+	} pc;
+
+
+	void DrawBottomMenu(const ImVec2& p_min, const ImVec2& p_max);
+
+	void DrawBottomMenu_Resolution(float& pos_cursor_draw, const ImVec2& p_min, const ImVec2& p_max);
+	void DrawBottomMenu_ColorPickerInfo(float& pos_cursor_draw, const ImVec2& p_min, const ImVec2& p_max);
 
 };
 

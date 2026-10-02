@@ -28,7 +28,7 @@ void NoiseTexture::Init() {
 		512,
 		512,
 		TexturePixelFormat::RGBA,
-		TextureDataType::_UNSIGNED_BYTE,
+		TextureDataType::Unsigned_byte,
 		nullptr
 	);
 	framebuffer = new Framebuffer();
@@ -82,7 +82,7 @@ void main() {
 	glGetIntegerv(GL_VIEWPORT, last_viewport);
 
 
-	framebuffer->AttachTexture(*texture, Buffer_Attachment::COLOR_ATTACHMENT0);
+	framebuffer->AttachTexture(*texture, FramebufferAttachment::COLOR_ATTACHMENT0);
 	framebuffer->SetCountDrawBuffers(1);
 
 	framebuffer->Bind();
