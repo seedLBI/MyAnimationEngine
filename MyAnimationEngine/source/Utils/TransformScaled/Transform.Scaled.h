@@ -21,6 +21,7 @@ public:
 	void setBoundsScale(float smin, float smax);
 
 	void setBaseStep(float value);
+	float getBaseStep();
 
 	float getMinOffset();
 	float getMaxOffset();
@@ -79,10 +80,5 @@ private:
 	void clampScale();
 	float clampOffset(float target_offset);
 };
-
-
-
-
-
 
 #endif

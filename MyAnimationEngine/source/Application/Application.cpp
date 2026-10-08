@@ -125,9 +125,12 @@ void Application::Init_ImGui() {
 
 	s.TabBarOverlineSize = 1.f;
 
-
 	s.Colors[ImGuiCol_Border] = ImColor(0.f, 0.f, 0.f, 1.f);
 	s.Colors[ImGuiCol_WindowBg] = ImColor(.11f, .11f, .11f, 1.f);
+	s.Colors[ImGuiCol_PopupBg].w = 1.f;
+	s.Colors[ImGuiCol_FrameBg] = ImColor(56, 56, 56, 138);
+	s.Colors[ImGuiCol_Header] = ImColor(112, 178, 255, 232);
+
 	s.Colors[ImGuiCol_TitleBg] = ImColor(.11f, .11f, .11f, 1.f);
 	s.Colors[ImGuiCol_TitleBgActive] = ImColor(.11f, .11f, .11f, 1.f);
 	s.Colors[ImGuiCol_ResizeGrip] = ImColor(0.f, 0.f, 0.f, 1.f);
@@ -142,6 +145,7 @@ void Application::Init_ImGui() {
 
 	s.Colors[ImGuiCol_TabDimmedSelectedOverline] = ImColor(0.5f, 0.5f, 0.5f, 1.f);
 	s.Colors[ImGuiCol_TabSelectedOverline] = ImColor(1.f, 1.f, 1.f, 1.f);
+
 
 	ImGui::GetIO().IniFilename = NULL;
 	ImGui::GetIO().LogFilename = NULL;

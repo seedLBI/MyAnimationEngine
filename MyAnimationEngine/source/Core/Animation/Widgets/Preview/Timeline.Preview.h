@@ -31,7 +31,6 @@ private:
 	TransformScaled horizontal, vertical;
 
 	bool firstCentered = false;
-
 	bool mouseIsDraging = false;
 
 	Texture* temp;
@@ -48,9 +47,10 @@ private:
 		bool isHoveredWidgetRegion;
 	} pc;
 
-
 	void DrawBottomMenu(const ImVec2& p_min, const ImVec2& p_max);
 
+	void DrawBottomMenu_Scale(float& pos_cursor_draw, const ImVec2& p_min, const ImVec2& p_max);
+	void DrawBottomMenu_TextureSetting(float& pos_cursor_draw, const ImVec2& p_min, const ImVec2& p_max);
 	void DrawBottomMenu_Resolution(float& pos_cursor_draw, const ImVec2& p_min, const ImVec2& p_max);
 	void DrawBottomMenu_ColorPickerInfo(float& pos_cursor_draw, const ImVec2& p_min, const ImVec2& p_max);
 

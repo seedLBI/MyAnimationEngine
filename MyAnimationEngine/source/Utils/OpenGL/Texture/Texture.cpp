@@ -150,11 +150,25 @@ void Texture::SetSetting(const TextureSetting& setting) {
 #endif
 	this->setting = setting;
 
+	if (this->setting.Max == TextureFilter::NEAREST_MIPMAP_NEAREST || this->setting.Max == TextureFilter::NEAREST_MIPMAP_LINEAR
+		|| this->setting.Max == TextureFilter::LINEAR_MIPMAP_NEAREST || this->setting.Max == TextureFilter::LINEAR_MIPMAP_LINEAR){
+		this->setting.Max = TextureFilter::LINEAR;
+
+		#ifdef _DEBUG
+				std::cout << "Wrong setting for MAG texture filter (setted linear)\n";
+		#endif
+	}
+
 	ApplySetting();
 	if (NeedMipmaps())
 		glGenerateMipmap(GL_TEXTURE_2D);
 
 }
+TextureSetting Texture::GetSetting() {
+	return this->setting;
+}
+
+
 
 TexturePixelFormat Texture::GetImageTexturePixelFormat(const int& channels) {
 	switch (channels) {

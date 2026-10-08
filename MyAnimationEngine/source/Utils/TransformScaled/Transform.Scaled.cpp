@@ -1,7 +1,7 @@
 ﻿#include "Transform.Scaled.h"
 #include <algorithm>
 
-TransformScaled::TransformScaled() : offset(0.f), scale(1.f) {
+TransformScaled::TransformScaled() : offset(0.f), scale(1.f), availableScreenValue(0.f){
 
 }
 
@@ -26,6 +26,10 @@ float TransformScaled::getAvailableScreenValue() {
 void TransformScaled::setBaseStep(float value) {
 	this->base_step = value;
 }
+float TransformScaled::getBaseStep() {
+	return this->base_step;
+}
+
 
 float TransformScaled::getMinOffset() {
 	return bounds_offset.bmin;

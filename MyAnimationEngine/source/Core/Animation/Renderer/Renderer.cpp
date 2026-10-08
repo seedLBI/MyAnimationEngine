@@ -4,7 +4,7 @@ RendererAnimationScene::RendererAnimationScene(LayersDataProvider* layersData) :
 
 	TextureSetting ts;
 	ts.Min = TextureFilter::LINEAR_MIPMAP_LINEAR;
-	ts.Max = TextureFilter::NEAREST;
+	ts.Max = TextureFilter::LINEAR_MIPMAP_LINEAR;
 	ts.WrapX = TextureWrap::CLAMP_TO_EDGE;
 	ts.WrapY = TextureWrap::CLAMP_TO_EDGE;
 

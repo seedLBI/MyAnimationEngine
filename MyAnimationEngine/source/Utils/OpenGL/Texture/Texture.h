@@ -25,7 +25,7 @@ struct TextureSetting {
 	TextureWrap WrapY = TextureWrap::CLAMP_TO_EDGE;
 	TextureFilter Min = TextureFilter::LINEAR;
 	TextureFilter Max = TextureFilter::LINEAR;
-	float Anisotropy = 0.f;
+	float Anisotropy = 1.f;
 };
 
 struct TextureInfo {
@@ -52,7 +52,7 @@ public:
 	~Texture();
 
 	void SetSetting(const TextureSetting& setting);
-	const TextureSetting& GetSetting() const;
+	TextureSetting GetSetting();
 
 	void LoadTexture(const std::string& Path2Image,const int& desiredCount_channels = 0);
 
