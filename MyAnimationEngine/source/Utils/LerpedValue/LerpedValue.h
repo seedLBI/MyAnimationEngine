@@ -1,6 +1,26 @@
 ﻿#ifndef LERPED_VALUE_H
 #define LERPED_VALUE_H
 
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+
+
+struct LerpedQuat {
+	glm::quat current{ 1.f, 0.f, 0.f, 0.f };
+	glm::quat target{ 1.f, 0.f, 0.f, 0.f };
+
+	void SetAll(const glm::quat& q) { current = q; target = q; }
+	void Set(const glm::quat& q) { target = q; }
+
+	void Update(float t) {
+		const glm::quat tgt = (glm::dot(current, target) < 0.f) ? -target : target;
+		current = glm::normalize(current + (tgt - current) * t);
+	}
+
+	const glm::quat& GetLerped() const { return current; }
+	const glm::quat& GetReal()   const { return target; }
+};
+
 
 template<typename T>
 struct LerpedValue {

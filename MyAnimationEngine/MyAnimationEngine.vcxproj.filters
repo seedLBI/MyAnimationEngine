@@ -737,6 +737,9 @@
     <ClInclude Include="source\Utils\OpenGL\AsyncPixelReader\AsyncPixelReader.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="source\ThirdParty\ImViewGuizmo\ImViewGuizmo.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

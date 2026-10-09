@@ -19,7 +19,7 @@ Timeline_Graph::Timeline_Graph(
 {
 	
 	ctx->graphTransformVertical->setBaseStep(-100.f);
-	ctx->graphTransformVertical->setBoundsOffset(-10.f - 0.01f, 10.f + 0.01f);
+	ctx->graphTransformVertical->setBoundsOffset(-1000.f - 0.01f, 1000.f + 0.01f);
 	ctx->graphTransformVertical->setBoundsScale(0.1f, 100.f);
 	
 	graphControls = new GraphControls(ctx);

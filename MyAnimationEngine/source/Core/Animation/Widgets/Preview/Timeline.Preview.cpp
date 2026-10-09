@@ -14,6 +14,9 @@
 
 #include <Utils/ImGui/Utils.ImGui.h>
 
+#define IMVIEWGUIZMO_IMPLEMENTATION
+#include "ThirdParty/ImViewGuizmo/ImViewGuizmo.h"
+
 Timeline_Preview::Timeline_Preview(FPS_Timer* deltaTime, RendererAnimationScene* renderer) : deltaTime(deltaTime), renderer(renderer) {
 
 	horizontal.setBoundsScale(0.3f, 1000.f);
@@ -1086,19 +1089,14 @@ void Timeline_Preview::DrawBottomMenu_Resolution(float& pos_cursor_draw, const I
         else if (btn_apply_hovered)
             color_outline = COLOR_CHANGEBLE_HOVERED;
 
-        
-
         drawlist_popup->AddRectFilled(min_btn_apply, max_btn_apply, COLOR_BG_BUTTONS, btn_rounding);
         drawlist_popup->AddRect(min_btn_apply, max_btn_apply, color_outline, btn_rounding, 0, btn_outline_thikness);
         drawlist_popup->AddText(pos_text_btn_apply, ImColor(1.f, 1.f, 1.f, 1.f), str_apply);
-
 
         if (btn_apply_pressed) {
             renderer->Resize(sel_w, sel_h);
             ImGui::CloseCurrentPopup();
         }
-        
-
 
         ImGui::EndPopup();
     }
@@ -1169,7 +1167,49 @@ void Timeline_Preview::DrawBottomMenu(const ImVec2& p_min, const ImVec2& p_max) 
 
 }
 
+void Timeline_Preview::DrawViewGizmo(const ImVec2& p_min, const ImVec2& p_max) {
+    using namespace ImViewGuizmo;
+
+    if (p_max.x - p_min.x < 220.f || p_max.y - p_min.y < 220.f)
+        return;
+
+    auto& style = GetStyle();
+    Camera_Global& cam = renderer->getCamera();
+
+    glm::vec3 gizmoPos = cam.getPos();
+    glm::quat gizmoRot = cam.getGizmoRotation();
+
+    ImGuiIO& io = ImGui::GetIO();
+    const bool lock = !IsUsing() && (mouseIsDraging || !ImGui::IsWindowHovered());
+    if (lock) io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+
+    const float margin = 14.f;
+    const float radius = 80.f * style.scale;
+    const ImVec2 gizmo_center(p_max.x - margin - radius, p_min.y + margin + radius);
+
+    const glm::vec3 pivot = gizmoPos;
+
+    bool modified = false;
+
+    modified |= ImViewGuizmo::Rotate(gizmoPos, gizmoRot, pivot, gizmo_center);
+
+    const float btn = style.toolButtonRadius * style.scale * 2.f;
+    const ImVec2 row(p_max.x - margin - 2.f * btn - 6.f,
+        p_min.y + margin + 2.f * radius + 10.f);
+    modified |= Dolly(gizmoPos, gizmoRot, ImVec2(row.x + btn + 6.f, row.y), 0.05f);
+    modified |= Pan(gizmoPos, gizmoRot, row, 0.01f);
+
+    if (lock) io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+
+    if (modified) {
+        cam.setFromGizmo(gizmoPos, gizmoRot);
+        renderer->Update();
+    }
+}
+
 void Timeline_Preview::Draw() {
+
+    ImViewGuizmo::BeginFrame();
 
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, COLOR_BG_VIEWER.Value);
 	ImGui::PushStyleColor(ImGuiCol_Separator, COLOR_SEPARATOR.Value);
@@ -1254,7 +1294,12 @@ void Timeline_Preview::Draw() {
 			glm::vec2 curr_m = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
 
 			glm::vec2 delta = prev_m - curr_m;
-			renderer->getCamera().Update(deltaTime->GetDeltaTime(), { delta.x, delta.y }, scrol_zoom);
+            if (ImViewGuizmo::IsUsing())
+                delta = { 0,0 };
+
+            float sense = 0.1f;
+
+			renderer->getCamera().Update(deltaTime->GetDeltaTime(), { delta.x * sense, delta.y * sense }, scrol_zoom);
 			prev_m = curr_m;
 		}
 		else {
@@ -1277,7 +1322,7 @@ void Timeline_Preview::Draw() {
 
 
 
-		if (pc.isHoveredWidgetRegion && pc.isHoveredTextureFramebuffer && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		if (pc.isHoveredWidgetRegion && !ImViewGuizmo::IsOver() && pc.isHoveredTextureFramebuffer && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			mouseIsDraging = true;
 		}
@@ -1297,8 +1342,8 @@ void Timeline_Preview::Draw() {
 
 
 		ImVec2 LU = {
-		cursor_pos.x + horizontal.getPosScreen_lerped(-1.f * aspect_ratio),
-		cursor_pos.y + vertical.getPosScreen_lerped(1.f)
+		    cursor_pos.x + horizontal.getPosScreen_lerped(-1.f * aspect_ratio),
+		    cursor_pos.y + vertical.getPosScreen_lerped(1.f)
 		};
 
 		ImVec2 RD = {
@@ -1308,7 +1353,9 @@ void Timeline_Preview::Draw() {
 
 		drawlist->AddImage(renderer->getTexture().GetID(), LU, RD);
 
-
+        Push_BoldFont();
+        DrawViewGizmo(p_min, p_max);
+        Pop_BoldFont();
 
 		p_min.y = p_max.y;
 		p_max.y += height_bottom_menu;

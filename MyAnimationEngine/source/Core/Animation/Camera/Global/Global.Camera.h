@@ -20,20 +20,22 @@ public:
 	glm::vec3 getUp();
 	glm::vec3 getRight();
 
+	glm::quat getGizmoRotation();
+	void setFromGizmo(const glm::vec3& pos, const glm::quat& rot, bool instant = true);
+
 private:
-	LerpedValue<float> yaw, pitch, roll;
-	LerpedValue<float> fov;
-	LerpedValue<glm::vec3> Pos, Front, Up;
+	LerpedValue<glm::vec3> Pos;
+	LerpedQuat             Rot;
+	LerpedValue<float>     fov;
+	LerpedValue<float>     lean;
 
-	float delta_yaw;
+	float delta_yaw = 0.f;
 
-	float lastX, lastY;
-	bool firstMouse = true;
+	glm::quat getRenderOrientation() const;
 
 	void UpdateMovement(float dt);
 	void UpdateLook(glm::vec2 delta_mouse);
-	void UpdateUp();
-	void UpdateRoll(float dt);
+	void UpdateLean(float dt);
 	void UpdateFOV(float delta_wheel);
 	void UpdateLerp(float dt);
 };

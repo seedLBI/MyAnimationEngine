@@ -1,6 +1,7 @@
 ﻿#ifndef TIMELINE_PREVIEW_H
 #define TIMELINE_PREVIEW_H
 
+
 #include "Core/Animation/Renderer/Renderer.h"
 #include "Core/Animation/Widgets/Colors/Widgets.Colors.h"
 #include "Utils/ImGui/Utils.ImGui.h"
@@ -53,6 +54,10 @@ private:
 	void DrawBottomMenu_TextureSetting(float& pos_cursor_draw, const ImVec2& p_min, const ImVec2& p_max);
 	void DrawBottomMenu_Resolution(float& pos_cursor_draw, const ImVec2& p_min, const ImVec2& p_max);
 	void DrawBottomMenu_ColorPickerInfo(float& pos_cursor_draw, const ImVec2& p_min, const ImVec2& p_max);
+
+
+	void DrawViewGizmo(const ImVec2& p_min, const ImVec2& p_max);
+	glm::vec3 gizmo_pivot{ 0.f, 0.f, 0.f };
 
 };
 

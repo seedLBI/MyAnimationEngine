@@ -252,19 +252,43 @@ void RendererAnimationScene::Draw(float time) {
 	auto& layers = layersData->GetData().layers;
 	for (size_t i = 0; i < layers.size(); i++) {
 		auto& layer = layers[i];
+
 		bool is_visible = layer.get()->GetLayerInfo().isVisible;
+		is_visible &= (time >= layer.get()->GetLayerInfo().time.Begin) && (time <= layer.get()->GetLayerInfo().time.End);
+		
 		if (is_visible == false)
 			continue;
 
 
-		auto c = layer.get()->GetProperties().get<TPColor>("color").kr.evaluate(time);
+		float time4layer = time - layer.get()->GetLayerInfo().time.Begin;
+
+		auto c = layer.get()->GetProperties().get<TPColor>("color").kr.evaluate(time4layer);
 		shader->set4Float("u_color", { c[0],c[1],c[2],c[3]});
 
-		auto p = layer.get()->GetProperties().get<TP3Float>("pos").kr.evaluate(time);
-		auto s = layer.get()->GetProperties().get<TP3Float>("scale").kr.evaluate(time);
+		auto p = layer.get()->GetProperties().get<TP3Float>("pos").kr.evaluate(time4layer);
+		auto s = layer.get()->GetProperties().get<TP3Float>("scale").kr.evaluate(time4layer);
+		auto a = layer.get()->GetProperties().get<TP3Float>("anchor").kr.evaluate(time4layer);
+		auto r = layer.get()->GetProperties().get<TP3Float>("rotation").kr.evaluate(time4layer);
 
-		shader->setMat4("u_model", glm::translate(glm::scale(glm::mat4(1.f), glm::vec3(s[0], s[1], s[2])), glm::vec3(p[0], p[1], p[2])));
-		layer->Draw(time);
+		glm::vec3 vp = glm::vec3(p[0], p[1], p[2]);
+		glm::vec3 vs = glm::vec3(s[0], s[1], s[2]);
+		glm::vec3 va = glm::vec3(a[0], a[1], a[2]);
+		glm::vec3 vr = glm::vec3(r[0], r[1], r[2]);
+
+		glm::mat4 Rx = glm::rotate(glm::mat4(1.0f), glm::radians(vr.x), { 1,0,0 });
+		glm::mat4 Ry = glm::rotate(glm::mat4(1.0f), glm::radians(vr.y), { 0,1,0 });
+		glm::mat4 Rz = glm::rotate(glm::mat4(1.0f), glm::radians(vr.z), { 0,0,1 });
+		glm::mat4 R = Rz * Ry * Rx;
+
+		glm::mat4 model = 
+			glm::translate(glm::mat4(1.0f), vp)
+			* R
+			* glm::scale(glm::mat4(1.0f), vs)
+			* glm::translate(glm::mat4(1.0f), -va);
+
+
+		shader->setMat4("u_model", model);
+		layer->Draw(time4layer);
 	}
 
 
