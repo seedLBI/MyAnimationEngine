@@ -237,7 +237,7 @@ void Application::Draw() {
 	timelinePanel->Draw();
 	preview->Draw();
 
-	ImGui::ShowDemoWindow();
+	//ImGui::ShowDemoWindow();
 
 	DebugOverlay::DrawDebug();
 

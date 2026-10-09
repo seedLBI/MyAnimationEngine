@@ -41,6 +41,8 @@ SOFTWARE.
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <CursorManager/CursorManger.h>
+
 #define IMVIEWGUIZMO_VEC3 glm::vec3
 #define IMVIEWGUIZMO_VEC4 glm::vec4
 #define IMVIEWGUIZMO_QUAT glm::quat
@@ -170,6 +172,7 @@ namespace ImViewGuizmo
 
     struct Context {
         int hoveredAxisID = -1;
+        bool isGizmoButtonHovered = false;
         bool isZoomButtonHovered = false;
         bool isPanButtonHovered = false;
         ActiveTool activeTool = TOOL_NONE;
@@ -187,7 +190,8 @@ namespace ImViewGuizmo
         float animStartDist, animTargetDist;
 
         void Reset() {
-            hoveredAxisID = -1;
+            
+            isGizmoButtonHovered = false;
             isZoomButtonHovered = false;
             isPanButtonHovered = false;
         }
@@ -205,8 +209,11 @@ namespace ImViewGuizmo
     inline void BeginFrame() {
         static int lastFrame = -1;
         const int currentFrame = ImGui::GetFrameCount();
-        if (lastFrame != currentFrame)
-            lastFrame = currentFrame; GetContext().Reset();
+        if (lastFrame != currentFrame) {
+            lastFrame = currentFrame;
+            GetContext().hoveredAxisID = -1;
+        }
+
     }
 
     inline bool IsUsing() {
@@ -215,7 +222,7 @@ namespace ImViewGuizmo
 
     inline bool IsOver() {
         const Context& ctx = GetContext();
-        return ctx.hoveredAxisID != -1 || ctx.isZoomButtonHovered || ctx.isPanButtonHovered;
+        return ctx.isGizmoButtonHovered || ctx.isZoomButtonHovered || ctx.isPanButtonHovered;
     }
 
     /// @brief Renders and handles the view gizmo logic.
@@ -414,6 +421,8 @@ namespace ImViewGuizmo {
         const bool gizmoHighlighted = (ctx.activeTool == TOOL_GIZMO) ||
             (canInteract && distToCenterSq < gizmoAreaRadius * gizmoAreaRadius);
 
+        ctx.isGizmoButtonHovered = gizmoHighlighted;
+
         if (canInteract && ctx.activeTool == TOOL_NONE && !ctx.isAnimating) {
             if (distToCenterSq < gizmoAreaRadius * gizmoAreaRadius) {
                 const float minDistanceSq = scaledCircleRadius * scaledCircleRadius;
@@ -497,8 +506,8 @@ namespace ImViewGuizmo {
 
         // Active tool rotation 
         if (ctx.activeTool == TOOL_GIZMO) {
-            float yawAngle = -io.MouseDelta.x * rotationSpeed;
-            float pitchAngle = -io.MouseDelta.y * rotationSpeed;
+            float yawAngle = io.MouseDelta.x * rotationSpeed;
+            float pitchAngle = io.MouseDelta.y * rotationSpeed;
 
             quat_t yawRotation = GizmoMath::angleAxis(yawAngle, worldUp);
             vec3_t rightAxis = GizmoMath::multiply_qv(cameraRot, worldRight);
@@ -621,27 +630,36 @@ namespace ImViewGuizmo {
             wasModified = true;
         }
 
+        if (canInteract && (isHovered || ctx.activeTool == TOOL_DOLLY)) {
+            CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_VERTICAL);
+        }
+
+
+
         const ImU32 bgColor = (ctx.activeTool == TOOL_DOLLY || isHovered) ? style.toolButtonHoveredColor : style.toolButtonColor;
         drawList->AddCircleFilled(center, radius, bgColor);
 
         const float p = style.toolButtonInnerPadding * style.scale;
-        const float th = 2.0f * style.scale;
+        const float th = 3.0f * style.scale;
         const ImU32 iconColor = style.toolButtonIconColor;
         constexpr float iconScale = 0.5f;
         const float scaledP = p * iconScale;
         const float scaledRadius = radius * iconScale;
 
-        ImVec2 glassCenter = { center.x - scaledP / 2.0f, center.y - scaledP / 2.0f };
+        ImVec2 glassCenter = { center.x - scaledP / 2.0f - 2.f, center.y - scaledP / 2.0f - 2.f };
         const float glassRadius = scaledRadius - scaledP;
         drawList->AddCircle(glassCenter, glassRadius, iconColor, 0, th);
 
-        const ImVec2 handleStart = { center.x + scaledRadius / 2.0f, center.y + scaledRadius / 2.0f };
+        const ImVec2 handleStart = { center.x + scaledRadius / 3.0f, center.y + scaledRadius / 3.0f };
         const ImVec2 handleEnd = { center.x + scaledRadius - (p * iconScale), center.y + scaledRadius - (p * iconScale) };
         drawList->AddLine(handleStart, handleEnd, iconColor, th);
 
         const float plusHalfSize = glassRadius * 0.5f;
-        drawList->AddLine({ glassCenter.x, glassCenter.y - plusHalfSize }, { glassCenter.x, glassCenter.y + plusHalfSize }, iconColor, th);
-        drawList->AddLine({ glassCenter.x - plusHalfSize, glassCenter.y }, { glassCenter.x + plusHalfSize, glassCenter.y }, iconColor, th);
+
+        float offset_plus = -0.5f;
+
+        drawList->AddLine({ glassCenter.x + offset_plus, glassCenter.y - plusHalfSize + offset_plus }, { glassCenter.x + offset_plus, glassCenter.y + plusHalfSize + offset_plus }, iconColor, th);
+        drawList->AddLine({ glassCenter.x - plusHalfSize + offset_plus, glassCenter.y + offset_plus }, { glassCenter.x + plusHalfSize + offset_plus, glassCenter.y + offset_plus }, iconColor, th);
 
         return wasModified;
     }
@@ -670,7 +688,7 @@ namespace ImViewGuizmo {
         ctx.isPanButtonHovered = isHovered;
 
         if (canInteract && (isHovered || ctx.activeTool == TOOL_PAN)) {
-            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+            CursorManager::getInstance().SetCursor(TypeCursor::HAND_CLOSED);
         }
 
         if (canInteract && isHovered && io.MouseDown[0] && ctx.activeTool == TOOL_NONE) {
@@ -690,20 +708,22 @@ namespace ImViewGuizmo {
         drawList->AddCircleFilled(center, radius, bgColor);
 
         const ImU32 iconColor = style.toolButtonIconColor;
-        const float th = 2.0f * style.scale;
+        const float th = 3.0f * style.scale;
         const float size = radius * 0.5f;
-        const float arm = size * 0.25f;
+        const float arm = size * 0.35f;
 
-        const ImVec2 topTip = { center.x, center.y - size };
+        float offset_icon = -0.5f;
+
+        const ImVec2 topTip = { center.x + offset_icon, center.y - size + offset_icon };
         drawList->AddLine({ topTip.x - arm, topTip.y + arm }, topTip, iconColor, th);
         drawList->AddLine({ topTip.x + arm, topTip.y + arm }, topTip, iconColor, th);
-        const ImVec2 botTip = { center.x, center.y + size };
+        const ImVec2 botTip = { center.x + offset_icon, center.y + size + offset_icon };
         drawList->AddLine({ botTip.x - arm, botTip.y - arm }, botTip, iconColor, th);
         drawList->AddLine({ botTip.x + arm, botTip.y - arm }, botTip, iconColor, th);
-        const ImVec2 leftTip = { center.x - size, center.y };
+        const ImVec2 leftTip = { center.x - size + offset_icon, center.y + offset_icon };
         drawList->AddLine({ leftTip.x + arm, leftTip.y - arm }, leftTip, iconColor, th);
         drawList->AddLine({ leftTip.x + arm, leftTip.y + arm }, leftTip, iconColor, th);
-        const ImVec2 rightTip = { center.x + size, center.y };
+        const ImVec2 rightTip = { center.x + size + offset_icon, center.y + offset_icon };
         drawList->AddLine({ rightTip.x - arm, rightTip.y - arm }, rightTip, iconColor, th);
         drawList->AddLine({ rightTip.x - arm, rightTip.y + arm }, rightTip, iconColor, th);
 

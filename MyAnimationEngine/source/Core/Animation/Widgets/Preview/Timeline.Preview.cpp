@@ -1208,7 +1208,6 @@ void Timeline_Preview::DrawViewGizmo(const ImVec2& p_min, const ImVec2& p_max) {
 }
 
 void Timeline_Preview::Draw() {
-
     ImViewGuizmo::BeginFrame();
 
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, COLOR_BG_VIEWER.Value);
@@ -1222,7 +1221,6 @@ void Timeline_Preview::Draw() {
 		auto drawlist = ImGui::GetWindowDrawList();
 		ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
 		ImVec2 region_max = ImGui::GetContentRegionAvail();
-
 
 		height_bottom_menu = eval(22.f);
 
@@ -1320,10 +1318,7 @@ void Timeline_Preview::Draw() {
 			}
 		}
 
-
-
-		if (pc.isHoveredWidgetRegion && !ImViewGuizmo::IsOver() && pc.isHoveredTextureFramebuffer && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-		{
+		if (pc.isHoveredWidgetRegion && !ImViewGuizmo::IsOver() && pc.isHoveredTextureFramebuffer && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 			mouseIsDraging = true;
 		}
 
@@ -1339,7 +1334,6 @@ void Timeline_Preview::Draw() {
 			horizontal.applyOffsetDelta();
 			vertical.applyOffsetDelta();
 		}
-
 
 		ImVec2 LU = {
 		    cursor_pos.x + horizontal.getPosScreen_lerped(-1.f * aspect_ratio),
@@ -1369,7 +1363,6 @@ void Timeline_Preview::Draw() {
 
 	ImGui::PopStyleVar(2);
 	ImGui::PopStyleColor(2);
-
 
 }
 
