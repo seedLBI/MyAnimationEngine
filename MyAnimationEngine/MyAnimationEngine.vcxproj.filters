@@ -740,6 +740,9 @@
     <ClInclude Include="source\ThirdParty\ImViewGuizmo\ImViewGuizmo.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="source\InputManager\InputManager.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -12,7 +12,6 @@
 #pragma comment(lib, "winmm.lib")
 #pragma comment(lib, "dwmapi.lib")
 
-
 #include "ThirdParty/ImGui/imgui.h"
 #include "ThirdParty/ImGui/imgui_internal.h"
 #include "ThirdParty/ImGui/imgui_impl_glfw.h"
@@ -36,7 +35,6 @@
 #include "MainMenuBar/MainMenuBar.h"
 #include "FontManager/FontManager.h"
 
-
 #include "Core/Animation/Widgets/Panel/Timeline.Panel.h"
 #include "Core/Animation/Widgets/Player/Timeline.Player.h"
 #include "Core/Animation/Timeline/Controller/Timeline.Controller.h"
@@ -47,14 +45,11 @@
 
 #include "Core/Animation/Renderer/Renderer.h"
 
-
 #include "Core/DebugOverlay/DebugOverlay.h"
 
 
 static WNDPROC orig_wndproc = nullptr;
 static std::unordered_map<HWND, GLFWwindow*> g_hwnd_to_window;
-
-
 
 
 class Application {

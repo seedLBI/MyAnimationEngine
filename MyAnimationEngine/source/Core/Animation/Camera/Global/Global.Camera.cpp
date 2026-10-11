@@ -117,13 +117,16 @@ void Camera_Global::UpdateLook(glm::vec2 delta) {
 void Camera_Global::UpdateLean(float dt) {
     float strafe_dir = 0.f;
 
-    if (ImGui::IsKeyDown(ImGuiKey_A)) strafe_dir -= 1.f;
-    if (ImGui::IsKeyDown(ImGuiKey_D)) strafe_dir += 1.f;
+    if (ImGui::IsKeyDown(ImGuiKey_A)) strafe_dir -= 0.25f;
+    if (ImGui::IsKeyDown(ImGuiKey_D)) strafe_dir += 0.25f;
+
+    if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+        strafe_dir *= 4.f;
 
     const float strafe_roll = -strafe_dir * 5.f;
 
     if (dt == 0.f) dt = 0.016f;
-    const float turn_roll = (delta_yaw / dt) * 0.025f;
+    const float turn_roll = (delta_yaw / dt) * 0.5f;
 
     lean.Set(strafe_roll + turn_roll);
 }

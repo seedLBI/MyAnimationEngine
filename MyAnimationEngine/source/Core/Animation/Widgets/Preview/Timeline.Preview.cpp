@@ -1179,10 +1179,6 @@ void Timeline_Preview::DrawViewGizmo(const ImVec2& p_min, const ImVec2& p_max) {
     glm::vec3 gizmoPos = cam.getPos();
     glm::quat gizmoRot = cam.getGizmoRotation();
 
-    ImGuiIO& io = ImGui::GetIO();
-    const bool lock = !IsUsing() && (mouseIsDraging || !ImGui::IsWindowHovered());
-    if (lock) io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
-
     const float margin = 14.f;
     const float radius = 80.f * style.scale;
     const ImVec2 gizmo_center(p_max.x - margin - radius, p_min.y + margin + radius);
@@ -1199,7 +1195,6 @@ void Timeline_Preview::DrawViewGizmo(const ImVec2& p_min, const ImVec2& p_max) {
     modified |= Dolly(gizmoPos, gizmoRot, ImVec2(row.x + btn + 6.f, row.y), 0.05f);
     modified |= Pan(gizmoPos, gizmoRot, row, 0.01f);
 
-    if (lock) io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
 
     if (modified) {
         cam.setFromGizmo(gizmoPos, gizmoRot);
@@ -1245,44 +1240,60 @@ void Timeline_Preview::Draw() {
 			((pc.mouse_global_relative.y >= -1.f) && (pc.mouse_global_relative.y <= 1.f));
 
 		static bool camera_mode = false;
+        static double cam_saved_x = 0.0;
+        static double cam_saved_y = 0.0;
 
 		bool isShiftPressed = ImGui::IsKeyPressed(ImGuiKey_RightShift);
 		bool isESCPressed = ImGui::IsKeyPressed(ImGuiKey_Escape);
 
-		if (isShiftPressed || isESCPressed) {
-			if (isESCPressed && camera_mode)
-			{
-				camera_mode = false;
+        bool shouldExitCamera = isESCPressed && camera_mode;
 
-				GLFWwindow* window = WindowManager::getInstance().GetHandle();
+        if (isShiftPressed || shouldExitCamera) {
+            if (shouldExitCamera)
+                camera_mode = false;
+            else
+                camera_mode = !camera_mode;
 
-				if (camera_mode) {
-					if (glfwRawMouseMotionSupported())
-						glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-					glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-				}
-				else {
-					glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-					glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
-				}
-			}
-			else {
-				camera_mode = !camera_mode;
+            GLFWwindow* window = WindowManager::getInstance().GetHandle();
+            ImGuiIO& io = ImGui::GetIO();
 
-				GLFWwindow* window = WindowManager::getInstance().GetHandle();
+            if (camera_mode) {
+                io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
 
-				if (camera_mode) {
-					if (glfwRawMouseMotionSupported())
-						glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-					glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-				}
-				else {
-					glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-					glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
-				}
-			}
+                glfwGetCursorPos(window, &cam_saved_x, &cam_saved_y);
 
-		}
+                if (glfwRawMouseMotionSupported())
+                    glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            }
+            else {
+                io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+
+                glfwSetCursorPos(window, cam_saved_x, cam_saved_y);
+                io.MousePos = ImVec2((float)cam_saved_x, (float)cam_saved_y);
+
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+            }
+        }
+
+        if (camera_mode)
+            ImGui::GetIO().MousePos = ImVec2((float)cam_saved_x, (float)cam_saved_y);
+
+        ImGuiIO& io = ImGui::GetIO();
+        DebugOverlay::AddText(
+            "ImGuiConfigFlags_NoMouse: " +
+            std::string(((io.ConfigFlags & ImGuiConfigFlags_NoMouse) != 0) ? "TRUE" : "FALSE"),
+            ImColor(1.f, 1.f, 1.f, 1.f)
+        );
+        
+        DebugOverlay::AddText(
+            "io.MousePos: (" +
+            std::to_string(io.MousePos.x) + "," +
+            std::to_string(io.MousePos.y) + ")",
+            ImColor(1.f, 1.f, 1.f, 1.f)
+        );
+
 
 		static glm::vec2 prev_m = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
 

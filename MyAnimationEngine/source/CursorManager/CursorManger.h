@@ -21,7 +21,6 @@
 #include <string>
 #include <cstdint>
 
-
 #include "WindowManager/WindowManager.h"
 
 enum class TypeCursor {

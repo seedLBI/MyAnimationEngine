@@ -146,6 +146,7 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\StatusGlobalButtons\Timeline.StatusGlobalButtons.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Textures\Noise\Texture.Noise.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.h" />
+    <ClInclude Include="source\InputManager\InputManager.h" />
     <ClInclude Include="source\ThirdParty\ImViewGuizmo\ImViewGuizmo.h" />
     <ClInclude Include="source\Utils\OpenGL\AsyncPixelReader\AsyncPixelReader.h" />
     <ClInclude Include="source\Utils\TransformScaled\Transform.Scaled.h" />
