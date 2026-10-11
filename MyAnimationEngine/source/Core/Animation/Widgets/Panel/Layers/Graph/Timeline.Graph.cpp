@@ -830,7 +830,12 @@ void Timeline_Graph::Draw() {
 	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
 	ImVec2 region_max = ImGui::GetContentRegionAvail();
 
-	height_menu_buttons = eval(41.0f);
+
+	float temp = (2.f);
+	height_menu_buttons = eval(31.0f);
+
+	DebugOverlay::AddText("height_menu_buttons:\t" + std::to_string(height_menu_buttons), ImColor(1.f, 0.f, 0.f, 1.f));
+	DebugOverlay::AddText("temp:\t" + std::to_string(temp), ImColor(1.f, 0.f, 0.f, 1.f));
 
 	region_max.y -= height_menu_buttons;
 

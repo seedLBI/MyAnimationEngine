@@ -148,6 +148,12 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.h" />
     <ClInclude Include="source\InputManager\InputManager.h" />
     <ClInclude Include="source\ThirdParty\ImViewGuizmo\ImViewGuizmo.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\consistency.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\DbgHelpRef.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\drugLogic.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\mouse.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\uiCallBackBridge.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\windowManagement.h" />
     <ClInclude Include="source\Utils\OpenGL\AsyncPixelReader\AsyncPixelReader.h" />
     <ClInclude Include="source\Utils\TransformScaled\Transform.Scaled.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Vertical\Timeline.Transform.Vertical.h" />

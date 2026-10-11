@@ -237,7 +237,7 @@ void Application::Draw() {
 	timelinePanel->Draw();
 	preview->Draw();
 
-	ImGui::ShowDemoWindow();
+	//ImGui::ShowDemoWindow();
 
 	DebugOverlay::DrawDebug();
 
@@ -251,7 +251,7 @@ void Application::Update() {
 
 
 	CursorManager::getInstance().Update();
-	CursorManager::getInstance().SetCursor(eval(TypeCursor::HAND_OPEN));
+	CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
 
 
 	if (ImGui::IsKeyPressed(ImGuiKey_Tab)) {

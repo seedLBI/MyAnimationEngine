@@ -188,7 +188,7 @@ void Timeline_Preview::DrawBottomMenu_Scale(float& pos_cursor_draw, const ImVec2
 
     {
         float text_h = ImGui::GetTextLineHeight();
-        float margin_elements_height = eval(7.f);
+        float margin_elements_height = 7.f;
         float btn_padding = 6.f;
 
         const float tick_h = 12.f;
@@ -215,7 +215,7 @@ void Timeline_Preview::DrawBottomMenu_Scale(float& pos_cursor_draw, const ImVec2
         const char* str_mode = u8"Режим";
         const char* str_percent = u8"Процент";
 
-        float margin_elements_height = eval(7.f);
+        float margin_elements_height = 7.f;
 
         const float btn_padding = 6.f;
         const float btn_rounding = 15.f;
@@ -489,7 +489,7 @@ void Timeline_Preview::DrawBottomMenu_TextureSetting(float& pos_cursor_draw, con
 
     {
         float text_h = ImGui::GetTextLineHeight();
-        float margin_elements_height = eval(7.f);
+        float margin_elements_height = 7.f;
         float btn_padding = 6.f;
         float btn_margin = 1.f;
 
@@ -519,7 +519,7 @@ void Timeline_Preview::DrawBottomMenu_TextureSetting(float& pos_cursor_draw, con
 
         ImVec2 size_apply_text = ImGui::CalcTextSize(str_apply);
 
-        float margin_elements_height = eval(7.f);
+        float margin_elements_height = 7.f;
 
         const float btn_padding = 6.f;
         const float btn_margin = 1.f;
@@ -940,7 +940,7 @@ void Timeline_Preview::DrawBottomMenu_Resolution(float& pos_cursor_draw, const I
         ImVec2 size_ratio_text = ImGui::CalcTextSize(str_ratio);
         ImVec2 size_resolution_text = ImGui::CalcTextSize(str_resolution);
 
-        float margin_elements_height = eval(7.f);
+        float margin_elements_height = 7.f;
 
         const float btn_padding = 6.f;
         const float btn_margin = 1.f;
@@ -1217,7 +1217,7 @@ void Timeline_Preview::Draw() {
 		ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
 		ImVec2 region_max = ImGui::GetContentRegionAvail();
 
-		height_bottom_menu = eval(22.f);
+		height_bottom_menu = 22.f;
 
 		region_max.y -= height_bottom_menu;
 

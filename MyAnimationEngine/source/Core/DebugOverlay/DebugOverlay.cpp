@@ -15,7 +15,7 @@ namespace DebugOverlay {
         std::vector<LineTexts> elements;
         LerpedValue<float> timer_show = LerpedValue<float>(1.f);
         bool isShow = true;
-        Anchor anchor = Anchor::BottomRight;
+        Anchor anchor = Anchor::BottomLeft;
     }
 
     void SetAnchor(Anchor anchor) { vars::anchor = anchor; }

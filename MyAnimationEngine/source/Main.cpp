@@ -2,7 +2,6 @@
     //#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
-#include "ThirdParty/LivePT/LivePT.h"
 #include "Application/Application.h"
 
 int main() {
