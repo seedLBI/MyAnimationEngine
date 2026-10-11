@@ -877,7 +877,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;LivePT_EditMode=false;LivePT_WheelEditMode=true;LivePT_WindowManagement=true;LivePT_AppToSecondaryDisplay=false;LPT_TRIGGER_BUTTON=VK_LBUTTON;TIMER_ID=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;LivePT_EditMode=true;LivePT_WheelEditMode=true;LivePT_WindowManagement=true;LivePT_AppToSecondaryDisplay=false;LPT_TRIGGER_BUTTON=VK_LBUTTON;TIMER_ID=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)\source;$(ProjectDir)\VCPKG_LIBS\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>

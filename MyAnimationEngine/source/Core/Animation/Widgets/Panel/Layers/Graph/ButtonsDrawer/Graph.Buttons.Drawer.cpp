@@ -99,9 +99,9 @@ void GraphButtonsDrawer::Draw(const ImVec2& p_min, const ImVec2& p_max) {
 	float size_btn = height * (0.554f);
 	float padding_size_btn = size_btn * (0.12f);
 
-	float separator_width = (4.f);
-	float space_width = (67.f);
-	float gap = (-12.9f);
+	float separator_width = eval(4.f);
+	float space_width = (6.f);
+	float gap = (7.9f);
 
 	DebugOverlay::AddText("separator_width:\t" + std::to_string(separator_width), ImColor(1.f, 0.f, 0.f, 1.f));
 	DebugOverlay::AddText("space_width:\t" + std::to_string(space_width), ImColor(1.f, 0.f, 0.f, 1.f));

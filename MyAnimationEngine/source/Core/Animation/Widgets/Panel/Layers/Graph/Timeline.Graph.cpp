@@ -763,7 +763,7 @@ void Timeline_Graph::DrawSpeedGraph(ImVec2 p_min, ImVec2 p_max) {
 	float max_vertical_bound = ctx->graphTransformVertical->getMaxBoundView_lerped();
 
 	float height_vertical_bound = (max_vertical_bound - min_vertical_bound);
-	float padding_vertical_bound = height_vertical_bound * (1.f - eval(0.9f));
+	float padding_vertical_bound = height_vertical_bound * (1.f - (0.9f));
 
 	min_vertical_bound += padding_vertical_bound / 2.f;
 	max_vertical_bound -= padding_vertical_bound / 2.f;
@@ -832,7 +832,7 @@ void Timeline_Graph::Draw() {
 
 
 	float temp = (2.f);
-	height_menu_buttons = eval(31.0f);
+	height_menu_buttons = eval(34.0f);
 
 	DebugOverlay::AddText("height_menu_buttons:\t" + std::to_string(height_menu_buttons), ImColor(1.f, 0.f, 0.f, 1.f));
 	DebugOverlay::AddText("temp:\t" + std::to_string(temp), ImColor(1.f, 0.f, 0.f, 1.f));
