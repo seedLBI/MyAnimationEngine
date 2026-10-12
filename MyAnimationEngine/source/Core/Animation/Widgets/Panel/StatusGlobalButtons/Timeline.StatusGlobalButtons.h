@@ -14,7 +14,7 @@ public:
 	const bool& isMotionBlurMode();
 
 private:
-	bool GraphMode = false;
+	bool GraphMode = true;
 	bool MotionBlurMode = false;
 };
 

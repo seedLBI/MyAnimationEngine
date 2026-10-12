@@ -184,7 +184,8 @@ namespace LivePT {
         if (pDTE) {
             pDTE->Release();
             pDTE = nullptr;
-            Log("[EnvDTE] Connection lost. pDTE reset.");
+            Log("[EnvDTE] ", false, true, true);
+            Log("Connection lost. pDTE reset.");
         }
     }
 
@@ -1006,7 +1007,8 @@ namespace LivePT {
                 }
             }
             g_IsLptPdbWarmupCompleted = true;
-            Log("[LivePT Async Warmup] Background PDB parsing completed. Library is fully ready.");
+            Log("[LivePT Async Warmup] ", false, true, true);
+            Log("Background PDB parsing completed. Library is fully ready.");
             });
 
         // Отвязываем поток, чтобы он работал асинхронно
@@ -1023,8 +1025,8 @@ namespace LivePT {
             auto endTime = std::chrono::high_resolution_clock::now();
             auto durationMicro = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
             double durationMilli = durationMicro / 1000.0;
-
-            LivePT::Log("[LivePT External Profile] Warmup execution time: " +
+            Log("[LivePT External Profile] ", false, true, true);
+            LivePT::Log("Warmup execution time: " +
                 std::to_string(durationMilli) + " ms (" + std::to_string(durationMicro) + " us).");
 
             isFirstFrame = false;
