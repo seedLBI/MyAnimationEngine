@@ -659,6 +659,20 @@ namespace LivePT {
             std::string normalizedPath = LivePT::NormalizePath(g_currentActiveFile.c_str());
             g_dragState.targetParamId = FindParamIdByStrictGeometry(normalizedPath, line, originalColumn);
 
+            Log("[LivePT Focus] ", false, true, true);
+            if (g_dragState.targetParamId >= 0 && g_dragState.targetParamId < static_cast<int>(paramDesc.size())) {
+                const auto& p = paramDesc[g_dragState.targetParamId];
+                Log("Начало Drag: globalID=" + std::to_string(g_dragState.targetParamId) +
+                    " (localID=" + std::to_string(p.counterID) + ") | " +
+                    p.fileName + " [Line: " + std::to_string(line) + ", Col: " + std::to_string(g_dragState.dragStartCol) +
+                    "] | Start value: \"" + cleanText + "\"");
+            }
+            else {
+                Log("Начало Drag: [Line: " + std::to_string(line) + ", Col: " + std::to_string(g_dragState.dragStartCol) +
+                    "] | Start value: \"" + cleanText + "\"");
+            }
+
+
             if (!g_dragState.isCursorHidden) {
                 ShowCursor(FALSE);
                 g_dragState.isCursorHidden = true;
@@ -1341,6 +1355,29 @@ namespace LivePT {
 
         EndUndoTransaction();
         SaveActiveDocument();
+
+        const std::string& initialVal = g_dragState.lastValueStr;
+        const std::string& finalVal = g_dragState.isProportionalStructDrag
+            ? g_dragState.startTextValue
+            : g_dragState.oldValueStr;
+
+        Log("[LivePT Focus] ", false, true, true);
+        if (initialVal != finalVal) {
+            if (g_dragState.targetParamId >= 0 && g_dragState.targetParamId < static_cast<int>(paramDesc.size())) {
+                const auto& p = paramDesc[g_dragState.targetParamId];
+                Log("Конец Drag: globalID=" + std::to_string(g_dragState.targetParamId) +
+                    " (localID=" + std::to_string(p.counterID) + ") | " +
+                    "\"" + initialVal + "\" -> \"" + finalVal + "\"");
+            }
+            else {
+                Log("Конец Drag: [Line: " + std::to_string(g_dragState.dragLine) + "] | " +
+                    "\"" + initialVal + "\" -> \"" + finalVal + "\"");
+            }
+        }
+        else {
+            Log("Конец Drag: значение не изменилось (\"" + initialVal + "\")");
+        }
+
 
         // Сбрасываем оба флага рантайм-состояния
         g_dragState.isDragging = false;

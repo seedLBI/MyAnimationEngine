@@ -85,9 +85,28 @@ namespace LivePT {
         return cachedMacroName;
     }
 
-    inline void Log(const std::string& text, bool nl = true) {
-        OutputDebugStringA(text.c_str());
-        if (nl) OutputDebugStringA("\n");
+    inline void Log(const std::string& text, bool nl = true, bool bold = false, bool italic = false) {
+        std::wstring w(text.size(), 0), out;
+        int n = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text.data(), (int)text.size(), w.data(), (int)w.size());
+        if (!n) n = MultiByteToWideChar(CP_ACP, 0, text.data(), (int)text.size(), w.data(), (int)w.size());
+        w.resize(n);
+
+        if (int style = bold + italic * 2) {
+            for (wchar_t c : w) {
+                if ((c >= L'A' && c <= L'Z') || (c >= L'a' && c <= L'z'))
+                    out += {wchar_t(0xD835), wchar_t(0xDDD4 + (style - 1) * 52 + (c >= L'a' ? c - L'a' + 26 : c - L'A'))};
+                else if (c >= L'0' && c <= L'9' && bold)
+                    out += {wchar_t(0xD835), wchar_t(0xDFEC + c - L'0')};
+                //else if (c > 0x20 && c < 0x7F && bold)
+                //   out += wchar_t(c + 0xFEE0);
+                else
+                    out += c;
+            }
+            w = std::move(out);
+        }
+
+        if (nl) w += L'\n';
+        OutputDebugStringW(w.c_str());
     }
 }
 

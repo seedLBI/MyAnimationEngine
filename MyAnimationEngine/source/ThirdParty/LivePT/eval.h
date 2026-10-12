@@ -42,6 +42,7 @@ namespace LivePT {
         int line = 0;
         int column = 0;
         std::function<void(std::any& targetAny, const std::string& textValue)> stringUpdater = nullptr;
+        std::string lastDebugValue = "";
     };
 
 
@@ -70,6 +71,10 @@ namespace LivePT {
 
         for (char c : newValue) {
             if (static_cast<unsigned char>(c) > 127) return;
+        }
+
+        if (paramDesc[id].lastDebugValue != newValue) {
+            paramDesc[id].lastDebugValue = newValue;
         }
 
         if (paramDesc[id].enumInfo.isEnum) {

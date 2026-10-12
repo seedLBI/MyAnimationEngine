@@ -33,47 +33,59 @@
             }
         }
 
-        // 2. Вычисляем символ в строке, соответствующий rawColumn (с компиляторным учетом табов = 8)
+        // 2. Вычисляем символ в строке, соответствующий rawColumn
         size_t nextNL = fileText.find(L'\n', lineStartOffset);
         if (nextNL == std::wstring::npos) nextNL = fileText.length();
         std::wstring lineText = fileText.substr(lineStartOffset, nextNL - lineStartOffset);
 
-        long currentVisualCol = 1;
-        size_t paramCharIdx = lineText.length();
-        for (size_t i = 0; i < lineText.length(); ++i) {
-            if (currentVisualCol >= rawColumn) {
-                paramCharIdx = i;
-                break;
-            }
-            // Разворачиваем табы строго по логике компилятора (шаг 8)
-            currentVisualCol += (lineText[i] == L'\t') ? (COMPILER_TAB_SIZE - ((currentVisualCol - 1) % COMPILER_TAB_SIZE)) : 1;
-        }
+        // __builtin_COLUMN() возвращает 1-based индекс (где '\t' = 1 символ).
+        // Переводим в 0-based индекс и даем небольшой запас вправо (+ длина макроса),
+        // чтобы rfind гарантированно захватил токен, даже если rawColumn указывает ровно на 'e'.
+        size_t paramCharIdx = (rawColumn > 0) ? static_cast<size_t>(rawColumn - 1) : 0;
+        paramCharIdx = (std::min)(paramCharIdx + macroName.length(), lineText.length());
 
-        // Абсолютное смещение в файле, откуда начинаем искать макрос назад
         size_t searchOrigin = lineStartOffset + paramCharIdx;
         if (searchOrigin > fileText.length()) searchOrigin = fileText.length();
 
+        auto isTokenValid = [&](size_t pos) {
+            bool validLeft = (pos == 0 || (!iswalnum(fileText[pos - 1]) && fileText[pos - 1] != L'_'));
+            bool validRight = (pos + macroName.length() >= fileText.length() ||
+                (!iswalnum(fileText[pos + macroName.length()]) && fileText[pos + macroName.length()] != L'_'));
+            return validLeft && validRight;
+            };
+
         // 3. Лексическое сканирование текста НАЗАД в поисках макроса
         size_t targetMacroStart = std::wstring::npos;
-        while (searchOrigin > 0) {
-            size_t rfindPos = fileText.rfind(macroName, searchOrigin);
+        size_t scanPos = searchOrigin;
+
+        while (scanPos > 0) {
+            size_t rfindPos = fileText.rfind(macroName, scanPos);
             if (rfindPos == std::wstring::npos) break;
 
-            // Синтаксическая валидация границ токена (исключаем my_eval, eval_state и т.д.)
-            bool validLeft = (rfindPos == 0 || (!iswalnum(fileText[rfindPos - 1]) && fileText[rfindPos - 1] != L'_'));
-            bool validRight = (rfindPos + macroName.length() >= fileText.length() ||
-                (!iswalnum(fileText[rfindPos + macroName.length()]) && fileText[rfindPos + macroName.length()] != L'_'));
-
-            if (validLeft && validRight) {
+            if (isTokenValid(rfindPos)) {
                 targetMacroStart = rfindPos;
                 break;
             }
 
             if (rfindPos == 0) break;
-            searchOrigin = rfindPos - 1;
+            scanPos = rfindPos - 1;
         }
 
-        if (targetMacroStart == std::wstring::npos) return result;
+        // ЗАЩИТА ОТ ПРОМАХА НА ТЕКУЩЕЙ СТРОКЕ:
+        // Если rfind улетел на предыдущие строки (меньше lineStartOffset) или вернул npos,
+        // проверяем, нет ли валидного токена eval правее на самой строке rawLine.
+        if (targetMacroStart == std::wstring::npos || targetMacroStart < lineStartOffset) {
+            size_t forwardPos = lineStartOffset;
+            while (forwardPos < nextNL) {
+                size_t fPos = fileText.find(macroName, forwardPos);
+                if (fPos == std::wstring::npos || fPos >= nextNL) break;
+                if (isTokenValid(fPos)) {
+                    targetMacroStart = fPos;
+                    break;
+                }
+                forwardPos = fPos + 1;
+            }
+        }
 
         // 4. Математический пересчет абсолютного смещения в честные Line и Column
         long preciseLine = 1;
@@ -132,60 +144,89 @@
     static bool baseIsAligned = false;
 
     inline void AlignDatabaseFastFromDisk() {
-        
+
         if (baseIsAligned) return;
         baseIsAligned = true;
 
-        // Достаем оригинальное дерево, накопленное компилятором в Pre-Main
         auto& fileCompileTree = GetFileCompileTree();
         auto& params = LivePT::getParamDesc();
 
-        // 1. Идем строго по файлам из хэшмапы. Порядок файлов случайный, но заходим в каждый ОДИН раз.
-        for (auto& [filePath, fileMap] : fileCompileTree) {
+        Log("================ [LivePT: Поиск eval в файлах] ================");
+        Log("[LivePT Init] ",false, true, true); 
+        Log("Всего зарегистрировано eval в базе : " + std::to_string(params.size()));
 
-            // 2. Читаем файл с диска ровно один раз
+        for (auto& [filePath, fileMap] : fileCompileTree) {
+            std::string fileName = filePath.substr(filePath.find_last_of("/\\") + 1);
+
             std::wstring fileText = ReadFileFromDisk(filePath);
             if (fileText.empty()) {
-                Log("[LivePT Disk Init] File read error or file is empty: " + filePath);
+                Log("[LivePT Disk Init] ", false, true, true);
+                Log("Ошибка чтения или пустой файл: " + filePath);
                 continue;
             }
 
-            // 3. Внутренний map гарантирует, что мы идем по тексту строго сверху вниз
+            Log("[LivePT File] ", false, true, true);
+            Log("Файл: {", false);
+            Log(fileName, false, true);
+            Log("} (найдено макросов: " + std::to_string(fileMap.size()) + ")");
+
             for (auto& [staticKey, paramId] : fileMap) {
                 if (paramId < 0 || paramId >= static_cast<int>(params.size())) continue;
 
                 auto& p = params[paramId];
 
-                // Ищем честный 'eval' назад от сырых координат компилятора
                 PreciseCoord precise = FindEvalTokenBackward(fileText, staticKey.line, staticKey.column);
 
                 if (precise.absoluteOffset != std::wstring::npos) {
-                    // Жестко выставляем координаты на 'e' слова eval
                     p.line = static_cast<int>(precise.line);
                     p.column = static_cast<int>(precise.column);
-                    p.loaded = true; // Параметр готов к рантайм-сдвигам
+                    //p.loaded = true;
+
+                    Log("\t", false);
+                    Log("-->[FOUND] ", false,true,true);
+                    Log("     globalID=" + std::to_string(paramId) +
+                        " (localID=" + std::to_string(p.counterID) + ")" +
+                        " | Line: " + std::to_string(p.line) +
+                        ", Col: " + std::to_string(p.column) +
+                        " (raw compiler: " + std::to_string(staticKey.line) + ":" + std::to_string(staticKey.column) + ")");
+                }
+                else {
+                    Log("\t", false);
+                    Log("-->[NOT FOUND] ", false, true, true);
+                    Log("globalID=" + std::to_string(paramId) +
+                        " | Не удалось найти токен eval около " +
+                        std::to_string(staticKey.line) + ":" + std::to_string(staticKey.column));
                 }
             }
         }
+        Log("===============================================================");
     }
-
 
     inline void ShiftDatabaseCoordinates(const std::string& targetFile, long targetLine, long visualStartCol, int lineDelta, int columnDelta) {
 
         auto& params = LivePT::getParamDesc();
         std::string normalizedTarget = LivePT::NormalizePath(targetFile.c_str());
 
-        for (auto& p : params) {
+        for (size_t i = 0; i < params.size(); ++i) {
+            auto& p = params[i];
             if (p.fileName != normalizedTarget) continue;
 
-            // 1. Сдвиг строк для всех элементов строго ниже изменения
+            int oldLine = p.line;
+            int oldCol = p.column;
+
             if (lineDelta != 0 && p.line > targetLine) {
                 p.line += lineDelta;
             }
 
-            // 2. Сдвиг колонок для элементов на той же строке правее изменения
             if (columnDelta != 0 && p.line == targetLine && p.column > visualStartCol) {
                 p.column += columnDelta;
+            }
+
+            if (oldLine != p.line || oldCol != p.column) {
+                Log("[LivePT Shift] globalID=" + std::to_string(i) +
+                    " (" + p.fileName + ") сдвинут: " +
+                    std::to_string(oldLine) + ":" + std::to_string(oldCol) + " -> " +
+                    std::to_string(p.line) + ":" + std::to_string(p.column));
             }
         }
     }
