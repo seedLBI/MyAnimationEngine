@@ -656,8 +656,16 @@ namespace LivePT {
     inline void ShiftDatabaseCoordinates(const std::string& targetFile, long targetLine, long visualStartCol, int lineDelta, int columnDelta);
 
     // === ЕДИНЫЙ ПОЛНОСТЬЮ ОЧИЩЕННЫЙ ДИСПЕТЧЕР LivePT ===
-        // === ЕДИНЫЙ ПОЛНОСТЬЮ ОЧИЩЕННЫЙ ДИСПЕТЧЕР СИНХРОНИЗАЦИИ LivePT ===
     inline void vsEditor() {
+        if (!isMouseDragging()) {
+            static auto lastPollTime = std::chrono::steady_clock::now();
+            auto now = std::chrono::steady_clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPollTime).count() < 80) {
+                return;
+            }
+            lastPollTime = now;
+        }
+
         if (!initVsEditor()) return;
 
         VARIANT vtActiveDoc; VariantInit(&vtActiveDoc);
