@@ -184,11 +184,14 @@
 
                     Log("\t", false);
                     Log("-->[FOUND] ", false,true,true);
+
                     Log("     globalID=" + std::to_string(paramId) +
                         " (localID=" + std::to_string(p.counterID) + ")" +
-                        " | Line: " + std::to_string(p.line) +
-                        ", Col: " + std::to_string(p.column) +
                         " (raw compiler: " + std::to_string(staticKey.line) + ":" + std::to_string(staticKey.column) + ")");
+
+                    Log("\t\t\t", false);
+                    LogClickablePath(filePath, p.line);
+                    Log(" ");
                 }
                 else {
                     Log("\t", false);

@@ -168,6 +168,7 @@ namespace LivePT {
         if (pDTE) return true;
 
         DWORD parentPid = GetStudioProcessId();
+        Log("[LivePT] ", false, true, true);
         Log("Target Studio PID: " + std::to_string(parentPid));
 
         pDTE = GetDTEByPid(parentPid);
@@ -176,6 +177,7 @@ namespace LivePT {
             return false;
         }
 
+        Log("[LivePT] ", false, true, true);
         Log("Connected to Visual Studio successfully!");
         return true;
     }

@@ -85,6 +85,9 @@ namespace LivePT {
         return cachedMacroName;
     }
 
+
+
+
     inline void Log(const std::string& text, bool nl = true, bool bold = false, bool italic = false) {
         std::wstring w(text.size(), 0), out;
         int n = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text.data(), (int)text.size(), w.data(), (int)w.size());
@@ -108,6 +111,43 @@ namespace LivePT {
         if (nl) w += L'\n';
         OutputDebugStringW(w.c_str());
     }
+
+    inline void LogClickablePath(const std::string& absoluteFilePath, int line) {
+        char workDirBuf[MAX_PATH];
+        GetCurrentDirectoryA(MAX_PATH, workDirBuf);
+
+        auto NormalizePath = [](const char* fullPath) -> std::string {
+            std::string path(fullPath);
+            std::replace(path.begin(), path.end(), '\\', '/');
+            return path;
+        };
+
+
+        std::string workDir = NormalizePath(workDirBuf);
+        std::string absPath = NormalizePath(absoluteFilePath.c_str());
+
+        std::string wdLower = workDir;
+        std::string absLower = absPath;
+        std::transform(wdLower.begin(), wdLower.end(), wdLower.begin(), ::tolower);
+        std::transform(absLower.begin(), absLower.end(), absLower.begin(), ::tolower);
+
+        std::string result;
+
+        if (absLower.find(wdLower) == 0) {
+            std::string relPath = absPath.substr(workDir.length());
+            if (!relPath.empty() && relPath[0] == '/') {
+                relPath.erase(0, 1);
+            }
+
+            result = relPath + "(" + std::to_string(line) + "): ";
+        }
+        else {
+            result = absPath + "(" + std::to_string(line) + "): ";
+        }
+
+        Log(result);
+    }
+
 }
 
     #include "DbgHelpRef.h"
