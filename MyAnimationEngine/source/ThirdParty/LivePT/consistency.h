@@ -1,4 +1,4 @@
-namespace LivePT {
+﻿namespace LivePT {
 
     // Структура для возврата точных выверенных координат текстового токена
     struct PreciseCoord {
@@ -140,7 +140,7 @@ namespace LivePT {
     }
 
 
-    bool baseIsAligned = false;
+    inline bool baseIsAligned = false;
 
     inline void AlignDatabaseFastFromDisk() {
         if (baseIsAligned) return;
