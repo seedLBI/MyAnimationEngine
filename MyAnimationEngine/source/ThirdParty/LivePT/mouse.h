@@ -1,4 +1,4 @@
-п»ї#if LivePT_TriggerButton == VK_LBUTTON
+#if LivePT_TriggerButton == VK_LBUTTON
 #define LPT_WM_BUTTONUP   WM_LBUTTONUP
 #elif LivePT_TriggerButton == VK_MBUTTON
 #define LPT_WM_BUTTONUP   WM_MBUTTONUP
@@ -152,16 +152,16 @@ namespace LivePT {
     }
 
     inline std::string NormalizeTextEndings(std::string text, const std::wstring& fileFullText) {
-        // Р•СЃР»Рё РІ С‚РµРєСЃС‚Рµ РІРѕРѕР±С‰Рµ РЅРµС‚ РїРµСЂРµРЅРѕСЃРѕРІ (РѕРґРёРЅРѕС‡РЅС‹Рµ С‡РёСЃР»Р°), РІС‹С…РѕРґРёРј РјРіРЅРѕРІРµРЅРЅРѕ Р·Р° 0 С‚Р°РєС‚РѕРІ
+        // Если в тексте вообще нет переносов (одиночные числа), выходим мгновенно за 0 тактов
         if (text.find('\n') == std::string::npos) {
             return text;
         }
 
-        // РџСЂРѕРІРµСЂСЏРµРј РєРѕРЅРІРµРЅС€РЅ С„Р°Р№Р»Р° РїРѕ РЅР°Р»РёС‡РёСЋ С…РѕС‚СЏ Р±С‹ РѕРґРЅРѕРіРѕ \r\n РІ РґРѕРєСѓРјРµРЅС‚Рµ
+        // Проверяем конвеншн файла по наличию хотя бы одного \r\n в документе
         bool isFileCRLF = (fileFullText.find(L"\r\n") != std::wstring::npos);
 
         if (isFileCRLF) {
-            // Р•СЃР»Рё С„Р°Р№Р» Windows-СЃС‚РёР»СЏ (CRLF), РіР°СЂР°РЅС‚РёСЂСѓРµРј \r\n Р±РµР· РґСѓР±Р»РёСЂРѕРІР°РЅРёСЏ \r
+            // Если файл Windows-стиля (CRLF), гарантируем \r\n без дублирования \r
             size_t pos = 0;
             while ((pos = text.find("\r\n", pos)) != std::string::npos) {
                 text.replace(pos, 2, "\n");
@@ -173,7 +173,7 @@ namespace LivePT {
             }
         }
         else {
-            // Р•СЃР»Рё С„Р°Р№Р» Unix-СЃС‚РёР»СЏ (LF), РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РѕС‡РёС‰Р°РµРј РѕС‚ Р»СЋР±С‹С… \r
+            // Если файл Unix-стиля (LF), принудительно очищаем от любых \r
             text.erase(std::remove(text.begin(), text.end(), '\r'), text.end());
         }
 
@@ -281,7 +281,7 @@ namespace LivePT {
             for (; i < lineText.length(); ++i) {
                 if (currentVisualCol >= static_cast<size_t>(visualStartCol)) break;
 
-                if (lineText[i] == L'\r') continue; // РР“РќРћР РР РЈР•Рњ \r РџР Р Р РђРЎР§Р•РўР• РЎРўРђР РўРђ
+                if (lineText[i] == L'\r') continue; // ИГНОРИРУЕМ \r ПРИ РАСЧЕТЕ СТАРТА
 
                 currentVisualCol += (lineText[i] == L'\t') ? (TAB_SIZE - ((currentVisualCol - 1) % TAB_SIZE)) : 1;
             }
@@ -290,13 +290,13 @@ namespace LivePT {
             for (; i < lineText.length(); ++i) {
                 if (currentVisualCol >= static_cast<size_t>(visualEndCol)) break;
 
-                if (lineText[i] == L'\r') continue; // РР“РќРћР РР РЈР•Рњ \r РџР Р Р РђРЎР§Р•РўР• РљРћРќР¦Рђ
+                if (lineText[i] == L'\r') continue; // ИГНОРИРУЕМ \r ПРИ РАСЧЕТЕ КОНЦА
 
                 currentVisualCol += (lineText[i] == L'\t') ? (TAB_SIZE - ((currentVisualCol - 1) % TAB_SIZE)) : 1;
             }
             physicalEndCol = static_cast<long>(i) + 1;
 
-            // Р‘Р•Р—РћРџРђРЎРќРђРЇ РљРћРќР’Р•Р РўРђР¦РРЇ Р’ UTF-16 (РЎРѕС…СЂР°РЅСЏРµС‚ СЂСѓСЃСЃРєРёРµ Р±СѓРєРІС‹)
+            // БЕЗОПАСНАЯ КОНВЕРТАЦИЯ В UTF-16 (Сохраняет русские буквы)
             std::wstring wNewText = ConvertUtf8ToWString(NormalizeTextEndings(newText, fileText));
             std::wstring modifiedLineText = lineText;
 
@@ -313,7 +313,7 @@ namespace LivePT {
                     exactCharacterOffset = static_cast<long>(k) + 1;
                     break;
                 }
-                if (modifiedLineText[k] == L'\r') continue; // Р—РђР©РРўРђ РўР РђРќРЎР›РЇР¦РР РљРЈР РЎРћР A
+                if (modifiedLineText[k] == L'\r') continue; // ЗАЩИТА ТРАНСЛЯЦИИ КУРСОРA
 
                 runningVisualCol += (modifiedLineText[k] == L'\t') ? (TAB_SIZE - ((runningVisualCol - 1) % TAB_SIZE)) : 1;
             }
@@ -531,7 +531,7 @@ namespace LivePT {
             g_dragState.oldValue = atoi(g_dragState.pointBefore ? cleanText.substr(dotPos + 1).c_str() : cleanText.substr(0, dotPos).c_str());
         }
 
-        // РЎРўР РћР“РђРЇ РЎРРќРҐР РћРќРР—РђР¦РРЇ: РџСЂРµРґРѕС‚РІСЂР°С‰Р°РµС‚ С„Р°Р»СЊСЃС‚Р°СЂС‚ Р·Р°РјРµРЅРµ С‚РµРєСЃС‚Р° РїСЂРё РєР»РёРєРµ
+        // СТРОГАЯ СИНХРОНИЗАЦИЯ: Предотвращает фальстарт замене текста при клике
         g_dragState.lastValue = g_dragState.oldValue;
         g_dragState.newValue = g_dragState.oldValue;
     }
@@ -568,8 +568,8 @@ namespace LivePT {
 
                 if (SUCCEEDED(hr) && pSafeStartPoint.vt == VT_DISPATCH && pSafeStartPoint.pdispVal) {
 
-                    // РҐРР РЈР Р“РР§Р•РЎРљРђРЇ Р—РђР©РРўРђ: Р”РµР»Р°РµРј С€Р°Рі РЅР° 1 СЃРёРјРІРѕР» РІРїСЂР°РІРѕ Сѓ РІСЂРµРјРµРЅРЅРѕР№ С‚РѕС‡РєРё,
-                    // С‡С‚РѕР±С‹ СѓР№С‚Рё РІРЅСѓС‚СЂСЊ РѕС‚РєСЂС‹РІР°СЋС‰РµР№ СЃРєРѕР±РєРё Рё РЅРµ Р·Р°С‚РµСЂРµС‚СЊ РµС‘ (РєР°Рє РІ Р»РѕРіРёРєРµ ProcessEdit!)
+                    // ХИРУРГИЧЕСКАЯ ЗАЩИТА: Делаем шаг на 1 символ вправо у временной точки,
+                    // чтобы уйти внутрь открывающей скобки и не затереть её (как в логике ProcessEdit!)
                     AutoWrap(DISPATCH_METHOD, NULL, pSafeStartPoint.pdispVal, L"CharRight", 1, CComVariant(1L));
 
                     updatedArgsText = LivePT::NormalizeTextEndings(updatedArgsText, g_currentFileFullText);
@@ -594,7 +594,7 @@ namespace LivePT {
     inline long AdjustCursorIndexForNumericContext(const std::wstring& lineText, long originalVisualColumn) {
         if (lineText.empty()) return 0;
 
-        // 1. Р§Р•РЎРўРќР«Р™ РџР•Р Р•Р’РћР”: РљРѕРЅРІРµСЂС‚РёСЂСѓРµРј РІРёР·СѓР°Р»СЊРЅСѓСЋ РєРѕР»РѕРЅРєСѓ VS РІ С„РёР·РёС‡РµСЃРєРёР№ РёРЅРґРµРєСЃ СЃС‚СЂРѕРєРё wchar_t
+        // 1. ЧЕСТНЫЙ ПЕРЕВОД: Конвертируем визуальную колонку VS в физический индекс строки wchar_t
         long tabSize = GetVSTabSize();
         size_t currentVisualCol = 1;
         size_t physicalIdx = lineText.length();
@@ -607,7 +607,7 @@ namespace LivePT {
             currentVisualCol += (lineText[i] == L'\t') ? (tabSize - ((currentVisualCol - 1) % tabSize)) : 1;
         }
 
-        // Р•СЃР»Рё РєР»РёРєРЅСѓР»Рё РІ СЃР°РјС‹Р№ РєРѕРЅРµС† СЃС‚СЂРѕРєРё Р·Р° РїСЂРµРґРµР»Р°РјРё С‚РµРєСЃС‚Р°, Р±РµСЂРµРј РїРѕСЃР»РµРґРЅРёР№ СЃРёРјРІРѕР»
+        // Если кликнули в самый конец строки за пределами текста, берем последний символ
         if (physicalIdx >= lineText.length()) {
             physicalIdx = lineText.length() - 1;
         }
@@ -615,7 +615,7 @@ namespace LivePT {
         long cursorIdx = static_cast<long>(physicalIdx);
         if (cursorIdx < 0) return 0;
 
-        // 2. РђР”РђРџРўРР’РќР«Р™ РЎР”Р’РР“: Р•СЃР»Рё СЃС‚РѕРёРј РЅР° РїСЂРѕР±РµР»Рµ/Р·Р°РїСЏС‚РѕР№, РЅРѕ СЃР»РµРІР° С‡РёСЃР»Рѕ вЂ” РїРѕРґС…РІР°С‚С‹РІР°РµРј РµРіРѕ
+        // 2. АДАПТИВНЫЙ СДВИГ: Если стоим на пробеле/запятой, но слева число — подхватываем его
         bool isCurrentNumeric = false;
         if (cursorIdx < static_cast<long>(lineText.length())) {
             wchar_t ch = lineText[cursorIdx];
@@ -625,14 +625,14 @@ namespace LivePT {
         if (!isCurrentNumeric && cursorIdx > 0 && (cursorIdx - 1) < static_cast<long>(lineText.length())) {
             wchar_t leftCh = lineText[cursorIdx - 1];
 
-            // Р•СЃР»Рё СЃРёРјРІРѕР» СЃР»РµРІР° вЂ” С†РёС„СЂР° РёР»Рё С‚РѕС‡РєР°/РјРёРЅСѓСЃ
+            // Если символ слева — цифра или точка/минус
             if (iswdigit(leftCh) || leftCh == L'.' || leftCh == L'-' || leftCh == L'f' || leftCh == L'F') {
 
-                // Р—РђР©РРўРђ: РџСЂРѕРІРµСЂСЏРµРј, РЅРµ СЏРІР»СЏРµС‚СЃСЏ Р»Рё СЌС‚Р° С†РёС„СЂР° РєРѕРЅС†РѕРј РёРјРµРЅРё С‚РёРїР° (РєР°Рє РІ pos2, color3, size2)
+                // ЗАЩИТА: Проверяем, не является ли эта цифра концом имени типа (как в pos2, color3, size2)
                 if (iswdigit(leftCh) && (cursorIdx - 2) >= 0) {
                     wchar_t preLeftCh = lineText[cursorIdx - 2];
                     if (iswalpha(preLeftCh)) {
-                        // Р­С‚Рѕ Р±СѓРєРІР° РїРµСЂРµРґ С†РёС„СЂРѕР№ (РЅР°РїСЂРёРјРµСЂ, 's' РїРµСЂРµРґ '2'). РРіРЅРѕСЂРёСЂСѓРµРј СЃРґРІРёРі!
+                        // Это буква перед цифрой (например, 's' перед '2'). Игнорируем сдвиг!
                         return cursorIdx;
                     }
                 }
@@ -646,12 +646,12 @@ namespace LivePT {
 
 
 
-    // === РџРћР”Р¤РЈРќРљР¦РРЇ 2: РџСЂРѕРІРµСЂРєР° Р»РµРєСЃРёС‡РµСЃРєРёС… РіСЂР°РЅРёС† С‡РёСЃР»РѕРІРѕРіРѕ СЃРёРјРІРѕР»Р° ===
+    // === ПОДФУНКЦИЯ 2: Проверка лексических границ числового символа ===
     inline bool IsNumericTokenChar(wchar_t ch) {
         return iswdigit(ch) || ch == L'.' || ch == L'-' || ch == L'f' || ch == L'F';
     }
 
-    // === РџРћР”Р¤РЈРќРљР¦РРЇ 3: РЎРєР°РЅРёСЂРѕРІР°РЅРёРµ С„РёР·РёС‡РµСЃРєРёС… РіСЂР°РЅРёС† С‚РѕРєРµРЅР° С‡РёСЃР»Р° РЅР° СЃС‚СЂРѕРєРµ ===
+    // === ПОДФУНКЦИЯ 3: Сканирование физических границ токена числа на строке ===
     inline void ScanNumericTokenBoundaries(const std::wstring& lineText, long startIdx, long& outStartCol, long& outEndCol) {
         outStartCol = startIdx;
         outEndCol = startIdx;
@@ -664,7 +664,7 @@ namespace LivePT {
         }
     }
 
-    // === РџРћР”Р¤РЈРќРљР¦РРЇ 4: РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ Рё Р·Р°РїСѓСЃРє СЃРµСЃСЃРёРё РѕРґРёРЅРѕС‡РЅРѕРіРѕ С‡РёСЃР»РѕРІРѕРіРѕ РґСЂР°РіР° ===
+    // === ПОДФУНКЦИЯ 4: Инициализация и запуск сессии одиночного числового драга ===
     inline bool TryInitSingleNumericDrag(const std::wstring& lineText, long line, long originalColumn, long targetCharIdx, const POINT& pt) {
         long startCol = 0;
         long endCol = 0;
@@ -676,7 +676,7 @@ namespace LivePT {
             if (startCol > 0) {
                 wchar_t charBeforeToken = lineText[startCol - 1];
                 if (iswalpha(charBeforeToken)) {
-                    // РЎР»РµРІР° СЃС‚РѕРёС‚ Р±СѓРєРІР°! Р­С‚Рѕ РЅРµ РёР·РѕР»РёСЂРѕРІР°РЅРЅРѕРµ С‡РёСЃР»Рѕ, Р° С‡Р°СЃС‚СЊ РёРјРµРЅРё С‚РёРїР°. РћС‚РјРµРЅСЏРµРј РґСЂР°Рі.
+                    // Слева стоит буква! Это не изолированное число, а часть имени типа. Отменяем драг.
                     return false;
                 }
             }
@@ -691,8 +691,8 @@ namespace LivePT {
             g_dragState.oldMouseY = pt.y;
             g_dragState.lockMousePos = pt;
 
-            // === РРЎРџР РђР’Р›Р•РќРР•: РЎС‡РёС‚Р°РµРј СЃРјРµС‰РµРЅРёРµ СЃС‚СЂРѕРіРѕ РІ С„РёР·РёС‡РµСЃРєРёС… РёРЅРґРµРєСЃР°С… СЃС‚СЂРѕРєРё ===
-            long physicalCursorIdx = targetCharIdx; // РСЃРїРѕР»СЊР·СѓРµРј СѓР¶Рµ РїРµСЂРµРІРµРґРµРЅРЅС‹Р№ С‡РµСЃС‚РЅС‹Р№ РёРЅРґРµРєСЃ!
+            // === ИСПРАВЛЕНИЕ: Считаем смещение строго в физических индексах строки ===
+            long physicalCursorIdx = targetCharIdx; // Используем уже переведенный честный индекс!
             if (physicalCursorIdx < startCol) physicalCursorIdx = startCol;
             if (physicalCursorIdx > endCol)   physicalCursorIdx = endCol;
 
@@ -735,9 +735,9 @@ namespace LivePT {
     }
 
 
-    // === РџРћР”Р¤РЈРќРљР¦РРЇ 5: РњРіРЅРѕРІРµРЅРЅРѕРµ РїРµСЂРµРєР»СЋС‡РµРЅРёРµ Р±СѓР»РµРІС‹С… Р·РЅР°С‡РµРЅРёР№ РїРѕ РґР°Р±Р»РєР»РёРєСѓ ===
+    // === ПОДФУНКЦИЯ 5: Мгновенное переключение булевых значений по даблклику ===
     inline bool TryToggleBooleanDirect(const std::wstring& lineText, long line, long targetCharIdx) {
-        // Р’С‹РґРµР»СЏРµРј РіСЂР°РЅРёС†С‹ СЃР»РѕРІР° РІРѕРєСЂСѓРі РєСѓСЂСЃРѕСЂР°
+        // Выделяем границы слова вокруг курсора
         long startCol = targetCharIdx;
         long endCol = targetCharIdx;
 
@@ -750,7 +750,7 @@ namespace LivePT {
         std::string wordA(wordW.begin(), wordW.end());
 
         std::string newValueStr = "";
-        // Р РµР°РіРёСЂСѓРµРј РЎРўР РћР“Рћ РЅР° С‚РµРєСЃС‚РѕРІС‹Рµ Р»РёС‚РµСЂР°Р»С‹ true/false
+        // Реагируем СТРОГО на текстовые литералы true/false
         if (wordA == "true" || wordA == "TRUE") {
             newValueStr = "false";
         }
@@ -758,7 +758,7 @@ namespace LivePT {
             newValueStr = "true";
         }
 
-        // Р•СЃР»Рё СЌС‚Рѕ Р±СѓР»РµРІРѕРµ СЃР»РѕРІРѕ вЂ” РјРіРЅРѕРІРµРЅРЅРѕ РѕС‚РїСЂР°РІР»СЏРµРј Р·Р°РјРµРЅСѓ С‚РµРєСЃС‚Р° РІ Visual Studio
+        // Если это булевое слово — мгновенно отправляем замену текста в Visual Studio
         if (!newValueStr.empty()) {
             long visualStart = GetVisualColumn(lineText, startCol);
             long visualEnd = visualStart + static_cast<long>(wordA.length());
@@ -775,11 +775,11 @@ namespace LivePT {
         return false;
     }
 
-    // === РџРћР”Р¤РЈРќРљР¦РРЇ 6: РџРѕР»РЅРѕСЃС‚СЊСЋ Р°РІС‚РѕРЅРѕРјРЅРѕРµ РѕС‚РєСЂС‹С‚РёРµ РјРµРЅСЋ Р­РЅСѓРјРѕРІ РїРѕ РґР°Р±Р»РєР»РёРєСѓ (Р‘Р•Р— paramId) ===
+    // === ПОДФУНКЦИЯ 6: Полностью автономное открытие меню Энумов по даблклику (БЕЗ paramId) ===
     inline bool TryInitEnumSelectionDirect(const std::wstring& lineText, long line, long column, long targetCharIdx) {
         if (lineText.empty()) return false;
 
-        // 1. Р’С‹РґРµР»СЏРµРј РіСЂР°РЅРёС†С‹ С‚РµРєСѓС‰РµРіРѕ РІС‹Р±СЂР°РЅРЅРѕРіРѕ С‚РѕРєРµРЅР° (РЅР°РїСЂРёРјРµСЂ, "box")
+        // 1. Выделяем границы текущего выбранного токена (например, "box")
         long tokenStart = targetCharIdx;
         long tokenEnd = targetCharIdx;
         while (tokenStart > 0 && (iswalnum(lineText[tokenStart - 1]) || lineText[tokenStart - 1] == L'_')) tokenStart--;
@@ -787,7 +787,7 @@ namespace LivePT {
 
         if (tokenStart >= tokenEnd) return false;
 
-        // 2. РЎР’Р•Р РҐРўРћР§РќР«Р™ РўР•РљРЎРўРћР’Р«Р™ РџРћРРЎРљ РџР Р•Р¤РРљРЎРђ РўРРџРђ (РС‰РµРј "ptype::" СЃР»РµРІР° РѕС‚ С‚РѕРєРµРЅР°)
+        // 2. СВЕРХТОЧНЫЙ ТЕКСТОВЫЙ ПОИСК ПРЕФИКСА ТИПА (Ищем "ptype::" слева от токена)
         std::wstring enumTypeNameW = L"";
         if (tokenStart >= 2 && lineText[tokenStart - 1] == L':' && lineText[tokenStart - 2] == L':') {
             long typeStart = tokenStart - 2;
@@ -799,28 +799,28 @@ namespace LivePT {
             }
         }
 
-        // Р•СЃР»Рё РїСЂРµС„РёРєСЃ С‚РёРїР° "ptype::" РІ РєРѕРґРµ РЅРµ РЅР°РїРёСЃР°РЅ, РјС‹ РЅРµ СЃРјРѕР¶РµРј РЅР°Р№С‚Рё РµРіРѕ РІ PDB вЂ” РІС‹С…РѕРґРёРј
+        // Если префикс типа "ptype::" в коде не написан, мы не сможем найти его в PDB — выходим
         if (enumTypeNameW.empty()) return false;
 
-        // 3. РџР РЇРњРћР™ Р—РђРџР РћРЎ Рљ Р‘РђР—Р• PDB (РњРіРЅРѕРІРµРЅРЅРѕ РІС‹С‚Р°СЃРєРёРІР°РµРј РјРµС‚Р°РґР°РЅРЅС‹Рµ С‡РµСЂРµР· DbgHelp)
+        // 3. ПРЯМОЙ ЗАПРОС К БАЗЕ PDB (Мгновенно вытаскиваем метаданные через DbgHelp)
         std::vector<std::string> parsedNames;
         std::vector<int> parsedValues;
 
         if (!LoadEnumMetadataDirect(enumTypeNameW.c_str(), parsedNames, parsedValues)) {
-            return false; // Р•СЃР»Рё РІ PDB С‚Р°РєРѕРіРѕ СЌРЅСѓРјР° РЅРµС‚ (РёР»Рё СЌС‚Рѕ РЅРµ СЌРЅСѓРј) вЂ” С‚РёС…Рѕ РІС‹С…РѕРґРёРј
+            return false; // Если в PDB такого энума нет (или это не энум) — тихо выходим
         }
 
-        // 4. Р’Р«Р—РћР’ РљРћРќРўР•РљРЎРўРќРћР“Рћ РњР•РќР® WIN32
+        // 4. ВЫЗОВ КОНТЕКСТНОГО МЕНЮ WIN32
         int newIndex = showEnum(parsedNames);
 
         if (newIndex >= 0 && newIndex < static_cast<int>(parsedNames.size())) {
             std::string pureName = parsedNames[newIndex];
             std::string typePrefixA(enumTypeNameW.begin(), enumTypeNameW.end());
 
-            // РЎРѕР±РёСЂР°РµРј РёС‚РѕРіРѕРІСѓСЋ СЃС‚СЂРѕРєСѓ РґР»СЏ РІСЃС‚Р°РІРєРё РІ Visual Studio, РЅР°РїСЂРёРјРµСЂ "ptype::roundbox"
+            // Собираем итоговую строку для вставки в Visual Studio, например "ptype::roundbox"
             std::string newValueStr = typePrefixA + "::" + pureName;
 
-            // РќР°С…РѕРґРёРј С‚РѕС‡РЅС‹Рµ РІРёР·СѓР°Р»СЊРЅС‹Рµ РєРѕРѕСЂРґРёРЅР°С‚С‹ РІСЃРµРіРѕ РІС‹СЂР°Р¶РµРЅРёСЏ "ptype::box" РґР»СЏ РїРѕР»РЅРѕР№ Р·Р°РјРµРЅС‹
+            // Находим точные визуальные координаты всего выражения "ptype::box" для полной замены
             long typeStartCol = tokenStart - 2;
             while (typeStartCol > 0 && (iswalnum(lineText[typeStartCol - 1]) || lineText[typeStartCol - 1] == L'_')) typeStartCol--;
 
@@ -828,7 +828,7 @@ namespace LivePT {
             long visualEnd = GetVisualColumn(lineText, tokenEnd);
             long newCursorCol = visualStart + static_cast<long>(newValueStr.length());
 
-            // Р‘РµР·РѕРїР°СЃРЅРѕ РїРѕРґРјРµРЅСЏРµРј С‚РµРєСЃС‚ РІ Р±СѓС„РµСЂРµ Visual Studio
+            // Безопасно подменяем текст в буфере Visual Studio
             StartUndoTransaction(L"LiveWheel Change Enum");
             ReplaceTextInActiveVS(line, visualStart, visualEnd, newValueStr, newCursorCol);
             EndUndoTransaction();
@@ -850,7 +850,7 @@ namespace LivePT {
 
     static WidgetPendingBuffer g_widgetBuffer;
 
-    // Р­С‚Сѓ Р»РµРіРєСѓСЋ С„СѓРЅРєС†РёСЋ РІРёРґР¶РµС‚ Р±СѓРґРµС‚ РІС‹Р·С‹РІР°С‚СЊ РІРјРµСЃС‚Рѕ СЃС‚Р°СЂРѕРіРѕ vsUpdater
+    // Эту легкую функцию виджет будет вызывать вместо старого vsUpdater
     inline void PushWidgetTextUpdate(long line, long startCol, const std::string& text) {
         g_widgetBuffer.line = line;
         g_widgetBuffer.startCol = startCol;
@@ -859,7 +859,7 @@ namespace LivePT {
     }
     
 
-    inline void WidgetBufferUpdate()
+    void WidgetBufferUpdate()
     {
         bool isTriggerButtonDown = (GetAsyncKeyState(LivePT_TriggerButton) & 0x8000) != 0;
         static bool s_WidgetTransactionActive = false;
@@ -955,7 +955,7 @@ namespace LivePT {
     inline bool ExtractStructBoundaries(const std::wstring& fileText, const std::wstring& lineText, long line, long targetCharIdx, std::string& outInnerArgsA, long& outVisualStartCol, std::string& outTypeNameA) {
         if (fileText.empty() || lineText.empty()) return false;
 
-        // 1. Р’С‹СЂРµР·Р°РµРј РёРјСЏ С‚РёРїР° РёР· С‚РµРєСѓС‰РµР№ СЃС‚СЂРѕРєРё
+        // 1. Вырезаем имя типа из текущей строки
         long tokenStart = targetCharIdx; long tokenEnd = targetCharIdx;
         while (tokenStart > 0 && iswalnum(lineText[tokenStart - 1])) tokenStart--;
         while (tokenEnd < static_cast<long>(lineText.length()) && iswalnum(lineText[tokenEnd])) tokenEnd++;
@@ -964,7 +964,7 @@ namespace LivePT {
         std::wstring typeNameW = lineText.substr(tokenStart, tokenEnd - tokenStart);
         outTypeNameA = std::string(typeNameW.begin(), typeNameW.end());
 
-        // 2. РќР°С…РѕРґРёРј Р°Р±СЃРѕР»СЋС‚РЅРѕРµ СЃРјРµС‰РµРЅРёРµ РєРѕРЅС†Р° РёРјРµРЅРё С‚РёРїР° РІ С„Р°Р№Р»Рµ
+        // 2. Находим абсолютное смещение конца имени типа в файле
         size_t lineStartOffset = 0; long currentLineIdx = 1;
         while (currentLineIdx < line && lineStartOffset < fileText.length()) {
             size_t nextNL = fileText.find(L'\n', lineStartOffset);
@@ -973,7 +973,7 @@ namespace LivePT {
         }
         size_t absoluteTokenEndOffset = lineStartOffset + tokenEnd;
 
-        // 3. РЎРєР°РЅРёСЂСѓРµРј СЃРєРѕР±РєРё РІРїСЂР°РІРѕ СЃ Р·Р°С‰РёС‚РѕР№ РјРЅРѕРіРѕСЃС‚СЂРѕС‡РЅРёРєРѕРІ
+        // 3. Сканируем скобки вправо с защитой многострочников
         size_t globalOpenIdx = std::wstring::npos;
         wchar_t openChar = L'\0'; wchar_t closeChar = L'\0';
         for (size_t k = absoluteTokenEndOffset; k < fileText.length(); ++k) {
@@ -994,10 +994,10 @@ namespace LivePT {
         }
         if (globalCloseIdx == std::wstring::npos) return false;
 
-        // 4. Р’С‹С‡РёСЃР»СЏРµРј СЃС‚СЂРѕРєРё Рё РѕС„СЃРµС‚С‹ РґР»СЏ COM EditPoints СЃ СѓС‡РµС‚РѕРј CRLF Р·Р°С‰РёС‚С‹
+        // 4. Вычисляем строки и офсеты для COM EditPoints с учетом CRLF защиты
         long startLine = line; size_t lastNL_start = lineStartOffset;
         size_t scanNL_start = fileText.find(L'\n', lineStartOffset);
-        long startCrCount = 0; // РЎС‡РёС‚Р°РµРј \r РґРѕ РѕС‚РєСЂС‹РІР°СЋС‰РµР№ СЃРєРѕР±РєРё
+        long startCrCount = 0; // Считаем \r до открывающей скобки
 
         while (scanNL_start != std::wstring::npos && scanNL_start < globalOpenIdx) {
             startLine++; lastNL_start = scanNL_start + 1;
@@ -1006,12 +1006,12 @@ namespace LivePT {
         for (size_t i = lastNL_start; i < globalOpenIdx; ++i) {
             if (fileText[i] == L'\r') startCrCount++;
         }
-        // Р’С‹С‡РёС‚Р°РµРј startCrCount, С‚Р°Рє РєР°Рє VS РЅРµ СЃС‡РёС‚Р°РµС‚ \r С‡Р°СЃС‚СЊСЋ LineCharOffset
+        // Вычитаем startCrCount, так как VS не считает \r частью LineCharOffset
         long startOffset = static_cast<long>(globalOpenIdx - lastNL_start) - startCrCount + 1;
 
         long closeLine = line; size_t lastNL_end = lineStartOffset;
         size_t scanNL_end = fileText.find(L'\n', lineStartOffset);
-        long closeCrCount = 0; // РЎС‡РёС‚Р°РµРј \r РґРѕ Р·Р°РєСЂС‹РІР°СЋС‰РµР№ СЃРєРѕР±РєРё
+        long closeCrCount = 0; // Считаем \r до закрывающей скобки
 
         while (scanNL_end != std::wstring::npos && scanNL_end < globalCloseIdx) {
             closeLine++; lastNL_end = scanNL_end + 1;
@@ -1022,7 +1022,7 @@ namespace LivePT {
         }
         long closeOffset = static_cast<long>(globalCloseIdx - lastNL_end) - closeCrCount + 1;
 
-        // РџРµСЂРµСЃРѕР·РґР°РµРј РіР»РѕР±Р°Р»СЊРЅС‹Рµ COM-СЏРєРѕСЂСЏ
+        // Пересоздаем глобальные COM-якоря
         if (pWidgetStartEditPoint) { pWidgetStartEditPoint->Release(); pWidgetStartEditPoint = nullptr; }
         if (pWidgetEndEditPoint) { pWidgetEndEditPoint->Release(); pWidgetEndEditPoint = nullptr; }
 
@@ -1068,20 +1068,20 @@ namespace LivePT {
             return false;
         }
 
-        // === РЈРњРќР«Р™ Р›Р•РљРЎРР§Р•РЎРљРР™ Р¤РР›Р¬РўР  Р”Р›РЇ РЎРњР•РЁРђРќРќРћР“Рћ РЎРћР”Р•Р Р–РРњРћР“Рћ (Р”Р РђР“) ===
+        // === УМНЫЙ ЛЕКСИЧЕСКИЙ ФИЛЬТР ДЛЯ СМЕШАННОГО СОДЕРЖИМОГО (ДРАГ) ===
         {
             bool hasAlphaVariables = false;
-            // РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ СЃС‚СЂРѕРєРµ Р°СЂРіСѓРјРµРЅС‚РѕРІ, С‡С‚РѕР±С‹ РЅР°Р№С‚Рё РёР·РѕР»РёСЂРѕРІР°РЅРЅС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ С‚РёРїР° 'x'
+            // Итерируемся по строке аргументов, чтобы найти изолированные переменные типа 'x'
             for (size_t i = 0; i < innerArgsA.length(); ++i) {
                 char c = innerArgsA[i];
                 if (std::isalpha(static_cast<unsigned char>(c))) {
-                    // РРіРЅРѕСЂРёСЂСѓРµРј РїСЂРёР·РЅР°РєРё float-РєРѕРЅСЃС‚Р°РЅС‚ 'f'/'F'
+                    // Игнорируем признаки float-констант 'f'/'F'
                     if (c == 'f' || c == 'F') continue;
 
-                    // РџСЂРѕРІРµСЂСЏРµРј РєРѕРЅС‚РµРєСЃС‚: РЅРµ СЏРІР»СЏРµС‚СЃСЏ Р»Рё СЌС‚Рѕ РїРѕР»РµРј C++20 (РЅР°РїСЂРёРјРµСЂ, .x = ...)
+                    // Проверяем контекст: не является ли это полем C++20 (например, .x = ...)
                     bool isDesignatedInitializer = false;
 
-                    // РџСЂРѕРІРµСЂСЏРµРј РЅР°Р»РµРІРѕ: РЅРµС‚ Р»Рё С‚Р°Рј С‚РѕС‡РєРё?
+                    // Проверяем налево: нет ли там точки?
                     size_t left = i;
                     while (left > 0) {
                         left--;
@@ -1089,7 +1089,7 @@ namespace LivePT {
                         if (!std::isspace(static_cast<unsigned char>(innerArgsA[left]))) break;
                     }
 
-                    // РџСЂРѕРІРµСЂСЏРµРј РЅР°РїСЂР°РІРѕ: РЅРµС‚ Р»Рё С‚Р°Рј Р·РЅР°РєР° СЂР°РІРµРЅСЃС‚РІР° '='?
+                    // Проверяем направо: нет ли там знака равенства '='?
                     size_t right = i;
                     while (right < innerArgsA.length() - 1) {
                         right++;
@@ -1098,14 +1098,14 @@ namespace LivePT {
                     }
 
                     if (!isDesignatedInitializer) {
-                        hasAlphaVariables = true; // РќР°С€Р»Рё С‡РёСЃС‚СѓСЋ РїРµСЂРµРјРµРЅРЅСѓСЋ С‚РёРїР° 'x'!
+                        hasAlphaVariables = true; // Нашли чистую переменную типа 'x'!
                         break;
                     }
                 }
             }
 
             if (hasAlphaVariables) {
-                return false; // Р‘Р»РѕРєРёСЂСѓРµРј РґСЂР°Рі С‚РѕР»СЊРєРѕ РґР»СЏ СЂРµР°Р»СЊРЅС‹С… РїРµСЂРµРјРµРЅРЅС‹С…, Р·Р°С‰РёС‰Р°СЏ СЂР°РЅС‚Р°Р№Рј-РґРёРЅР°РјРёРєСѓ
+                return false; // Блокируем драг только для реальных переменных, защищая рантайм-динамику
             }
         }
 
@@ -1145,20 +1145,20 @@ namespace LivePT {
             return false;
         }
 
-        // === РЈРњРќР«Р™ Р›Р•РљРЎРР§Р•РЎРљРР™ Р¤РР›Р¬РўР  Р”Р›РЇ РЎРњР•РЁРђРќРќРћР“Рћ РЎРћР”Р•Р Р–РРњРћР“Рћ ===
+        // === УМНЫЙ ЛЕКСИЧЕСКИЙ ФИЛЬТР ДЛЯ СМЕШАННОГО СОДЕРЖИМОГО ===
         {
             bool hasAlphaVariables = false;
-            // РС‚РµСЂРёСЂСѓРµРјСЃСЏ РїРѕ СЃС‚СЂРѕРєРµ Р°СЂРіСѓРјРµРЅС‚РѕРІ, С‡С‚РѕР±С‹ РЅР°Р№С‚Рё РёР·РѕР»РёСЂРѕРІР°РЅРЅС‹Рµ РїРµСЂРµРјРµРЅРЅС‹Рµ С‚РёРїР° 'x'
+            // Итерируемся по строке аргументов, чтобы найти изолированные переменные типа 'x'
             for (size_t i = 0; i < innerArgsA.length(); ++i) {
                 char c = innerArgsA[i];
                 if (std::isalpha(static_cast<unsigned char>(c))) {
-                    // РРіРЅРѕСЂРёСЂСѓРµРј РїСЂРёР·РЅР°РєРё float-РєРѕРЅСЃС‚Р°РЅС‚ 'f'/'F'
+                    // Игнорируем признаки float-констант 'f'/'F'
                     if (c == 'f' || c == 'F') continue;
 
-                    // РџСЂРѕРІРµСЂСЏРµРј РєРѕРЅС‚РµРєСЃС‚: РЅРµ СЏРІР»СЏРµС‚СЃСЏ Р»Рё СЌС‚Рѕ РїРѕР»РµРј C++20 (РЅР°РїСЂРёРјРµСЂ, .x = ...)
+                    // Проверяем контекст: не является ли это полем C++20 (например, .x = ...)
                     bool isDesignatedInitializer = false;
 
-                    // РџСЂРѕРІРµСЂСЏРµРј РЅР°Р»РµРІРѕ: РЅРµС‚ Р»Рё С‚Р°Рј С‚РѕС‡РєРё?
+                    // Проверяем налево: нет ли там точки?
                     size_t left = i;
                     while (left > 0) {
                         left--;
@@ -1166,7 +1166,7 @@ namespace LivePT {
                         if (!std::isspace(static_cast<unsigned char>(innerArgsA[left]))) break;
                     }
 
-                    // РџСЂРѕРІРµСЂСЏРµРј РЅР°РїСЂР°РІРѕ: РЅРµС‚ Р»Рё С‚Р°Рј Р·РЅР°РєР° СЂР°РІРµРЅСЃС‚РІР° '='?
+                    // Проверяем направо: нет ли там знака равенства '='?
                     size_t right = i;
                     while (right < innerArgsA.length() - 1) {
                         right++;
@@ -1175,14 +1175,14 @@ namespace LivePT {
                     }
 
                     if (!isDesignatedInitializer) {
-                        hasAlphaVariables = true; // РќР°С€Р»Рё С‡РёСЃС‚СѓСЋ РїРµСЂРµРјРµРЅРЅСѓСЋ С‚РёРїР° 'x'!
+                        hasAlphaVariables = true; // Нашли чистую переменную типа 'x'!
                         break;
                     }
                 }
             }
 
             if (hasAlphaVariables) {
-                return false; // Р‘Р»РѕРєРёСЂСѓРµРј РІРёРґР¶РµС‚ С‚РѕР»СЊРєРѕ РґР»СЏ СЂРµР°Р»СЊРЅС‹С… РїРµСЂРµРјРµРЅРЅС‹С…, Р·Р°С‰РёС‰Р°СЏ РєРѕРґ РѕС‚ Р·Р°С‚РёСЂР°РЅРёСЏ
+                return false; // Блокируем виджет только для реальных переменных, защищая код от затирания
             }
         }
 
@@ -1220,11 +1220,11 @@ namespace LivePT {
         std::wstring currentLineText = DownloadCurrentLineText(vtActiveDoc.pdispVal);
         std::string normalizedPath = LivePT::NormalizePath(currentFile.c_str());
 
-        // Р“Р°СЂР°РЅС‚РёСЂСѓРµРј СЃР±СЂРѕСЃ СЃС‚Р°СЂРѕРіРѕ РїРѕРєР°РґСЂРѕРІРѕРіРѕ СЃРѕСЃС‚РѕСЏРЅРёСЏ
+        // Гарантируем сброс старого покадрового состояния
         g_dragState.targetParamId = -1;
         g_dragState.isProportionalStructDrag = false;
 
-        // Р Р°СЃС‡РµС‚ С„Р°РєС‚Р° Р”Р°Р±Р»РєР»РёРєР°
+        // Расчет факта Даблклика
         DWORD currentTime = GetTickCount();
         DWORD doubleClickTime = GetDoubleClickTime();
         bool isDoubleClick = (g_dragState.lastClickTime != 0) &&
@@ -1236,7 +1236,7 @@ namespace LivePT {
         else g_dragState.lastClickTime = currentTime;
         g_dragState.lastClickPt = pt;
 
-        // РџСЂРёРјРµРЅСЏРµРј Р°РґР°РїС‚РёРІРЅРѕРµ СЃРјРµС‰РµРЅРёРµ РєР°СЂРµС‚РєРё (РєР»РёРє РІРїР»РѕС‚РЅСѓСЋ СЃРїСЂР°РІР° РѕС‚ С‡РёСЃР»Р°)
+        // Применяем адаптивное смещение каретки (клик вплотную справа от числа)
         long targetCharIdx = AdjustCursorIndexForNumericContext(currentLineText, column);
 
         if (targetCharIdx < 0 || targetCharIdx >= static_cast<long>(currentLineText.length())) {
@@ -1245,7 +1245,7 @@ namespace LivePT {
         }
 
         // =========================================================================
-        // [Р¤РЈРќРљР¦РРћРќРђР› Р”РђР‘Р›РљР›РРљРђ]: РћС‚РєСЂС‹РІР°РµРј С‚СЏР¶РµР»С‹Рµ GUI-РѕРєРЅР°, РїР°Р»РёС‚СЂС‹ Рё РјРµРЅСЋ
+        // [ФУНКЦИОНАЛ ДАБЛКЛИКА]: Открываем тяжелые GUI-окна, палитры и меню
         // =========================================================================
         if (isDoubleClick) {
             if (TryToggleBooleanDirect(currentLineText, line, targetCharIdx)) { VariantClear(&vtActiveDoc); return false; }
@@ -1256,7 +1256,7 @@ namespace LivePT {
         }
 
         // =========================================================================
-        // [Р¤РЈРќРљР¦РРћРќРђР› РћР”РРќРћР§РќРћР“Рћ РљР›РРљРђ]: Р’С‹СЃРѕРєРѕСЃРєРѕСЂРѕСЃС‚РЅРѕР№ РґСЂР°Рі РєРѕРЅРєСЂРµС‚РЅРѕРіРѕ С‡РёСЃР»Р°!
+        // [ФУНКЦИОНАЛ ОДИНОЧНОГО КЛИКА]: Высокоскоростной драг конкретного числа!
         // =========================================================================
         wchar_t targetedChar = currentLineText[targetCharIdx];
         bool isNumeric = IsNumericTokenChar(targetedChar);
@@ -1376,7 +1376,7 @@ namespace LivePT {
             CreateDragShield(pt);
         }
 
-        // === Р’РћРў Р­РўРћРў Р‘Р›РћРљ: РїРµСЂРµРєР»СЋС‡Р°РµРј РїРѕРєР°РґСЂРѕРІСѓСЋ РѕР±СЂР°Р±РѕС‚РєСѓ РЅР° РЅР°С€ С„Р»Р°Рі ===
+        // === ВОТ ЭТОТ БЛОК: переключаем покадровую обработку на наш флаг ===
         if (g_dragState.isProportionalStructDrag) {
             DragProportionalStructValue(pt, ctrl, shift);
         }
@@ -1396,7 +1396,7 @@ namespace LivePT {
             pWidgetEndEditPoint = nullptr;
         }
 
-        // РџСЂРѕРІРµСЂСЏРµРј, С‡С‚Рѕ РЅРµ Р°РєС‚РёРІРµРЅ РЅРё РѕРґРёРЅ РёР· СЂРµР¶РёРјРѕРІ
+        // Проверяем, что не активен ни один из режимов
         if (!g_dragState.isDragging && !g_dragState.isProportionalStructDrag) {
             if (g_hShieldWnd) {
                 ReleaseCapture();
@@ -1410,7 +1410,7 @@ namespace LivePT {
             return;
         }
 
-        // === Р’РћР—Р’Р РђР©РђР•Рњ РљРЈР РЎРћР РЈ Р’РР”РРњРћРЎРўР¬ ===
+        // === ВОЗВРАЩАЕМ КУРСОРУ ВИДИМОСТЬ ===
         if (g_dragState.isCursorHidden) {
             
             SetCursorPos(g_dragState.lockMousePos.x, g_dragState.lockMousePos.y);
@@ -1421,7 +1421,7 @@ namespace LivePT {
         EndUndoTransaction();
         SaveActiveDocument();
 
-        // РЎР±СЂР°СЃС‹РІР°РµРј РѕР±Р° С„Р»Р°РіР° СЂР°РЅС‚Р°Р№Рј-СЃРѕСЃС‚РѕСЏРЅРёСЏ
+        // Сбрасываем оба флага рантайм-состояния
         g_dragState.isDragging = false;
         g_dragState.isProportionalStructDrag = false;
         g_dragState.targetParamId = -1;
