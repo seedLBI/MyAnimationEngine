@@ -1,4 +1,4 @@
-namespace LivePT {
+﻿namespace LivePT {
 
 
     struct EnumElementDesc {

@@ -1,4 +1,4 @@
-// User space settings
+﻿// User space settings
 
 #define LivePT_Mouse true // true for mouse drag, switch, enums with context menu
 #define LivePT_WindowManagement true //auto split screen on single monitor

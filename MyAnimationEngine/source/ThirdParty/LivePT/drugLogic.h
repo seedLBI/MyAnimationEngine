@@ -1,4 +1,4 @@
-namespace DrugLogic {
+п»їnamespace DrugLogic {
 
     // Helper functions for color translation (encapsulated inside DrugLogic)
     inline void LPT_RGBtoHSV(float r, float g, float b, float& h, float& s, float& v) {
@@ -122,7 +122,7 @@ namespace DrugLogic {
         ::LivePT::g_OverlayText = "";
         ::LivePT::g_OverlayShow = true;
 
-        // 1. НАДЕЖНЫЙ МНОГОСТРОЧНЫЙ ПАРСИНГ (.x = ... .y = ...)
+        // 1. РќРђР”Р•Р–РќР«Р™ РњРќРћР“РћРЎРўР РћР§РќР«Р™ РџРђР РЎРРќР“ (.x = ... .y = ...)
         size_t xPos = currentArgsStr.find(".x");
         size_t yPos = currentArgsStr.find(".y");
 
@@ -136,22 +136,22 @@ namespace DrugLogic {
             }
         }
 
-        // 2. ОДНОСТРОЧНЫЙ ФОЛБЭК (Числа через запятую: 268.01f, 14.10f)
+        // 2. РћР”РќРћРЎРўР РћР§РќР«Р™ Р¤РћР›Р‘Р­Рљ (Р§РёСЃР»Р° С‡РµСЂРµР· Р·Р°РїСЏС‚СѓСЋ: 268.01f, 14.10f)
         if (!parsed) {
             std::string cleanStr = currentArgsStr;
             cleanStr.erase(std::remove(cleanStr.begin(), cleanStr.end(), 'f'), cleanStr.end());
             cleanStr.erase(std::remove(cleanStr.begin(), cleanStr.end(), 'F'), cleanStr.end());
             if (sscanf_s(cleanStr.c_str(), "%f, %f", &x, &y) != 2) {
-                return currentArgsStr; // Если и тут крах — выходим
+                return currentArgsStr; // Р•СЃР»Рё Рё С‚СѓС‚ РєСЂР°С… вЂ” РІС‹С…РѕРґРёРј
             }
         }
 
-        // 3. Вычисляем дельту движения мыши
+        // 3. Р’С‹С‡РёСЃР»СЏРµРј РґРµР»СЊС‚Сѓ РґРІРёР¶РµРЅРёСЏ РјС‹С€Рё
         float speedScale = input.ctrl ? 10.0f : (input.shift ? 0.1f : 1);
         x += static_cast<float>(input.mouseFrameDeltaX) * speedScale;
         y -= static_cast<float>(input.mouseFrameDeltaY) * speedScale;
 
-        // 4. Сохраняем исходное форматирование табов
+        // 4. РЎРѕС…СЂР°РЅСЏРµРј РёСЃС…РѕРґРЅРѕРµ С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРёРµ С‚Р°Р±РѕРІ
         std::string prefixTabs = "";
         size_t firstNewLine = currentArgsStr.find('\n');
         if (firstNewLine != std::string::npos) {
@@ -184,7 +184,7 @@ namespace DrugLogic {
         ::LivePT::g_OverlayText = "";
         ::LivePT::g_OverlayShow = true;
 
-        // 1. НАДЕЖНЫЙ МНОГОСТРОЧНЫЙ ПАРСИНГ (.w = ... .h = ...)
+        // 1. РќРђР”Р•Р–РќР«Р™ РњРќРћР“РћРЎРўР РћР§РќР«Р™ РџРђР РЎРРќР“ (.w = ... .h = ...)
         size_t wPos = currentArgsStr.find(".w");
         size_t hPos = currentArgsStr.find(".h");
 
@@ -198,7 +198,7 @@ namespace DrugLogic {
             }
         }
 
-        // 2. ОДНОСТРОЧНЫЙ ФОЛБЭК
+        // 2. РћР”РќРћРЎРўР РћР§РќР«Р™ Р¤РћР›Р‘Р­Рљ
         if (!parsed) {
             std::string cleanStr = currentArgsStr;
             cleanStr.erase(std::remove(cleanStr.begin(), cleanStr.end(), 'f'), cleanStr.end());
@@ -208,7 +208,7 @@ namespace DrugLogic {
             }
         }
 
-        // 3. Масштабирование
+        // 3. РњР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёРµ
         float multiplier = 1.0f + (input.mouseFrameDeltaY * 0.005f);
         if (multiplier < 0.0f) multiplier = 0.0f;
 
@@ -222,7 +222,7 @@ namespace DrugLogic {
             if (h == 0.0f) h += added;
         }
 
-        // 4. Сохраняем исходное форматирование табов
+        // 4. РЎРѕС…СЂР°РЅСЏРµРј РёСЃС…РѕРґРЅРѕРµ С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРёРµ С‚Р°Р±РѕРІ
         std::string prefixTabs = "";
         size_t firstNewLine = currentArgsStr.find('\n');
         if (firstNewLine != std::string::npos) {

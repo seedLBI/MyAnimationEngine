@@ -7,7 +7,7 @@
     inline std::wstring DownloadCurrentLineText(IDispatch* pActiveDoc);
     inline size_t FindCloseBracket(const std::wstring& text, size_t openBracketPos);
 
-    inline std::string ConvertWStringToUtf8(const std::wstring& wstr) {
+    std::string ConvertWStringToUtf8(const std::wstring& wstr) {
 
         if (wstr.empty()) return "";
 
@@ -21,7 +21,7 @@
         return str;
     }
 
-    inline HRESULT AutoWrap(int autoType, VARIANT* pvResult, IDispatch* pDisp, LPCOLESTR ptName, int cArgs...) {
+    HRESULT AutoWrap(int autoType, VARIANT* pvResult, IDispatch* pDisp, LPCOLESTR ptName, int cArgs...) {
 
         if (!pDisp) return E_FAIL;
 
@@ -66,7 +66,7 @@
         return hr;
     }
 
-    inline std::wstring ToLower(std::wstring str) {
+    std::wstring ToLower(std::wstring str) {
 
         std::transform(str.begin(), str.end(), str.begin(), ::towlower);
         return str;
@@ -117,7 +117,7 @@
         return studioPid;
     }
 
-    inline IDispatch* GetDTEByPid(DWORD targetPid) {
+    IDispatch* GetDTEByPid(DWORD targetPid) {
 
         IRunningObjectTable* pROT = nullptr;
         if (FAILED(GetRunningObjectTable(0, &pROT))) return nullptr;
@@ -160,7 +160,7 @@
         return pTargetDTE;
     }
 
-    inline bool initVsEditor()
+    bool initVsEditor()
     {
         if (pDTE) return true;
 
@@ -177,7 +177,7 @@
         return true;
     }
 
-    inline void ResetDTEConnection() {
+    void ResetDTEConnection() {
         if (pDTE) {
             pDTE->Release();
             pDTE = nullptr;
@@ -185,7 +185,7 @@
         }
     }
 
-    inline void StartUndoTransaction(const std::wstring& name) {
+    void StartUndoTransaction(const std::wstring& name) {
 
         if (!pDTE) return;
 
@@ -201,7 +201,7 @@
         }
     }
 
-    inline void EndUndoTransaction() {
+    void EndUndoTransaction() {
 
         if (!pDTE) return;
 
@@ -590,7 +590,7 @@
     static long g_cachedEvalCol = -1;
     static std::wstring g_cachedEvalTextHash = L"";
 
-    static std::string g_currentActiveFile = "";
+    std::string g_currentActiveFile = "";
     //static long          g_lastLineCount = -1;
     //static size_t        g_lastLineLength = 0;
 

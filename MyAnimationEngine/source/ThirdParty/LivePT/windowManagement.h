@@ -1,4 +1,4 @@
-#include <dwmapi.h>
+﻿#include <dwmapi.h>
 #pragma comment(lib, "Dwmapi.lib")
 
 namespace LivePT {

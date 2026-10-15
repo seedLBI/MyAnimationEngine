@@ -1,4 +1,4 @@
-namespace LivePT {
+﻿namespace LivePT {
 
     inline LRESULT CALLBACK TinyMenuWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         return DefWindowProcA(hwnd, uMsg, wParam, lParam);

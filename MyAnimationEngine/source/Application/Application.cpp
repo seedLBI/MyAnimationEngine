@@ -193,15 +193,18 @@ void Application::Init_DockLayout(ImGuiViewport* viewport, const ImGuiID& docksp
 void Application::Run() {
 
 	while (WindowManager::getInstance().IsShouldClose() == false) {
-#if LivePT_EditMode
-		LivePT::ProcessEdit();
-#endif
+
 
 		Update();
 
 		BeginDraw();
 			Draw();
 		EndDraw();
+
+#if LivePT_EditMode
+		LivePT::ProcessEdit();
+#endif
+
 
 	}
 }
