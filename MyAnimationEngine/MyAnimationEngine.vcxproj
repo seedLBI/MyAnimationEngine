@@ -51,6 +51,7 @@
     <ClCompile Include="source\Core\Animation\Widgets\Panel\StatusGlobalButtons\Timeline.StatusGlobalButtons.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Textures\Noise\Texture.Noise.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.cpp" />
+    <ClCompile Include="source\ThirdParty\LivePT\LivePT.LogUtils.h" />
     <ClCompile Include="source\Utils\TransformScaled\Transform.Scaled.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Transform\Vertical\Timeline.Transform.Vertical.cpp" />
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\List\Timeline.Layers.List.cpp" />
@@ -148,6 +149,12 @@
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Horizontal\Timeline.Transform.Horizontal.h" />
     <ClInclude Include="source\InputManager\InputManager.h" />
     <ClInclude Include="source\ThirdParty\ImViewGuizmo\ImViewGuizmo.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\consistency.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\DbgHelpRef.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\drugLogic.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\mouse.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\uiCallBackBridge.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\windowManagement.h" />
     <ClInclude Include="source\Utils\OpenGL\AsyncPixelReader\AsyncPixelReader.h" />
     <ClInclude Include="source\Utils\TransformScaled\Transform.Scaled.h" />
     <ClInclude Include="source\Core\Animation\Widgets\Panel\Transform\Vertical\Timeline.Transform.Vertical.h" />
@@ -415,16 +422,17 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;LivePT_EditMode=false;LivePT_WheelEditMode=true;LivePT_WindowManagement=true;LivePT_AppToSecondaryDisplay=false;LPT_TRIGGER_BUTTON=VK_LBUTTON;TIMER_ID=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <AdditionalOptions>/Zc:char8_t-</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

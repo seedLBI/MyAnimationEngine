@@ -116,6 +116,7 @@ void Application::Init_ImGui() {
 
 	ImGui_ImplGlfw_InitForOpenGL(WindowManager::getInstance().GetHandle(), true);
 	ImGui_ImplOpenGL3_Init("#version 330");
+	InputManager::Init();
 
 	auto& s = ImGui::GetStyle();
 	s.ImageBorderSize = 1.f;
@@ -239,6 +240,8 @@ void Application::Draw() {
 
 	ImGui::ShowDemoWindow();
 
+	InputManager::DrawBounds();
+
 	DebugOverlay::DrawDebug();
 
 	auto drawlist = ImGui::GetForegroundDrawList();
@@ -249,6 +252,9 @@ void Application::Draw() {
 
 void Application::Update() {
 
+
+	InputManager::UpdatePortal();
+	InputManager::ResetMouseDelta();
 
 	CursorManager::getInstance().Update();
 	CursorManager::getInstance().SetCursor(eval(TypeCursor::HAND_OPEN));

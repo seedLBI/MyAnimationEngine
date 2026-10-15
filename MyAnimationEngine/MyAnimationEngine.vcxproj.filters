@@ -417,6 +417,9 @@
     <ClCompile Include="source\Core\Animation\Widgets\Panel\Layers\Graph\Controls\Graph.Controls.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="source\ThirdParty\LivePT\LivePT.LogUtils.h">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Application\Application.h">
@@ -741,6 +744,24 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="source\InputManager\InputManager.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ThirdParty\LivePT\uiCallBackBridge.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ThirdParty\LivePT\windowManagement.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ThirdParty\LivePT\mouse.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ThirdParty\LivePT\drugLogic.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ThirdParty\LivePT\DbgHelpRef.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ThirdParty\LivePT\consistency.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

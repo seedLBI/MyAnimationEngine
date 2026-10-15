@@ -11,6 +11,7 @@
 #include "WindowManager/WindowManager.h"
 #include "FontManager/FontManager.h"
 #include "CursorManager/CursorManger.h"
+#include <InputManager/InputManager.h>
 
 #include <Utils/ImGui/Utils.ImGui.h>
 
@@ -1187,14 +1188,13 @@ void Timeline_Preview::DrawViewGizmo(const ImVec2& p_min, const ImVec2& p_max) {
 
     bool modified = false;
 
-    modified |= ImViewGuizmo::Rotate(gizmoPos, gizmoRot, pivot, gizmo_center);
-
     const float btn = style.toolButtonRadius * style.scale * 2.f;
     const ImVec2 row(p_max.x - margin - 2.f * btn - 6.f,
         p_min.y + margin + 2.f * radius + 10.f);
-    modified |= Dolly(gizmoPos, gizmoRot, ImVec2(row.x + btn + 6.f, row.y), 0.05f);
-    modified |= Pan(gizmoPos, gizmoRot, row, 0.01f);
 
+    modified |= ImViewGuizmo::Rotate(gizmoPos, gizmoRot, pivot, gizmo_center);
+    modified |= ImViewGuizmo::Dolly(gizmoPos, gizmoRot, ImVec2(row.x + btn + 6.f, row.y), 0.05f);
+    modified |= ImViewGuizmo::Pan(gizmoPos, gizmoRot, row, 0.01f);
 
     if (modified) {
         cam.setFromGizmo(gizmoPos, gizmoRot);
@@ -1230,6 +1230,9 @@ void Timeline_Preview::Draw() {
 
 		ImVec2 p_min = cursor_pos;
 		ImVec2 p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
+        pc.pos_min = p_min;
+        pc.pos_max = p_max;
+
 
 		float aspect_ratio = renderer->getTexture().GetAspectRatio();
 
@@ -1254,27 +1257,7 @@ void Timeline_Preview::Draw() {
             else
                 camera_mode = !camera_mode;
 
-            GLFWwindow* window = WindowManager::getInstance().GetHandle();
-            ImGuiIO& io = ImGui::GetIO();
-
-            if (camera_mode) {
-                io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
-
-                glfwGetCursorPos(window, &cam_saved_x, &cam_saved_y);
-
-                if (glfwRawMouseMotionSupported())
-                    glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            }
-            else {
-                io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
-
-                glfwSetCursorPos(window, cam_saved_x, cam_saved_y);
-                io.MousePos = ImVec2((float)cam_saved_x, (float)cam_saved_y);
-
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
-            }
+            InputManager::SetRawMode(camera_mode);
         }
 
         if (camera_mode)
@@ -1295,25 +1278,19 @@ void Timeline_Preview::Draw() {
         );
 
 
-		static glm::vec2 prev_m = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
-
 		if (camera_mode) {
 			float scrol_zoom = ImGui::GetIO().MouseWheel;
 
 			glm::vec2 curr_m = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
 
-			glm::vec2 delta = prev_m - curr_m;
-            if (ImViewGuizmo::IsUsing())
-                delta = { 0,0 };
+			glm::vec2 delta = InputManager::GetMouseDelta();
 
             float sense = 0.1f;
 
 			renderer->getCamera().Update(deltaTime->GetDeltaTime(), { delta.x * sense, delta.y * sense }, scrol_zoom);
-			prev_m = curr_m;
 		}
 		else {
 			renderer->getCamera().Update(deltaTime->GetDeltaTime(), { 0.f,0.f }, 0.f);
-			prev_m = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
 		}
 
 		if (pc.isHoveredWidgetRegion && !camera_mode) {
@@ -1357,6 +1334,11 @@ void Timeline_Preview::Draw() {
 		};
 
 		drawlist->AddImage(renderer->getTexture().GetID(), LU, RD);
+
+
+        if (ImViewGuizmo::IsUsing()) {
+            InputManager::SetBoundPortal({ p_min.x + 1.f, p_min.y + 1.f }, { p_max.x - 1.f, p_max.y - 1.f });
+        }
 
         Push_BoldFont();
         DrawViewGizmo(p_min, p_max);

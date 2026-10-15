@@ -24,6 +24,9 @@ private:
 
 	std::string getTimer();
 	std::string getFrame();
+
+
+	ImVec2 p_min, p_max;
 };
 
 #endif

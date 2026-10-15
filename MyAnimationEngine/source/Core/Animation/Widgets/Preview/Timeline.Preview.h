@@ -41,6 +41,9 @@ private:
 	const float padding = 20.f;
 
 	struct PreviewContext {
+		ImVec2 pos_min;
+		ImVec2 pos_max;
+
 		ImVec2 mouse_global_relative;
 		ImVec2 mouse_screen_relative;
 

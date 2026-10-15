@@ -1,8 +1,17 @@
-﻿namespace LivePT {
+﻿#ifndef LIVE_PT_VS_EDITOR_H
+#define LIVE_PT_VS_EDITOR_H
+
+namespace LivePT {
+
+    int GetMouseDragTargetParamId();
 
     static IDispatch* pDTE = nullptr;
 
+    inline std::wstring DownloadCurrentLineText(IDispatch* pActiveDoc);
+    inline size_t FindCloseBracket(const std::wstring& text, size_t openBracketPos);
+
     inline std::string ConvertWStringToUtf8(const std::wstring& wstr) {
+
         if (wstr.empty()) return "";
 
         int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
@@ -16,6 +25,7 @@
     }
 
     inline HRESULT AutoWrap(int autoType, VARIANT* pvResult, IDispatch* pDisp, LPCOLESTR ptName, int cArgs...) {
+
         if (!pDisp) return E_FAIL;
 
         va_list marker;
@@ -60,11 +70,13 @@
     }
 
     inline std::wstring ToLower(std::wstring str) {
+
         std::transform(str.begin(), str.end(), str.begin(), ::towlower);
         return str;
     }
 
     inline DWORD GetStudioProcessId() {
+
         DWORD currentPid = GetCurrentProcessId();
 
         HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -73,7 +85,9 @@
         DWORD searchPid = currentPid;
         DWORD studioPid = 0;
 
-        while (searchPid != 0) {
+        int safetyCounter = 32;
+
+        while (searchPid != 0 && --safetyCounter > 0) {
             PROCESSENTRY32W pe32;
             pe32.dwSize = sizeof(PROCESSENTRY32W);
 
@@ -107,356 +121,927 @@
     }
 
     inline IDispatch* GetDTEByPid(DWORD targetPid) {
-            IRunningObjectTable* pROT = nullptr;
-            if (FAILED(GetRunningObjectTable(0, &pROT))) return nullptr;
 
-            IEnumMoniker* pEnumMoniker = nullptr;
-            if (FAILED(pROT->EnumRunning(&pEnumMoniker))) { pROT->Release(); return nullptr; }
+        IRunningObjectTable* pROT = nullptr;
+        if (FAILED(GetRunningObjectTable(0, &pROT))) return nullptr;
 
-            IMoniker* pMoniker = nullptr;
-            ULONG fetched;
-            IDispatch* pTargetDTE = nullptr;
+        IEnumMoniker* pEnumMoniker = nullptr;
+        if (FAILED(pROT->EnumRunning(&pEnumMoniker))) { pROT->Release(); return nullptr; }
 
-            std::wstring pidTargetStr = L":" + std::to_wstring(targetPid);
+        IMoniker* pMoniker = nullptr;
+        ULONG fetched;
+        IDispatch* pTargetDTE = nullptr;
 
-            while (pEnumMoniker->Next(1, &pMoniker, &fetched) == S_OK) {
-                IBindCtx* pBindCtx = nullptr;
-                if (SUCCEEDED(CreateBindCtx(0, &pBindCtx))) {
-                    LPOLESTR pDisplayName = nullptr;
-                    if (SUCCEEDED(pMoniker->GetDisplayName(pBindCtx, nullptr, &pDisplayName))) {
-                        std::wstring name(pDisplayName);
+        std::wstring pidTargetStr = L":" + std::to_wstring(targetPid);
 
-                        if (name.find(L"VisualStudio.DTE") != std::wstring::npos &&
-                            name.length() >= pidTargetStr.length() &&
-                            name.compare(name.length() - pidTargetStr.length(), pidTargetStr.length(), pidTargetStr) == 0) {
+        while (pEnumMoniker->Next(1, &pMoniker, &fetched) == S_OK) {
+            IBindCtx* pBindCtx = nullptr;
+            if (SUCCEEDED(CreateBindCtx(0, &pBindCtx))) {
+                LPOLESTR pDisplayName = nullptr;
+                if (SUCCEEDED(pMoniker->GetDisplayName(pBindCtx, nullptr, &pDisplayName))) {
+                    std::wstring name(pDisplayName);
 
-                            IUnknown* pUnk = nullptr;
-                            if (SUCCEEDED(pROT->GetObject(pMoniker, &pUnk))) {
-                                pUnk->QueryInterface(IID_IDispatch, (void**)&pTargetDTE);
-                                pUnk->Release();
-                            }
+                    if (name.find(L"VisualStudio.DTE") != std::wstring::npos &&
+                        name.length() >= pidTargetStr.length() &&
+                        name.compare(name.length() - pidTargetStr.length(), pidTargetStr.length(), pidTargetStr) == 0) {
+
+                        IUnknown* pUnk = nullptr;
+                        if (SUCCEEDED(pROT->GetObject(pMoniker, &pUnk))) {
+                            pUnk->QueryInterface(IID_IDispatch, (void**)&pTargetDTE);
+                            pUnk->Release();
                         }
-                        CoTaskMemFree(pDisplayName);
                     }
-                    pBindCtx->Release();
+                    CoTaskMemFree(pDisplayName);
                 }
-                pMoniker->Release();
-                if (pTargetDTE) break;
+                pBindCtx->Release();
             }
-
-            pEnumMoniker->Release(); pROT->Release();
-            return pTargetDTE;
+            pMoniker->Release();
+            if (pTargetDTE) break;
         }
+
+        pEnumMoniker->Release(); pROT->Release();
+        return pTargetDTE;
+    }
 
     inline bool initVsEditor()
-        {
-            if (pDTE) return true;
+    {
+        if (pDTE) return true;
 
-            DWORD parentPid = GetStudioProcessId();
-            Log("Target Studio PID: " + std::to_string(parentPid));
+        DWORD parentPid = GetStudioProcessId();
+        LivePT::LogWithTime("[LivePT]", "Target Studio PID: " + std::to_string(parentPid) + "\n");
 
-            pDTE = GetDTEByPid(parentPid);
-            if (!pDTE) {
-                Log("Failed to connect to the host Visual Studio instance.");
-                return false;
-            }
-
-            Log("Connected to Visual Studio successfully!");
-            return true;
-        }
-
-    inline void ResetDTEConnection() {
-            if (pDTE) {
-                pDTE->Release();
-                pDTE = nullptr;
-                Log("[EnvDTE] Connection lost. pDTE reset.");
-            }
-        }
-
-    inline void StartUndoTransaction(const std::wstring & name) {
-            if (!pDTE) return;
-
-            CComVariant vtUndoContext;
-            if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtUndoContext, pDTE, L"UndoContext", 0)) && vtUndoContext.pdispVal) {
-
-                CComVariant vtIsOpen;
-                AutoWrap(DISPATCH_PROPERTYGET, &vtIsOpen, vtUndoContext.pdispVal, L"IsOpen", 0);
-                if (vtIsOpen.vt == VT_BOOL && vtIsOpen.boolVal == VARIANT_FALSE) {
-                    CComBSTR bstrName(name.c_str());
-                    AutoWrap(DISPATCH_METHOD, NULL, vtUndoContext.pdispVal, L"Open", 1, CComVariant(bstrName));
-                }
-            }
-        }
-
-    inline void EndUndoTransaction() {
-            if (!pDTE) return;
-
-            CComVariant vtUndoContext;
-            if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtUndoContext, pDTE, L"UndoContext", 0)) && vtUndoContext.pdispVal) {
-                CComVariant vtIsOpen;
-                AutoWrap(DISPATCH_PROPERTYGET, &vtIsOpen, vtUndoContext.pdispVal, L"IsOpen", 0);
-                if (vtIsOpen.vt == VT_BOOL && vtIsOpen.boolVal == VARIANT_TRUE) {
-                    AutoWrap(DISPATCH_METHOD, NULL, vtUndoContext.pdispVal, L"Close", 0);
-                }
-            }
-        }
-
-    inline int GetParamIndexByTextOrder(const std::wstring & fileText, const std::string & currentActiveFile, long cursorLine, size_t evalIdxInLine) {
-
-            std::vector<std::wstring> lines;
-            std::wstring currentLine;
-            const size_t TAB_SIZE = 4; // VS TAB SIZE
-
-            for (size_t i = 0; i < fileText.length(); ++i) {
-                wchar_t ch = fileText[i];
-                if (ch == L'\r') {
-                    continue;
-                }
-                if (ch == L'\n') {
-                    lines.push_back(currentLine);
-                    currentLine.clear();
-                }
-                else if (ch == L'\t') {
-
-                    size_t spacesToAdd = TAB_SIZE - (currentLine.length() % TAB_SIZE);
-                    currentLine.append(spacesToAdd, L' ');
-                }
-                else {
-                    currentLine.push_back(ch);
-                }
-            }
-            lines.push_back(currentLine);
-
-            if (cursorLine < 1 || cursorLine > static_cast<long>(lines.size())) return -1;
-
-            size_t globalFileCounter = 0;
-
-            for (long l = 1; l < cursorLine; ++l) {
-                const std::wstring& lineText = lines[l - 1];
-
-                size_t firstNonSpace = lineText.find_first_not_of(L" \t");
-                if (firstNonSpace != std::wstring::npos && lineText[firstNonSpace] == L'#') continue;
-                if (lineText.find(L"//") != std::wstring::npos) continue;
-
-                size_t searchPos = 0;
-                while ((searchPos = lineText.find(L"eval", searchPos)) != std::wstring::npos) {
-
-                    bool validLeft = (searchPos == 0 || !iswalnum(lineText[searchPos - 1]) && lineText[searchPos - 1] != L'_');
-                    bool validRight = (searchPos + 4 >= lineText.length() || !iswalnum(lineText[searchPos + 4]) && lineText[searchPos + 4] != L'_');
-
-                    if (validLeft && validRight) {
-                        globalFileCounter++;
-                    }
-                    searchPos += 4;
-                }
-            }
-
-            size_t finalGlobalFileIndex = globalFileCounter + evalIdxInLine;
-
-            return static_cast<int>(finalGlobalFileIndex);
-        }
-
-    inline size_t FindCloseBracket(const std::wstring & text, size_t openBracketPos) {
-            if (openBracketPos == std::wstring::npos) return std::wstring::npos;
-            int bracketCount = 1;
-            for (size_t k = openBracketPos + 1; k < text.length(); ++k) {
-                if (text[k] == L'(') bracketCount++;
-                if (text[k] == L')') bracketCount--;
-                if (bracketCount == 0) return k;
-            }
-            return std::wstring::npos;
-        }
-
-    inline std::string GetActiveDocumentPath(IDispatch * pActiveDoc) {
-            VARIANT vtFullName; VariantInit(&vtFullName);
-            if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtFullName, pActiveDoc, L"FullName", 0)) &&
-                vtFullName.vt == VT_BSTR && vtFullName.bstrVal != nullptr) {
-                std::string path = ConvertWStringToUtf8(vtFullName.bstrVal);
-                VariantClear(&vtFullName);
-                std::replace(path.begin(), path.end(), '\\', '/');
-                return path;
-            }
-            VariantClear(&vtFullName);
-            return "";
-        }
-
-    inline bool GetCursorCoordinates(IDispatch * pActiveDoc, long& outLine, long& outColumn) {
-            VARIANT vtSelection; VariantInit(&vtSelection);
-            if (FAILED(AutoWrap(DISPATCH_PROPERTYGET, &vtSelection, pActiveDoc, L"Selection", 0)) || vtSelection.vt != VT_DISPATCH || !vtSelection.pdispVal) {
-                VariantClear(&vtSelection); return false;
-            }
-
-            VARIANT vtActivePoint; VariantInit(&vtActivePoint);
-            if (FAILED(AutoWrap(DISPATCH_PROPERTYGET, &vtActivePoint, vtSelection.pdispVal, L"ActivePoint", 0)) || vtActivePoint.vt != VT_DISPATCH || !vtActivePoint.pdispVal) {
-                VariantClear(&vtActivePoint); VariantClear(&vtSelection); return false;
-            }
-
-            IDispatch* pActivePoint = vtActivePoint.pdispVal;
-            VARIANT vtLine; VariantInit(&vtLine);
-            VARIANT vtDisplayCol; VariantInit(&vtDisplayCol);
-
-            if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtLine, pActivePoint, L"Line", 0))) {
-                VARIANT vtTarget; VariantInit(&vtTarget);
-                if (SUCCEEDED(VariantChangeType(&vtTarget, &vtLine, 0, VT_I4))) outLine = vtTarget.lVal;
-                VariantClear(&vtTarget);
-            }
-            if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtDisplayCol, pActivePoint, L"DisplayColumn", 0))) {
-                VARIANT vtTarget; VariantInit(&vtTarget);
-                if (SUCCEEDED(VariantChangeType(&vtTarget, &vtDisplayCol, 0, VT_I4))) outColumn = vtTarget.lVal;
-                VariantClear(&vtTarget);
-            }
-
-            VariantClear(&vtDisplayCol); VariantClear(&vtLine);
-            VariantClear(&vtActivePoint); VariantClear(&vtSelection);
-            return (outLine > 0 && outColumn > 0);
-        }
-
-    inline std::wstring DownloadDocumentText(IDispatch * pActiveDoc) {
-            std::wstring fileText = L"";
-            VARIANT vtTextDoc; VariantInit(&vtTextDoc);
-            HRESULT hr = AutoWrap(DISPATCH_PROPERTYGET, &vtTextDoc, pActiveDoc, L"Object", 0);
-            if (FAILED(hr) || vtTextDoc.vt != VT_DISPATCH || !vtTextDoc.pdispVal) {
-                VariantClear(&vtTextDoc);
-                hr = AutoWrap(DISPATCH_METHOD, &vtTextDoc, pActiveDoc, L"Object", 0);
-            }
-            if (SUCCEEDED(hr) && vtTextDoc.vt == VT_DISPATCH && vtTextDoc.pdispVal != nullptr) {
-                VARIANT vtStartPoint; VariantInit(&vtStartPoint);
-                VARIANT vtEndPoint; VariantInit(&vtEndPoint);
-
-                if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtStartPoint, vtTextDoc.pdispVal, L"StartPoint", 0)) &&
-                    SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtEndPoint, vtTextDoc.pdispVal, L"EndPoint", 0))) {
-
-                    VARIANT vtEditPoint; VariantInit(&vtEditPoint);
-                    hr = AutoWrap(DISPATCH_METHOD, &vtEditPoint, vtStartPoint.pdispVal, L"CreateEditPoint", 0);
-
-                    if (SUCCEEDED(hr) && vtEditPoint.vt == VT_DISPATCH && vtEditPoint.pdispVal != nullptr) {
-                        VARIANT vtAllText; VariantInit(&vtAllText);
-                        hr = AutoWrap(DISPATCH_METHOD, &vtAllText, vtEditPoint.pdispVal, L"GetText", 1, vtEndPoint);
-
-                        if (SUCCEEDED(hr) && vtAllText.vt == VT_BSTR && vtAllText.bstrVal != nullptr) {
-                            fileText = vtAllText.bstrVal;
-                        }
-                        VariantClear(&vtAllText); VariantClear(&vtEditPoint);
-                    }
-                }
-                VariantClear(&vtEndPoint); VariantClear(&vtStartPoint);
-            }
-            VariantClear(&vtTextDoc);
-            return fileText;
-        }
-
-    inline size_t GetLineStartOffset(const std::wstring & text, long targetLine) {
-            size_t offset = 0; long currentIdx = 1;
-            while (currentIdx < targetLine && offset < text.length()) {
-                size_t nextNL = text.find(L'\n', offset);
-                if (nextNL != std::wstring::npos) { offset = nextNL + 1; currentIdx++; }
-                else break;
-            }
-            return offset;
-        }
-
-    inline long GetVisualColumn(const std::wstring & lineText, size_t charIdx) {
-            const size_t TAB_SIZE = 4; // VS TAB SIZE
-            size_t visualCol = 0;
-
-            for (size_t i = 0; i < charIdx && i < lineText.length(); ++i) {
-                if (lineText[i] == L'\t') {
-                    visualCol += TAB_SIZE - (visualCol % TAB_SIZE);
-                }
-                else {
-                    visualCol++;
-                }
-            }
-            return static_cast<long>(visualCol) + 1;
-        }
-
-    inline bool CheckCursorInsideEval(const std::wstring & fileText, long line, long column, size_t & outEvalIdxInLine, size_t & outTargetEvalAbsolutePos) {
-            size_t lineStartOffset = GetLineStartOffset(fileText, line);
-            size_t lineEndOffset = fileText.find(L'\n', lineStartOffset);
-            if (lineEndOffset == std::wstring::npos) lineEndOffset = fileText.length();
-
-            std::wstring wholeLineText = fileText.substr(lineStartOffset, lineEndOffset - lineStartOffset);
-            size_t posInLine = 0; outEvalIdxInLine = 0;
-
-            while ((posInLine = wholeLineText.find(L"eval", posInLine)) != std::wstring::npos) {
-                bool validLeft = (posInLine == 0 || !iswalnum(wholeLineText[posInLine - 1]) && wholeLineText[posInLine - 1] != L'_');
-                bool validRight = (posInLine + 4 >= wholeLineText.length() || !iswalnum(wholeLineText[posInLine + 4]) && wholeLineText[posInLine + 4] != L'_');
-
-                if (validLeft && validRight) {
-                    size_t openBracket = wholeLineText.find(L'(', posInLine + 4);
-                    size_t closeBracket = FindCloseBracket(wholeLineText, openBracket);
-
-                    if (openBracket != std::wstring::npos && closeBracket != std::wstring::npos) {
-                        long evalStartCol = GetVisualColumn(wholeLineText, posInLine);
-                        long evalEndCol = GetVisualColumn(wholeLineText, closeBracket);
-
-                        if (column >= evalStartCol && column <= evalEndCol) {
-                            outTargetEvalAbsolutePos = lineStartOffset + posInLine;
-                            return true;
-                        }
-                    }
-                    outEvalIdxInLine++;
-                }
-                posInLine += 4;
-            }
+        pDTE = GetDTEByPid(parentPid);
+        if (!pDTE) {
+            LivePT::LogWithTime("[LivePT]", "Failed to connect to the host Visual Studio instance.\n");
             return false;
         }
 
-    inline void ParseAndStoreParamValue(const std::wstring & fileText, const std::string & currentActiveFile, long line, size_t evalIdxInLine, size_t targetEvalAbsolutePos) {
-            int counterID = GetParamIndexByTextOrder(fileText, currentActiveFile, line, evalIdxInLine);
-            if (counterID == -1) return;
+        LivePT::LogWithTime("[LivePT]", "Connected to Visual Studio successfully!\n");
 
-            std::string vsLookupKey = currentActiveFile + ":" + std::to_string(counterID);
-            int targetId = getID(vsLookupKey);
-            if (targetId == -1) return;
 
-            size_t openBracket = fileText.find(L'(', targetEvalAbsolutePos);
-            size_t closeBracket = FindCloseBracket(fileText, openBracket);
-            if (openBracket != std::wstring::npos && closeBracket != std::wstring::npos) {
-                std::wstring innerValueW = fileText.substr(openBracket + 1, closeBracket - openBracket - 1);
-                std::string innerValueA = ConvertWStringToUtf8(innerValueW);
-                innerValueA.erase(0, innerValueA.find_first_not_of(" \t\r\n"));
-                innerValueA.erase(innerValueA.find_last_not_of(" \t\r\n") + 1);
-                UpdateParamValue(targetId, innerValueA);
+        return true;
+    }
+
+    inline void ResetDTEConnection() {
+        if (pDTE) {
+            pDTE->Release();
+            pDTE = nullptr;
+            LogWithTime("[EnvDTE] ");
+            Log("Connection lost. pDTE reset.\n");
+        }
+    }
+
+    inline void StartUndoTransaction(const std::wstring& name) {
+
+        if (!pDTE) return;
+
+        CComVariant vtUndoContext;
+        if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtUndoContext, pDTE, L"UndoContext", 0)) && vtUndoContext.pdispVal) {
+
+            CComVariant vtIsOpen;
+            AutoWrap(DISPATCH_PROPERTYGET, &vtIsOpen, vtUndoContext.pdispVal, L"IsOpen", 0);
+            if (vtIsOpen.vt == VT_BOOL && vtIsOpen.boolVal == VARIANT_FALSE) {
+                CComBSTR bstrName(name.c_str());
+                AutoWrap(DISPATCH_METHOD, NULL, vtUndoContext.pdispVal, L"Open", 1, CComVariant(bstrName));
+            }
+        }
+    }
+
+    inline void EndUndoTransaction() {
+
+        if (!pDTE) return;
+
+        CComVariant vtUndoContext;
+        if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtUndoContext, pDTE, L"UndoContext", 0)) && vtUndoContext.pdispVal) {
+            CComVariant vtIsOpen;
+            AutoWrap(DISPATCH_PROPERTYGET, &vtIsOpen, vtUndoContext.pdispVal, L"IsOpen", 0);
+            if (vtIsOpen.vt == VT_BOOL && vtIsOpen.boolVal == VARIANT_TRUE) {
+                AutoWrap(DISPATCH_METHOD, NULL, vtUndoContext.pdispVal, L"Close", 0);
+            }
+        }
+    }
+
+
+    inline long GetVSTabSize() {
+        static long cachedTabSize = 4;
+        static bool isLoaded = false;
+
+        if (isLoaded || !pDTE) {
+            return cachedTabSize;
+        }
+
+        CComVariant vtProperties;
+
+        HRESULT hr = AutoWrap(DISPATCH_PROPERTYGET, &vtProperties, pDTE, L"Properties", 2,
+            CComVariant(L"TextEditor"), CComVariant(L"C/C++"));
+
+        if (SUCCEEDED(hr) && vtProperties.pdispVal) {
+            CComVariant vtTabSizeItem;
+
+            hr = AutoWrap(DISPATCH_METHOD, &vtTabSizeItem, vtProperties.pdispVal, L"Item", 1, CComVariant(L"TabSize"));
+
+            if (SUCCEEDED(hr) && vtTabSizeItem.pdispVal) {
+                CComVariant vtValue;
+                hr = AutoWrap(DISPATCH_PROPERTYGET, &vtValue, vtTabSizeItem.pdispVal, L"Value", 0);
+
+                if (SUCCEEDED(hr)) {
+
+                    if (vtValue.vt == VT_I4 || vtValue.vt == VT_INT) {
+                        cachedTabSize = vtValue.lVal;
+                        isLoaded = true;
+                    }
+                    else if (vtValue.vt == VT_I2) {
+                        cachedTabSize = vtValue.iVal;
+                        isLoaded = true;
+                    }
+                }
             }
         }
 
-    bool isMouseDragging();
+        return cachedTabSize;
 
+    }
+
+    inline size_t FindCloseBracket(const std::wstring& text, size_t openBracketPos) {
+
+        if (openBracketPos == std::wstring::npos) return std::wstring::npos;
+
+        int bracketCount = 1;
+
+        for (size_t k = openBracketPos + 1; k < text.length(); ++k) {
+            if (text[k] == L'(') bracketCount++;
+            if (text[k] == L')') bracketCount--;
+            if (bracketCount == 0) return k;
+        }
+
+        return std::wstring::npos;
+    }
+
+    // Единый метод безопасного поиска закрывающей скобки макроса.
+// Честно считает баланс круглых (), фигурных {} и угловых <> скобок, 
+// чтобы корректно определять границы многострочных и сложных параметров.
+   // Обновленная безопасная версия в vsEditor.h
+    inline size_t FindMacroCloseBracket(const std::wstring& text, size_t openBracketPos) {
+        if (openBracketPos == std::wstring::npos || openBracketPos >= text.length()) {
+            return std::wstring::npos;
+        }
+
+        int roundCount = 1;
+        int curlyCount = 0;
+        int angleCount = 0;
+
+        // Ограничиваем поиск разумным пределом (например, 5000 символов от начала макроса),
+        // чтобы парсер гарантированно не уходил в бесконечный цикл при поломке синтаксиса
+        size_t maxScanLength = (std::min)(text.length(), openBracketPos + 5000);
+
+        for (size_t k = openBracketPos + 1; k < maxScanLength; ++k) {
+            wchar_t ch = text[k];
+
+            if (ch == L'(') {
+                roundCount++;
+            }
+            else if (ch == L')') {
+                roundCount--;
+                // Защита: если curlyCount ушел в минус из-за сломанной разметки, 
+                // мы всё равно доверяем круглым скобкам самого макроса eval(...)
+                if (curlyCount < 0) curlyCount = 0;
+                if (angleCount < 0) angleCount = 0;
+
+                if (roundCount == 0 && curlyCount == 0 && angleCount == 0) {
+                    return k;
+                }
+            }
+            else if (ch == L'{') {
+                curlyCount++;
+            }
+            else if (ch == L'}') {
+                curlyCount--;
+            }
+            else if (ch == L'<') {
+                angleCount++;
+            }
+            else if (ch == L'>') {
+                angleCount--;
+            }
+        }
+
+        // Если баланс нарушен — возвращаем npos, но НЕ зависаем!
+        return std::wstring::npos;
+    }
+
+
+
+    inline std::string GetActiveDocumentPath(IDispatch* pActiveDoc) {
+
+        VARIANT vtFullName; VariantInit(&vtFullName);
+
+        if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtFullName, pActiveDoc, L"FullName", 0)) &&
+            vtFullName.vt == VT_BSTR && vtFullName.bstrVal != nullptr) {
+            std::string path = ConvertWStringToUtf8(vtFullName.bstrVal);
+            VariantClear(&vtFullName);
+            std::replace(path.begin(), path.end(), '\\', '/');
+            return path;
+        }
+
+        VariantClear(&vtFullName);
+
+        return "";
+    }
+
+    inline bool GetCursorCoordinates(IDispatch* pActiveDoc, long& outLine, long& outColumn) {
+
+        VARIANT vtSelection; VariantInit(&vtSelection);
+        if (FAILED(AutoWrap(DISPATCH_PROPERTYGET, &vtSelection, pActiveDoc, L"Selection", 0)) || vtSelection.vt != VT_DISPATCH || !vtSelection.pdispVal) {
+            VariantClear(&vtSelection); return false;
+        }
+
+        VARIANT vtActivePoint; VariantInit(&vtActivePoint);
+        if (FAILED(AutoWrap(DISPATCH_PROPERTYGET, &vtActivePoint, vtSelection.pdispVal, L"ActivePoint", 0)) || vtActivePoint.vt != VT_DISPATCH || !vtActivePoint.pdispVal) {
+            VariantClear(&vtActivePoint); VariantClear(&vtSelection); return false;
+        }
+
+        IDispatch* pActivePoint = vtActivePoint.pdispVal;
+        VARIANT vtLine; VariantInit(&vtLine);
+        VARIANT vtDisplayCol; VariantInit(&vtDisplayCol);
+
+        if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtLine, pActivePoint, L"Line", 0))) {
+            VARIANT vtTarget; VariantInit(&vtTarget);
+            if (SUCCEEDED(VariantChangeType(&vtTarget, &vtLine, 0, VT_I4))) outLine = vtTarget.lVal;
+            VariantClear(&vtTarget);
+        }
+        if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtDisplayCol, pActivePoint, L"DisplayColumn", 0))) {
+            VARIANT vtTarget; VariantInit(&vtTarget);
+            if (SUCCEEDED(VariantChangeType(&vtTarget, &vtDisplayCol, 0, VT_I4))) outColumn = vtTarget.lVal;
+            VariantClear(&vtTarget);
+        }
+
+        VariantClear(&vtDisplayCol); VariantClear(&vtLine);
+        VariantClear(&vtActivePoint); VariantClear(&vtSelection);
+        return (outLine > 0 && outColumn > 0);
+    }
+
+    inline std::wstring DownloadDocumentText(IDispatch* pActiveDoc) {
+
+        std::wstring fileText = L"";
+        VARIANT vtTextDoc; VariantInit(&vtTextDoc);
+        HRESULT hr = AutoWrap(DISPATCH_PROPERTYGET, &vtTextDoc, pActiveDoc, L"Object", 0);
+        if (FAILED(hr) || vtTextDoc.vt != VT_DISPATCH || !vtTextDoc.pdispVal) {
+            VariantClear(&vtTextDoc);
+            hr = AutoWrap(DISPATCH_METHOD, &vtTextDoc, pActiveDoc, L"Object", 0);
+        }
+        if (SUCCEEDED(hr) && vtTextDoc.vt == VT_DISPATCH && vtTextDoc.pdispVal != nullptr) {
+            VARIANT vtStartPoint; VariantInit(&vtStartPoint);
+            VARIANT vtEndPoint; VariantInit(&vtEndPoint);
+
+            if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtStartPoint, vtTextDoc.pdispVal, L"StartPoint", 0)) &&
+                SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtEndPoint, vtTextDoc.pdispVal, L"EndPoint", 0))) {
+
+                VARIANT vtEditPoint; VariantInit(&vtEditPoint);
+                hr = AutoWrap(DISPATCH_METHOD, &vtEditPoint, vtStartPoint.pdispVal, L"CreateEditPoint", 0);
+
+                if (SUCCEEDED(hr) && vtEditPoint.vt == VT_DISPATCH && vtEditPoint.pdispVal != nullptr) {
+                    VARIANT vtAllText; VariantInit(&vtAllText);
+                    hr = AutoWrap(DISPATCH_METHOD, &vtAllText, vtEditPoint.pdispVal, L"GetText", 1, vtEndPoint);
+
+                    if (SUCCEEDED(hr) && vtAllText.vt == VT_BSTR && vtAllText.bstrVal != nullptr) {
+                        fileText = vtAllText.bstrVal;
+                    }
+                    VariantClear(&vtAllText); VariantClear(&vtEditPoint);
+                }
+            }
+            VariantClear(&vtEndPoint); VariantClear(&vtStartPoint);
+        }
+        VariantClear(&vtTextDoc);
+        return fileText;
+    }
+
+    inline long GetVisualColumn(const std::wstring& lineText, size_t charIdx) {
+        long tabSize = GetVSTabSize();
+        size_t visualCol = 0;
+
+        for (size_t i = 0; i < charIdx && i < lineText.length(); ++i) {
+            if (lineText[i] == L'\t') {
+                visualCol += tabSize - (visualCol % tabSize);
+            }
+            else {
+                visualCol++;
+            }
+        }
+        return static_cast<long>(visualCol) + 1;
+    }
+
+    inline void ParseAndStoreParamValueDirect(const std::wstring& fileText, int targetId) {
+        if (fileText.empty() || targetId < 0 || targetId >= static_cast<int>(paramDesc.size())) {
+            return;
+        }
+
+        auto& p = paramDesc[targetId];
+        long tabSize = GetVSTabSize();
+
+        // 1. Находим физическое смещение начала строки макроса p.line
+        size_t lineStartOffset = 0;
+        long currentLineIdx = 1;
+        while (currentLineIdx < p.line && lineStartOffset < fileText.length()) {
+            size_t nextNL = fileText.find(L'\n', lineStartOffset);
+            if (nextNL != std::wstring::npos) {
+                lineStartOffset = nextNL + 1;
+                currentLineIdx++;
+            }
+            else break;
+        }
+
+        // 2. Выделяем текст базовой строки макроса
+        size_t nextNL = fileText.find(L'\n', lineStartOffset);
+        if (nextNL == std::wstring::npos) nextNL = fileText.length();
+        std::wstring lineText = fileText.substr(lineStartOffset, nextNL - lineStartOffset);
+
+        // 3. Вычисляем физический символ по p.column
+        long currentVisualCol = 1;
+        size_t paramCharIdx = lineText.length();
+        for (size_t i = 0; i < lineText.length(); ++i) {
+            if (currentVisualCol >= p.column) { paramCharIdx = i; break; }
+            currentVisualCol += (lineText[i] == L'\t') ? (tabSize - ((currentVisualCol - 1) % tabSize)) : 1;
+        }
+        size_t anchorOffset = lineStartOffset + paramCharIdx;
+
+        if (anchorOffset >= fileText.length()) return;
+
+        // 4. Находим открывающую скобку макроса eval(
+        size_t openBracket = fileText.find(L'(', anchorOffset);
+
+        if (openBracket != std::wstring::npos && openBracket < fileText.length()) {
+
+            // Используем наш новый безопасный детектор
+            size_t closeBracketPos = FindMacroCloseBracket(fileText, openBracket);
+
+            // Если скобка найдена — вырезаем строго внутреннее содержимое макроса
+            if (closeBracketPos != std::wstring::npos && closeBracketPos > openBracket) {
+                std::wstring innerValueW = fileText.substr(openBracket + 1, closeBracketPos - openBracket - 1);
+                std::string innerValueA = ConvertWStringToUtf8(innerValueW);
+
+                // Очищаем от мусорных переносов строк по краям
+                innerValueA.erase(0, innerValueA.find_first_not_of(" \t\r\n"));
+                innerValueA.erase(innerValueA.find_last_not_of(" \t\r\n") + 1);
+
+                // Отправляем чистую строку в базовый рантайм-парсер
+                UpdateParamValue(targetId, innerValueA);
+            }
+        }
+    }
+
+
+
+
+    inline std::wstring DownloadCurrentLineText(IDispatch* pActiveDoc) {
+        std::wstring lineText = L"";
+        VARIANT vtSelection; VariantInit(&vtSelection);
+        if (FAILED(AutoWrap(DISPATCH_PROPERTYGET, &vtSelection, pActiveDoc, L"Selection", 0)) || !vtSelection.pdispVal) return L"";
+
+        VARIANT vtActivePoint; VariantInit(&vtActivePoint);
+        if (SUCCEEDED(AutoWrap(DISPATCH_PROPERTYGET, &vtActivePoint, vtSelection.pdispVal, L"ActivePoint", 0)) && vtActivePoint.pdispVal) {
+
+            CComVariant pEditStart;
+            AutoWrap(DISPATCH_METHOD, &pEditStart, vtActivePoint.pdispVal, L"CreateEditPoint", 0);
+
+            if (pEditStart.vt == VT_DISPATCH && pEditStart.pdispVal) {
+
+                AutoWrap(DISPATCH_METHOD, NULL, pEditStart.pdispVal, L"StartOfLine", 0);
+
+                CComVariant pEditEnd;
+                AutoWrap(DISPATCH_METHOD, &pEditEnd, vtActivePoint.pdispVal, L"CreateEditPoint", 0);
+                AutoWrap(DISPATCH_METHOD, NULL, pEditEnd.pdispVal, L"EndOfLine", 0);
+
+                if (pEditEnd.vt == VT_DISPATCH && pEditEnd.pdispVal) {
+                    VARIANT vtLineText; VariantInit(&vtLineText);
+
+                    if (SUCCEEDED(AutoWrap(DISPATCH_METHOD, &vtLineText, pEditStart.pdispVal, L"GetText", 1, pEditEnd))) {
+                        if (vtLineText.vt == VT_BSTR && vtLineText.bstrVal) {
+                            lineText = vtLineText.bstrVal;
+                        }
+                        VariantClear(&vtLineText);
+                    }
+                }
+            }
+        }
+        VariantClear(&vtActivePoint); VariantClear(&vtSelection);
+        return lineText;
+    }
+
+//    static std::wstring g_lastLineTextBuffer = L"";
+    static std::wstring g_currentFileFullText = L"";
+//    static long g_lastLine = -1;
+//    static long g_lastCol = -1;
+
+    inline bool isMouseDragging();
+
+    struct EvalContext {
+        int rawId = -1;
+        size_t absolutePos = std::wstring::npos;
+    };
+
+    static EvalContext g_cachedEvalCtx;
+    static long g_cachedEvalLine = -1;
+    static long g_cachedEvalCol = -1;
+    static std::wstring g_cachedEvalTextHash = L"";
+
+    static std::string g_currentActiveFile = "";
+    //static long          g_lastLineCount = -1;
+    //static size_t        g_lastLineLength = 0;
+
+    static std::string   g_lastActiveFile = "";
+    static long          g_lastLineCount = -1;
+    static size_t        g_lastLineLength = 0;
+    static long          g_lastLine = -1;
+    static long          g_lastCol = -1;
+    static std::wstring  g_lastLineTextBuffer = L"";
+
+    inline int FindParamIdByStrictGeometry(const std::string& normalizedFile, long cursorLine, long cursorColumn) {
+        auto& params = LivePT::getParamDesc();
+        int targetParamId = -1;
+
+        // 1. Линейно находим последний макрос, начавшийся выше или на строке курсора
+        for (int localId = 0; ; ++localId) {
+            std::string vsLookupKey = normalizedFile + ":" + std::to_string(localId);
+            int paramId = LivePT::getID(vsLookupKey);
+
+            if (paramId == -1) break;
+            if (paramId < 0 || paramId >= static_cast<int>(params.size())) continue;
+
+            const auto& p = params[paramId];
+
+            // Проверяем строгое попадание по строкам
+            if (p.line <= cursorLine) {
+                targetParamId = paramId;
+            }
+            else {
+                break; // Выходим из поиска, как только зашли за строку курсора
+            }
+        }
+
+        // 2. Проверяем, не вылетел ли курсор за нижнюю границу многострочного макроса (массива)
+        if (targetParamId != -1 && !g_currentFileFullText.empty()) {
+            const auto& p = params[targetParamId];
+
+            // Находим абсолютное смещение начала строки макроса в файле
+            size_t macroLineOffset = 0;
+            long currentLineIdx = 1;
+            while (currentLineIdx < p.line && macroLineOffset < g_currentFileFullText.length()) {
+                size_t nextNL = g_currentFileFullText.find(L'\n', macroLineOffset);
+                if (nextNL != std::wstring::npos) {
+                    macroLineOffset = nextNL + 1;
+                    currentLineIdx++;
+                }
+                else break;
+            }
+
+            // Вычисляем позицию открывающей скобки макроса eval(
+            size_t openBracketPos = g_currentFileFullText.find(L'(', macroLineOffset + (p.column > 0 ? p.column - 1 : 0));
+
+            if (openBracketPos != std::wstring::npos && openBracketPos < g_currentFileFullText.length()) {
+
+                // ИСПОЛЬЗУЕМ ОБНОВЛЕННЫЙ БЕЗОПАСНЫЙ ДЕТЕКТОР СКОБОК С ЗАЩИТОЙ ОТ ПЕРЕПОЛНЕНИЯ
+                size_t closeBracketPos = FindMacroCloseBracket(g_currentFileFullText, openBracketPos);
+
+                // КРИТИЧЕСКИЙ АРХИТЕКТУРНЫЙ ФИКС: 
+                // Если из-за драга синтаксис сломался и скобка не найдена — аварийно выходим,
+                // чтобы предотвратить бесконечный цикл и намертво не повесить UI-поток приложения
+                if (closeBracketPos == std::wstring::npos) {
+                    return -1;
+                }
+
+                // Вычисляем, на какой конкретно физической строке закрывается макрос
+                long macroEndLine = p.line;
+                size_t scanNL = macroLineOffset;
+                while ((scanNL = g_currentFileFullText.find(L'\n', scanNL)) != std::wstring::npos && scanNL < closeBracketPos) {
+                    macroEndLine++;
+                    scanNL++;
+                }
+
+                // Курсор легитимен, если его строка находится строго в диапазоне 
+                // от начала макроса (p.line) до строки его закрытия (macroEndLine) ВКЛЮЧИТЕЛЬНО
+                if (cursorLine > macroEndLine) {
+                    return -1; // Курсор ушел ниже всего блока макроса (массива) — отсекаем
+                }
+
+                // Если мы стоим ровно на строке закрытия, проверяем ';' только ЕСЛИ курсор ушел дальше самой скобки
+                if (cursorLine == macroEndLine) {
+                    size_t cursorLineOffset = 0;
+                    currentLineIdx = 1;
+                    while (currentLineIdx < cursorLine && cursorLineOffset < g_currentFileFullText.length()) {
+                        size_t nextNL = g_currentFileFullText.find(L'\n', cursorLineOffset);
+                        if (nextNL != std::wstring::npos) {
+                            cursorLineOffset = nextNL + 1;
+                            currentLineIdx++;
+                        }
+                        else break;
+                    }
+                    size_t cursorAbsoluteOffset = cursorLineOffset + (cursorColumn > 0 ? cursorColumn - 1 : 0);
+
+                    if (cursorAbsoluteOffset > closeBracketPos) {
+                        // Проверяем, нет ли точки с запятой между закрытием макроса и курсором на этой строке
+                        std::wstring trailingText = g_currentFileFullText.substr(closeBracketPos, cursorAbsoluteOffset - closeBracketPos);
+                        if (trailingText.find(L';') != std::wstring::npos) {
+                            return -1; // Точка с запятой означает, что выражение закрыто, и курсор за его пределами
+                        }
+                    }
+                }
+
+                // Во всех остальных случаях внутри многострочного диапазона — это 100% успех сопоставления
+                return targetParamId;
+            }
+        }
+
+        return targetParamId;
+    }
+
+
+    inline void ShiftDatabaseCoordinates(const std::string& targetFile, long targetLine, long visualStartCol, int lineDelta, int columnDelta);
+
+    // === ЕДИНЫЙ ПОЛНОСТЬЮ ОЧИЩЕННЫЙ ДИСПЕТЧЕР LivePT ===
     inline void vsEditor() {
-            if (isMouseDragging()) return;
-            if (!initVsEditor()) return;
+        if (!isMouseDragging()) {
+            static auto lastPollTime = std::chrono::steady_clock::now();
+            auto now = std::chrono::steady_clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPollTime).count() < 80) {
+                return;
+            }
+            lastPollTime = now;
+        }
+
+        if (!initVsEditor()) return;
+
+        VARIANT vtActiveDoc; VariantInit(&vtActiveDoc);
+        HRESULT hr = pDTE ? AutoWrap(DISPATCH_PROPERTYGET, &vtActiveDoc, pDTE, L"ActiveDocument", 0) : E_FAIL;
+
+        if (hr == CO_E_OBJNOTCONNECTED || hr == RPC_E_DISCONNECTED || hr == E_ACCESSDENIED) {
+            ResetDTEConnection();
+            return;
+        }
+        if (FAILED(hr) || !vtActiveDoc.pdispVal) { VariantClear(&vtActiveDoc); return; }
+
+        IDispatch* pActiveDoc = vtActiveDoc.pdispVal;
+        std::string currentActiveFile = GetActiveDocumentPath(pActiveDoc);
+        g_currentActiveFile = currentActiveFile;
+        if (currentActiveFile.empty()) { VariantClear(&vtActiveDoc); return; }
+
+        long line = 0, column = 0;
+        if (!GetCursorCoordinates(pActiveDoc, line, column)) { VariantClear(&vtActiveDoc); return; }
+
+        std::wstring currentLineText = DownloadCurrentLineText(pActiveDoc);
+        std::wstring fileText = DownloadDocumentText(pActiveDoc);
+        if (fileText.empty()) { VariantClear(&vtActiveDoc); return; }
+
+        g_currentFileFullText = fileText;
+
+        long currentLineCount = static_cast<long>(std::count(fileText.begin(), fileText.end(), L'\n')) + 1;
+        size_t currentLineLength = currentLineText.length();
+
+        std::string normalizedPath = LivePT::NormalizePath(currentActiveFile.c_str());
+
+        if (currentActiveFile != g_lastActiveFile) {
+            g_lastActiveFile = currentActiveFile;
+            g_lastLine = line;
+            g_lastCol = column;
+            g_lastLineCount = currentLineCount;
+            g_lastLineLength = currentLineLength;
+            g_lastLineTextBuffer = currentLineText;
+
+            VariantClear(&vtActiveDoc);
+            return;
+        }
+
+        bool wasChanged = (currentLineCount != g_lastLineCount) ||
+            (line == g_lastLine && currentLineText != g_lastLineTextBuffer);
+
+        if (wasChanged) {
+            int lineDelta = static_cast<int>(currentLineCount - g_lastLineCount);
+            int columnDelta = static_cast<int>(currentLineLength - g_lastLineLength);
+            long visualStartCol = (column < g_lastCol) ? column : g_lastCol;
+
+            // Защита: Если количество строк не менялось (lineDelta == 0), но мы правим текст текущей строки,
+            // сдвиг колонок должен происходить только для элементов, которые находятся ПРАВЕЕ курсора.
+            LivePT::ShiftDatabaseCoordinates(currentActiveFile, g_lastLine, visualStartCol, lineDelta, columnDelta);
+        }
+
+        g_lastLineTextBuffer = currentLineText;
+        g_lastLine = line;
+        g_lastCol = column;
+        g_lastLineCount = currentLineCount;
+        g_lastLineLength = currentLineLength;
+
+        // Поиск активного макроса по строгой геометрии
+        int finalParamDescId = FindParamIdByStrictGeometry(normalizedPath, line, column);
+
+        if (finalParamDescId != -1) {
+            ParseAndStoreParamValueDirect(fileText, finalParamDescId);
+        }
+
+        VariantClear(&vtActiveDoc);
+    }
+
+
+  
+    inline void OpenFileAndMoveCursorToLocation(const std::source_location& location) {
+        if (!LivePT::initVsEditor() || !LivePT::pDTE) {
+            return;
+        }
+
+        std::string rawPath = location.file_name();
+        std::wstring wRawPath(rawPath.begin(), rawPath.end());
+        long targetLine = static_cast<long>(location.line());
+
+        wchar_t absoluteBuffer[MAX_PATH] = { 0 };
+        GetFullPathNameW(wRawPath.c_str(), MAX_PATH, absoluteBuffer, nullptr);
+        std::wstring wTargetDocPath = absoluteBuffer;
+
+        HWND hVSMainWnd = NULL;
+        CComVariant vtMainWindow;
+        if (SUCCEEDED(LivePT::AutoWrap(DISPATCH_PROPERTYGET, &vtMainWindow, LivePT::pDTE, L"MainWindow", 0)) && vtMainWindow.pdispVal) {
+            CComVariant vtHWnd;
+            if (SUCCEEDED(LivePT::AutoWrap(DISPATCH_PROPERTYGET, &vtHWnd, vtMainWindow.pdispVal, L"HWnd", 0))) {
+                hVSMainWnd = (HWND)(ULONG_PTR)vtHWnd.lVal;
+            }
+        }
+
+        if (hVSMainWnd && ::IsWindow(hVSMainWnd)) {
+            ::ReleaseCapture();
+
+            DWORD gameThreadId = ::GetCurrentThreadId();
+            DWORD vsThreadId = ::GetWindowThreadProcessId(hVSMainWnd, NULL);
+
+            if (gameThreadId != vsThreadId) {
+                ::AttachThreadInput(gameThreadId, vsThreadId, TRUE);
+            }
+
+            ::ShowWindow(hVSMainWnd, SW_SHOW);
+            ::SetForegroundWindow(hVSMainWnd);
+            ::SetFocus(hVSMainWnd);
+
+            if (gameThreadId != vsThreadId) {
+                ::AttachThreadInput(gameThreadId, vsThreadId, FALSE);
+            }
+
+        }
+
+        CComVariant vtItemOperations;
+        HRESULT hr = LivePT::AutoWrap(DISPATCH_PROPERTYGET, &vtItemOperations, LivePT::pDTE, L"ItemOperations", 0);
+        if (FAILED(hr) || !vtItemOperations.pdispVal) return;
+
+        CComBSTR bstrPath(wTargetDocPath.c_str());
+        CComBSTR bstrKind(L"{00000000-0000-0000-0000-000000000000}"); // vsViewKindPrimary
+        CComVariant vtTargetWindow;
+
+        // ИСПРАВЛЕН ПОРЯДОК: Сначала передаем FileName (bstrPath), затем ViewKind (bstrKind)
+        // Внутри вашей AutoWrap они перевернутся в (bstrKind, bstrPath), как и требует COM Invoke!
+        hr = LivePT::AutoWrap(DISPATCH_METHOD, &vtTargetWindow, vtItemOperations.pdispVal, L"OpenFile", 2,
+            CComVariant(bstrPath),
+            CComVariant(bstrKind));
+
+        if (FAILED(hr) || !vtTargetWindow.pdispVal) {
+            //LivePT::Log("OpenFileAndMoveCursorToLocation: ItemOperations->OpenFile failed due to bad late binding order.");
+            return;
+        }
+
+        LivePT::AutoWrap(DISPATCH_METHOD, NULL, vtTargetWindow.pdispVal, L"Activate", 0);
+
+        CComVariant vtSelection;
+        hr = LivePT::AutoWrap(DISPATCH_PROPERTYGET, &vtSelection, vtTargetWindow.pdispVal, L"Selection", 0);
+
+        if (SUCCEEDED(hr) && vtSelection.vt == VT_DISPATCH && vtSelection.pdispVal) {
+            // Передаем аргументы строго слева направо: Line (targetLine), Offset (1L), Extend (0L)
+            LivePT::AutoWrap(DISPATCH_METHOD, NULL, vtSelection.pdispVal, L"MoveToLineAndOffset", 3,
+                CComVariant(targetLine),
+                CComVariant(1L),
+                CComVariant(0L));
 
 
             VARIANT vtActiveDoc; VariantInit(&vtActiveDoc);
             HRESULT hr = pDTE ? AutoWrap(DISPATCH_PROPERTYGET, &vtActiveDoc, pDTE, L"ActiveDocument", 0) : E_FAIL;
-            if (hr == CO_E_OBJNOTCONNECTED || hr == RPC_E_DISCONNECTED || hr == E_ACCESSDENIED) { ResetDTEConnection(); return; }
-            if (hr == RPC_E_CALL_REJECTED || hr == 0x8001010A || FAILED(hr) || !vtActiveDoc.pdispVal) { VariantClear(&vtActiveDoc); return; }
+
+            if (hr == CO_E_OBJNOTCONNECTED || hr == RPC_E_DISCONNECTED || hr == E_ACCESSDENIED) {
+                ResetDTEConnection();
+                return;
+            }
+            if (FAILED(hr) || !vtActiveDoc.pdispVal) { VariantClear(&vtActiveDoc); return; }
 
             IDispatch* pActiveDoc = vtActiveDoc.pdispVal;
-
             std::string currentActiveFile = GetActiveDocumentPath(pActiveDoc);
+            g_currentActiveFile = currentActiveFile;
             if (currentActiveFile.empty()) { VariantClear(&vtActiveDoc); return; }
 
             long line = 0, column = 0;
             if (!GetCursorCoordinates(pActiveDoc, line, column)) { VariantClear(&vtActiveDoc); return; }
+            g_lastLineTextBuffer = DownloadCurrentLineText(pActiveDoc);
+            g_lastLine = targetLine;
+            g_lastCol = 1;
+        }
+    }
 
-            std::wstring fileText = DownloadDocumentText(pActiveDoc);
-            if (fileText.empty()) { VariantClear(&vtActiveDoc); return; }
+    inline bool IsCursorInsideFunctionCall(const std::source_location& location) {
+        // 1. Быстрая нормализация пути текущего проверяемого вызова
+        std::string activeFile = LivePT::NormalizePath(location.file_name());
 
-            size_t evalIdxInLine = 0;
-            size_t targetEvalAbsolutePos = 0;
+        // Глобальное состояние "активного окна с курсором", вычисленное ОДИН РАЗ
+        static std::string cachedActiveFile = "";
+        static long cachedVSLine = -1;
 
-            if (!CheckCursorInsideEval(fileText, line, column, evalIdxInLine, targetEvalAbsolutePos)) {
-                VariantClear(&vtActiveDoc);
-                return;
-            }
+        // Границы функции Draw, внутри которой СЕЙЧАС физически стоит курсор в VS
+        static long validStartLine = -1;
+        static long validEndLine = -1;
 
-            ParseAndStoreParamValue(fileText, currentActiveFile, line, evalIdxInLine, targetEvalAbsolutePos);
-
-            VariantClear(&vtActiveDoc);
-
+        // 2. РАННИЙ ВОЗВРАТ ДЛЯ ВСЕХ 100500 ОБЪЕКТОВ С ЛЮБЫМИ УСЛОВИЯМИ
+        if (cachedActiveFile == g_currentActiveFile && cachedVSLine == g_lastLine) {
+            // Объект подсвечивается ТОЛЬКО если его строка совпадает с началом вызова под курсором
+            return (validStartLine != -1 && static_cast<long>(location.line()) == validStartLine);
         }
 
-    
+        // --- СЮДА МЫ ЗАХОДИМ СТРОГО 1 РАЗ НА ВЕСЬ КАДР, КОГДА КУРСОР РЕАЛЬНО СДВИНУЛСЯ ---
+        cachedActiveFile = g_currentActiveFile;
+        cachedVSLine = g_lastLine;
+        validStartLine = -1;
+        validEndLine = -1;
+
+        // Если курсор сейчас в другом файле или текст пуст — выходим сразу
+        if (activeFile != g_currentActiveFile || g_currentFileFullText.empty()) {
+            return false;
+        }
+
+        //Log("cache");
+
+        // 3. НАХОДИМ СМЕЩЕНИЕ ТЕКУЩЕЙ СТРОКИ КУРСОРA
+        size_t cursorLineOffset = 0;
+        long currentLineIdx = 1;
+        while (currentLineIdx < g_lastLine && cursorLineOffset < g_currentFileFullText.length()) {
+            size_t nextNL = g_currentFileFullText.find(L'\n', cursorLineOffset);
+            if (nextNL != std::wstring::npos) {
+                cursorLineOffset = nextNL + 1;
+                currentLineIdx++;
+            }
+            else break;
+        }
+
+        // Берем конец строки курсора для корректного старта поиска rfind
+        size_t nextLineNL = g_currentFileFullText.find(L'\n', cursorLineOffset);
+        size_t scanOffset = (nextLineNL != std::wstring::npos) ? nextLineNL : g_currentFileFullText.length();
+
+        // 4. ИЩЕМ НАЧАЛО ВЫЗОВА DRAW НАЗАД ОТ КУРСОРA
+        // Ищем ключевое слово "Draw", чтобы не спотыкаться об внутренние скобки eval(
+        size_t drawOffset = g_currentFileFullText.rfind(L"Draw", scanOffset);
+        if (drawOffset != std::wstring::npos) {
+
+            // Вычисляем номер строки начала вызова (foundStartLine)
+            long foundStartLine = 1;
+            size_t lineCheckOffset = 0;
+            while (lineCheckOffset < drawOffset && lineCheckOffset < g_currentFileFullText.length()) {
+                size_t nextNL = g_currentFileFullText.find(L'\n', lineCheckOffset);
+                if (nextNL != std::wstring::npos && nextNL < drawOffset) {
+                    foundStartLine++;
+                    lineCheckOffset = nextNL + 1;
+                }
+                else break;
+            }
+
+            // Проверяем, что найденный Draw действительно находится выше или на строке курсора
+            if (foundStartLine <= g_lastLine) {
+
+                // 5. ИЩЕМ ЗАКРЫВАЮЩУЮ ТОЧКУ С ЗАПЯТОЙ ВПЕРЕД ПОСЛЕ НАЧАЛА DRAW!
+                size_t callEndOffset = g_currentFileFullText.find(L';', drawOffset);
+                if (callEndOffset != std::wstring::npos) {
+
+                    // Вычисляем номер строки конца вызова (foundEndLine), перебирая \n от начала Draw до ;
+                    long foundEndLine = foundStartLine;
+                    size_t lineEndCheckOffset = drawOffset;
+                    while (lineEndCheckOffset < callEndOffset && lineEndCheckOffset < g_currentFileFullText.length()) {
+                        size_t nextNL = g_currentFileFullText.find(L'\n', lineEndCheckOffset);
+                        if (nextNL != std::wstring::npos && nextNL < callEndOffset) {
+                            foundEndLine++;
+                            lineEndCheckOffset = nextNL + 1;
+                        }
+                        else break;
+                    }
+
+                    // 6. ПРОВЕРЯЕМ ПОПАДАНИЕ КУРСОРA В ДИАПАЗОН СТРОК
+                    if (g_lastLine >= foundStartLine && g_lastLine <= foundEndLine) {
+                        validStartLine = foundStartLine;
+                        validEndLine = foundEndLine;
+                    }
+                }
+            }
+        }
+
+        // Результат для самого первого зашедшего вызова в текущем кадре изменения
+        return (validStartLine != -1 && static_cast<long>(location.line()) == validStartLine);
+    }
+
+    inline std::atomic<bool> g_IsLptPdbWarmupCompleted{ false };
+
+    inline void WarmupAllDatabaseParams() {
+        static bool isWarmedUp = false;
+        if (isWarmedUp) return;
+
+        auto& params = LivePT::getParamDesc();
+        const size_t totalParams = params.size();
+        if (totalParams == 0) return;
+
+        isWarmedUp = true;
+
+        // Запускаем тяжелый разбор PDB в фоновом потоке
+        std::thread warmupThread([totalParams]() {
+            auto& localParams = LivePT::getParamDesc();
+
+            std::unordered_map<std::type_index, decltype(localParams[0].structInfo.members)> structMetadataCache;
+            structMetadataCache.reserve(8);
+
+            static const std::type_index typeFloat = typeid(float);
+            static const std::type_index typeInt = typeid(int);
+            static const std::type_index typeBool = typeid(bool);
+            static const std::type_index typeDouble = typeid(double);
+            static const std::type_index typeChar = typeid(char);
+            static const std::type_index typeUChar = typeid(unsigned char);
+
+            for (size_t i = 0; i < totalParams; ++i) {
+                auto& p = localParams[i];
+
+                // Пропускаем то, что уже загружено или не инициализировано
+                if (p.enumInfo.isEnum || p.structInfo.isStruct || !p.value.has_value()) {
+                    continue;
+                }
+
+                std::type_index currentTypeInfo = p.value.type();
+
+                // Примитивы не требуют разбора структуры
+                if (currentTypeInfo == typeFloat || currentTypeInfo == typeInt ||
+                    currentTypeInfo == typeBool || currentTypeInfo == typeDouble ||
+                    currentTypeInfo == typeChar || currentTypeInfo == typeUChar) {
+                    continue;
+                }
+
+                // Быстрый кэш, если структура такого типа уже разбиралась
+                auto it = structMetadataCache.find(currentTypeInfo);
+                if (it != structMetadataCache.end()) {
+                    p.structInfo.members = it->second;
+                    p.structInfo.isStruct = true;
+                    continue;
+                }
+
+                std::string typeNameAnsi = currentTypeInfo.name();
+                if (typeNameAnsi.empty()) continue;
+
+                const char* typePtr = typeNameAnsi.c_str();
+                if (strncmp(typePtr, "struct ", 7) == 0) typePtr += 7;
+                else if (strncmp(typePtr, "class ", 6) == 0) typePtr += 6;
+
+                size_t len = strlen(typePtr);
+                std::wstring wTypeName(len, L'\0');
+                MultiByteToWideChar(CP_ACP, 0, typePtr, static_cast<int>(len), wTypeName.data(), static_cast<int>(len));
+
+                std::vector<std::string> fNames;
+                std::vector<DWORD> fOffsets;
+                std::vector<DWORD> fSizes;
+                std::vector<std::string> fTypes;
+
+                // Этот вызов DbgHelp теперь не фризит UI-поток отрисовки кадра!
+                if (LoadStructMetadataDirect(wTypeName.c_str(), fNames, fOffsets, fSizes, fTypes)) {
+                    decltype(p.structInfo.members) loadedMembers;
+                    const size_t fieldsCount = fOffsets.size();
+                    loadedMembers.reserve(fieldsCount);
+
+                    for (size_t k = 0; k < fieldsCount; ++k) {
+                        loadedMembers.push_back({ std::move(fNames[k]), fOffsets[k], fSizes[k], std::move(fTypes[k]) });
+                    }
+
+                    p.structInfo.members = loadedMembers;
+                    p.structInfo.isStruct = true;
+
+                    structMetadataCache.emplace(currentTypeInfo, std::move(loadedMembers));
+                }
+            }
+            g_IsLptPdbWarmupCompleted = true;
+            LogWithTime("[LivePT Async Warmup]", "Background PDB parsing completed. Library is fully ready.\n");
+            });
+
+        // Отвязываем поток, чтобы он работал асинхронно
+        warmupThread.detach();
+    }
+
+    inline void Warmup() {
+        static bool isFirstFrame = true;
+        if (isFirstFrame) {
+            auto startTime = std::chrono::high_resolution_clock::now();
+
+            LivePT::WarmupAllDatabaseParams();
+
+            auto endTime = std::chrono::high_resolution_clock::now();
+            auto durationMicro = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+            double durationMilli = durationMicro / 1000.0;
+
+            LogWithTime("[LivePT External Profile]", "Warmup execution time: " + std::to_string(durationMilli) + " ms (" + std::to_string(durationMicro) + " us).\n");
+
+            isFirstFrame = false;
+        }
+    }
+
+
 }
+
+#endif

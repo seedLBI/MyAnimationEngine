@@ -27,6 +27,7 @@
 
 #include "WindowManager/WindowManager.h"
 #include "CursorManager/CursorManger.h"
+#include "InputManager/InputManager.h"
 
 #include "Utils/Timer/Timer.Framerate.h"
 #include "Utils/OpenGL/Enums/OpenGL.Enums.h"

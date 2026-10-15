@@ -11,6 +11,7 @@
 
 #include "FontManager/FontManager.h"
 #include "CursorManager/CursorManger.h"
+#include "InputManager/InputManager.h"
 
 
 Timeline_UpperControls::Timeline_UpperControls(TimelineContext* ctx) : ctx(ctx)
@@ -24,6 +25,13 @@ Timeline_UpperControls::~Timeline_UpperControls()
 }
 
 void Timeline_UpperControls::Draw() {
+
+	ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+	ImVec2 region_max = ImGui::GetContentRegionAvail();
+
+	p_min = cursor_pos;
+	p_max = { cursor_pos.x + region_max.x, cursor_pos.y + region_max.y };
+
 	ImGui::SetCursorPosX(4.f);
 	float widht_available = ImGui::GetContentRegionAvail().x;
 
@@ -112,23 +120,40 @@ float Timeline_UpperControls::DrawTimer() {
 			color_bottom = COLOR_CHANGEBLE_DARK_HELD;
 		}
 
+
+		static bool PortalDisabled = true;
+
+		static int x_delta = 0;
+		
 		if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 			isDraging = true;
 			StartDrag = ImGui::GetMousePos();
 			frameStartDrag = ctx->timelineData->GetData().currentFrame;
+
+			InputManager::SetBoundPortal({ p.x+1.f, p.y}, {p.x + size.x, p.y + size.y});
+			InputManager::SetPortalMode(true);
+
+			PortalDisabled = false;
+			x_delta = 0;
 		}
 
 		if (isDraging && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
 			CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_HORIZONTAL);
-			int x_delta = int(ImGui::GetMousePos().x - StartDrag.x) / 2;
+			
+			x_delta -= InputManager::GetMouseDelta().x;
 
 			if (x_delta < 0 && abs(x_delta) > frameStartDrag)
 				ctx->timelineData->GetData().SetTime((uint64_t)0);
 			else
 				ctx->timelineData->GetData().SetTime(frameStartDrag + x_delta);
 		}
-		else
+		else {
 			isDraging = false;
+			if (PortalDisabled == false) {
+				InputManager::SetPortalMode(false);
+				PortalDisabled = true;
+			}
+		}
 
 
 

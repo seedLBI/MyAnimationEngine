@@ -5,6 +5,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
+#include <InputManager/InputManager.h>
+
 Camera_Global::Camera_Global() {
     Pos.SetAll({ 0.f, 1.f, -2.4f });
     Rot.SetAll(glm::quatLookAt(glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f)));
@@ -154,9 +156,12 @@ void Camera_Global::UpdateLerp(float dt) {
 }
 
 void Camera_Global::Update(float dt, glm::vec2 delta_mouse, float delta_wheel) {
-    UpdateMovement(dt);
-    UpdateLook(delta_mouse);
-    UpdateFOV(delta_wheel);
+    if (InputManager::Vars::Mouse::isRaw) {
+        UpdateMovement(dt);
+        UpdateLook(delta_mouse);
+        UpdateFOV(delta_wheel);
+    }
+
     UpdateLean(dt);
     UpdateLerp(dt);
 }

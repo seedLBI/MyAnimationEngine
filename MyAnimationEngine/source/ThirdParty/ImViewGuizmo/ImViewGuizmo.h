@@ -42,6 +42,7 @@ SOFTWARE.
 #include <glm/gtc/type_ptr.hpp>
 
 #include <CursorManager/CursorManger.h>
+#include <InputManager/InputManager.h>
 
 #define IMVIEWGUIZMO_VEC3 glm::vec3
 #define IMVIEWGUIZMO_VEC4 glm::vec4
@@ -172,9 +173,15 @@ namespace ImViewGuizmo
 
     struct Context {
         int hoveredAxisID = -1;
+
         bool isGizmoButtonHovered = false;
         bool isZoomButtonHovered = false;
         bool isPanButtonHovered = false;
+
+        bool isGizmoButtonRelease = false;
+        bool isZoomButtonRelease = false;
+        bool isPanButtonRelease = false;
+
         ActiveTool activeTool = TOOL_NONE;
 
         // Animation state
@@ -190,10 +197,17 @@ namespace ImViewGuizmo
         float animStartDist, animTargetDist;
 
         void Reset() {
-            
-            isGizmoButtonHovered = false;
-            isZoomButtonHovered = false;
-            isPanButtonHovered = false;
+            hoveredAxisID = -1;
+
+            //isGizmoButtonHovered = false;
+            //isZoomButtonHovered = false;
+            //isPanButtonHovered = false;
+
+            isGizmoButtonRelease = false;
+            isZoomButtonRelease = false;
+            isPanButtonRelease = false;
+
+
         }
     };
 
@@ -206,15 +220,6 @@ namespace ImViewGuizmo
     static float ImLengthSqr(const ImVec2& v) { return v.x * v.x + v.y * v.y; }
     static float mix(float a, float b, float t) { return a * (1.0f - t) + b * t; }
 
-    inline void BeginFrame() {
-        static int lastFrame = -1;
-        const int currentFrame = ImGui::GetFrameCount();
-        if (lastFrame != currentFrame) {
-            lastFrame = currentFrame;
-            GetContext().hoveredAxisID = -1;
-        }
-
-    }
 
     inline bool IsUsing() {
         return GetContext().activeTool != TOOL_NONE;
@@ -224,6 +229,25 @@ namespace ImViewGuizmo
         const Context& ctx = GetContext();
         return ctx.isGizmoButtonHovered || ctx.isZoomButtonHovered || ctx.isPanButtonHovered;
     }
+
+    inline bool IsReleased() {
+        const Context& ctx = GetContext();
+        return ctx.isGizmoButtonRelease || ctx.isZoomButtonRelease || ctx.isPanButtonRelease;
+    }
+
+    inline void BeginFrame() {
+        static int lastFrame = -1;
+        const int currentFrame = ImGui::GetFrameCount();
+        if (lastFrame != currentFrame) {
+            lastFrame = currentFrame;
+            if (IsReleased())
+                InputManager::SetPortalMode(false);
+            GetContext().Reset();
+        }
+
+    }
+
+
 
     /// @brief Renders and handles the view gizmo logic.
     /// @param cameraPos The position of the camera (will be modified).
@@ -498,27 +522,42 @@ namespace ImViewGuizmo {
             }
         }
 
+
+
+
         // Drag start 
         if (canInteract && io.MouseDown[0] && ctx.activeTool == TOOL_NONE && ctx.hoveredAxisID == 6) {
             ctx.activeTool = TOOL_GIZMO;
             ctx.isAnimating = false;
+            InputManager::SetPortalMode(true);
         }
+
+
+
+
 
         // Active tool rotation 
         if (ctx.activeTool == TOOL_GIZMO) {
-            float yawAngle = io.MouseDelta.x * rotationSpeed;
-            float pitchAngle = io.MouseDelta.y * rotationSpeed;
+            if (!io.MouseDown[0]) {
+                ctx.activeTool = TOOL_NONE;
+                ctx.isGizmoButtonRelease = true;
+                InputManager::SetPortalMode(false);
+            }
+            else {
+                float yawAngle = io.MouseDelta.x * rotationSpeed;
+                float pitchAngle = io.MouseDelta.y * rotationSpeed;
 
-            quat_t yawRotation = GizmoMath::angleAxis(yawAngle, worldUp);
-            vec3_t rightAxis = GizmoMath::multiply_qv(cameraRot, worldRight);
-            quat_t pitchRotation = GizmoMath::angleAxis(pitchAngle, rightAxis);
-            quat_t totalRotation = GizmoMath::multiply_qq(yawRotation, pitchRotation);
+                quat_t yawRotation = GizmoMath::angleAxis(yawAngle, worldUp);
+                vec3_t rightAxis = GizmoMath::multiply_qv(cameraRot, worldRight);
+                quat_t pitchRotation = GizmoMath::angleAxis(pitchAngle, rightAxis);
+                quat_t totalRotation = GizmoMath::multiply_qq(yawRotation, pitchRotation);
 
-            vec3_t relativeCamPos = GizmoMath::subtract_vv(cameraPos, pivot);
-            cameraPos = GizmoMath::add_vv(pivot, GizmoMath::multiply_qv(totalRotation, relativeCamPos));
-            cameraRot = GizmoMath::multiply_qq(totalRotation, cameraRot);
+                vec3_t relativeCamPos = GizmoMath::subtract_vv(cameraPos, pivot);
+                cameraPos = GizmoMath::add_vv(pivot, GizmoMath::multiply_qv(totalRotation, relativeCamPos));
+                cameraRot = GizmoMath::multiply_qq(totalRotation, cameraRot);
 
-            wasModified = true;
+                wasModified = true;
+            }
         }
 
         // Snap on release 
@@ -526,6 +565,8 @@ namespace ImViewGuizmo {
             int axisIndex = ctx.hoveredAxisID / 2;
             float sign = (ctx.hoveredAxisID % 2 == 0) ? -1.0f : 1.0f;
             vec3_t targetDir = GizmoMath::multiply_vf(axisVectors[axisIndex], sign);
+
+            InputManager::SetPortalMode(false);
 
             vec3_t currentDir;
             {
@@ -585,8 +626,11 @@ namespace ImViewGuizmo {
             }
         }
 
-        if (!io.MouseDown[0] && ctx.activeTool != TOOL_NONE)
+        if (!io.MouseDown[0] && ctx.activeTool != TOOL_NONE) {
             ctx.activeTool = TOOL_NONE;
+            InputManager::SetPortalMode(false);
+        }
+            
 
         return wasModified;
     }
@@ -616,23 +660,36 @@ namespace ImViewGuizmo {
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
         }
 
-        if (canInteract && isHovered && io.MouseDown[0] && ctx.activeTool == TOOL_NONE) {
-            ctx.activeTool = TOOL_DOLLY;
-            ctx.isAnimating = false;
-        }
 
-        if (ctx.activeTool == TOOL_DOLLY && io.MouseDelta.y != 0.0f) {
-            vec3_t forwardMovement = GizmoMath::multiply_vf(
-                GizmoMath::multiply_qv(cameraRot, worldForward),
-                -io.MouseDelta.y * zoomSpeed
-            );
-            cameraPos = GizmoMath::add_vv(cameraPos, forwardMovement);
-            wasModified = true;
+
+        if (ctx.activeTool == TOOL_DOLLY) {
+            if (!io.MouseDown[0]) {
+                ctx.activeTool = TOOL_NONE;
+                ctx.isZoomButtonRelease = true;
+                InputManager::SetPortalMode(false);
+            }
+            else if (io.MouseDelta.y != 0.0f){
+                vec3_t forwardMovement = GizmoMath::multiply_vf(
+                    GizmoMath::multiply_qv(cameraRot, worldForward),
+                    -io.MouseDelta.y * zoomSpeed
+                );
+                cameraPos = GizmoMath::add_vv(cameraPos, forwardMovement);
+                wasModified = true;
+            }
         }
 
         if (canInteract && (isHovered || ctx.activeTool == TOOL_DOLLY)) {
             CursorManager::getInstance().SetCursor(TypeCursor::RESIZE_VERTICAL);
         }
+
+        if (canInteract && isHovered && io.MouseDown[0] && ctx.activeTool == TOOL_NONE) {
+            ctx.activeTool = TOOL_DOLLY;
+            ctx.isAnimating = false;
+            InputManager::SetPortalMode(true);
+        }
+
+
+        
 
 
 
@@ -688,20 +745,28 @@ namespace ImViewGuizmo {
         ctx.isPanButtonHovered = isHovered;
 
         if (canInteract && (isHovered || ctx.activeTool == TOOL_PAN)) {
-            CursorManager::getInstance().SetCursor(TypeCursor::HAND_CLOSED);
+            CursorManager::getInstance().SetCursor(TypeCursor::HAND_OPEN);
         }
 
         if (canInteract && isHovered && io.MouseDown[0] && ctx.activeTool == TOOL_NONE) {
             ctx.activeTool = TOOL_PAN;
             ctx.isAnimating = false;
+            InputManager::SetPortalMode(true);
         }
 
-        if (ctx.activeTool == TOOL_PAN && (io.MouseDelta.x != 0.0f || io.MouseDelta.y != 0.0f)) {
-            vec3_t rightMovement = GizmoMath::multiply_vf(GizmoMath::multiply_qv(cameraRot, worldRight), -io.MouseDelta.x * panSpeed);
-            vec3_t upMovement = GizmoMath::multiply_vf(GizmoMath::multiply_qv(cameraRot, worldUp), io.MouseDelta.y * panSpeed);
-            cameraPos = GizmoMath::add_vv(cameraPos, rightMovement);
-            cameraPos = GizmoMath::add_vv(cameraPos, upMovement);
-            wasModified = true;
+        if (ctx.activeTool == TOOL_PAN) {
+            if (!io.MouseDown[0]) {
+                ctx.activeTool = TOOL_NONE;
+                ctx.isPanButtonRelease = true;
+                InputManager::SetPortalMode(false);
+            }
+            else if ((io.MouseDelta.x != 0.0f || io.MouseDelta.y != 0.0f)) {
+                vec3_t rightMovement = GizmoMath::multiply_vf(GizmoMath::multiply_qv(cameraRot, worldRight), -io.MouseDelta.x * panSpeed);
+                vec3_t upMovement = GizmoMath::multiply_vf(GizmoMath::multiply_qv(cameraRot, worldUp), io.MouseDelta.y * panSpeed);
+                cameraPos = GizmoMath::add_vv(cameraPos, rightMovement);
+                cameraPos = GizmoMath::add_vv(cameraPos, upMovement);
+                wasModified = true;
+            }
         }
 
         const ImU32 bgColor = (isHovered || ctx.activeTool == TOOL_PAN) ? style.toolButtonHoveredColor : style.toolButtonColor;
