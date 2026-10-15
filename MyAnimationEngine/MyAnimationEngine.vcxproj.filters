@@ -1769,6 +1769,9 @@
     <ClInclude Include="VCPKG_LIBS\include\stb_voxel_render.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="source\ThirdParty\LivePT\dragOverlay.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

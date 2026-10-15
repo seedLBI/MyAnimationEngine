@@ -1,6 +1,3 @@
-﻿#ifndef LIVE_PT_VS_EDITOR_H
-#define LIVE_PT_VS_EDITOR_H
-
 namespace LivePT {
 
     int GetMouseDragTargetParamId();
@@ -10,7 +7,7 @@ namespace LivePT {
     inline std::wstring DownloadCurrentLineText(IDispatch* pActiveDoc);
     inline size_t FindCloseBracket(const std::wstring& text, size_t openBracketPos);
 
-    inline std::string ConvertWStringToUtf8(const std::wstring& wstr) {
+    std::string ConvertWStringToUtf8(const std::wstring& wstr) {
 
         if (wstr.empty()) return "";
 
@@ -24,7 +21,7 @@ namespace LivePT {
         return str;
     }
 
-    inline HRESULT AutoWrap(int autoType, VARIANT* pvResult, IDispatch* pDisp, LPCOLESTR ptName, int cArgs...) {
+    HRESULT AutoWrap(int autoType, VARIANT* pvResult, IDispatch* pDisp, LPCOLESTR ptName, int cArgs...) {
 
         if (!pDisp) return E_FAIL;
 
@@ -69,7 +66,7 @@ namespace LivePT {
         return hr;
     }
 
-    inline std::wstring ToLower(std::wstring str) {
+    std::wstring ToLower(std::wstring str) {
 
         std::transform(str.begin(), str.end(), str.begin(), ::towlower);
         return str;
@@ -120,7 +117,7 @@ namespace LivePT {
         return studioPid;
     }
 
-    inline IDispatch* GetDTEByPid(DWORD targetPid) {
+    IDispatch* GetDTEByPid(DWORD targetPid) {
 
         IRunningObjectTable* pROT = nullptr;
         if (FAILED(GetRunningObjectTable(0, &pROT))) return nullptr;
@@ -163,12 +160,11 @@ namespace LivePT {
         return pTargetDTE;
     }
 
-    inline bool initVsEditor()
+    bool initVsEditor()
     {
         if (pDTE) return true;
 
         DWORD parentPid = GetStudioProcessId();
-        Log("[LivePT] ", false, true, true);
         Log("Target Studio PID: " + std::to_string(parentPid));
 
         pDTE = GetDTEByPid(parentPid);
@@ -177,21 +173,19 @@ namespace LivePT {
             return false;
         }
 
-        Log("[LivePT] ", false, true, true);
         Log("Connected to Visual Studio successfully!");
         return true;
     }
 
-    inline void ResetDTEConnection() {
+    void ResetDTEConnection() {
         if (pDTE) {
             pDTE->Release();
             pDTE = nullptr;
-            Log("[EnvDTE] ", false, true, true);
-            Log("Connection lost. pDTE reset.");
+            Log("[EnvDTE] Connection lost. pDTE reset.");
         }
     }
 
-    inline void StartUndoTransaction(const std::wstring& name) {
+    void StartUndoTransaction(const std::wstring& name) {
 
         if (!pDTE) return;
 
@@ -207,7 +201,7 @@ namespace LivePT {
         }
     }
 
-    inline void EndUndoTransaction() {
+    void EndUndoTransaction() {
 
         if (!pDTE) return;
 
@@ -288,26 +282,79 @@ namespace LivePT {
 
         int roundCount = 1;
         int curlyCount = 0;
-        int angleCount = 0;
 
-        // Ограничиваем поиск разумным пределом (например, 5000 символов от начала макроса),
-        // чтобы парсер гарантированно не уходил в бесконечный цикл при поломке синтаксиса
+        // Состояния парсера для корректного пропуска нерелевантного кода
+        bool inSingleLineComment = false;
+        bool inMultiLineComment = false;
+        bool inStringLiteral = false;
+        bool inCharLiteral = false;
+
+        // Ограничиваем поиск разумным пределом, чтобы гарантированно не повесить UI-поток
         size_t maxScanLength = (std::min)(text.length(), openBracketPos + 5000);
 
         for (size_t k = openBracketPos + 1; k < maxScanLength; ++k) {
             wchar_t ch = text[k];
+            wchar_t nextCh = (k + 1 < maxScanLength) ? text[k + 1] : L'\0';
+            wchar_t prevCh = (k > 0) ? text[k - 1] : L'\0';
 
+            // 1. ОБРАБОТКА ОДНОСТРОЧНЫХ КОММЕНТАРИЕВ (//)
+            if (inSingleLineComment) {
+                if (ch == L'\n') inSingleLineComment = false;
+                continue;
+            }
+
+            // 2. ОБРАБОТКА МНОГОСТРОЧНЫХ КОММЕНТАРИЕВ (/* */)
+            if (inMultiLineComment) {
+                if (ch == L'*' && nextCh == L'/') {
+                    inMultiLineComment = false;
+                    k++; // Пропускаем слэш
+                }
+                continue;
+            }
+
+            // 3. ОБРАБОТКА СТРОКОВЫХ ЛИТЕРАЛОВ ("текст")
+            if (inStringLiteral) {
+                // Проверяем на экранирование кавычки вида \"
+                if (ch == L'"' && prevCh != L'\\') inStringLiteral = false;
+                continue;
+            }
+
+            // 4. ОБРАБОТКА СИМВОЛЬНЫХ ЛИТЕРАЛОВ ('c')
+            if (inCharLiteral) {
+                if (ch == L'\'' && prevCh != L'\\') inCharLiteral = false;
+                continue;
+            }
+
+            // --- ТОЧКА СХОЖДЕНИЯ АВТОМАТА: Сюда заходим, только если мы в "чистом" коде ---
+
+            // Проверяем старт комментариев или строк
+            if (ch == L'/' && nextCh == L'/') {
+                inSingleLineComment = true;
+                k++; continue;
+            }
+            if (ch == L'/' && nextCh == L'*') {
+                inMultiLineComment = true;
+                k++; continue;
+            }
+            if (ch == L'"') {
+                inStringLiteral = true;
+                continue;
+            }
+            if (ch == L'\'') {
+                inCharLiteral = true;
+                continue;
+            }
+
+            // ЧЕСТНЫЙ ПОДСЧЕТ БАЛАНСА СКОБОК
             if (ch == L'(') {
                 roundCount++;
             }
             else if (ch == L')') {
                 roundCount--;
-                // Защита: если curlyCount ушел в минус из-за сломанной разметки, 
-                // мы всё равно доверяем круглым скобкам самого макроса eval(...)
                 if (curlyCount < 0) curlyCount = 0;
-                if (angleCount < 0) angleCount = 0;
 
-                if (roundCount == 0 && curlyCount == 0 && angleCount == 0) {
+                // Успешный выход: круглые скобки закрылись на верхнем уровне
+                if (roundCount == 0 && curlyCount == 0) {
                     return k;
                 }
             }
@@ -317,18 +364,11 @@ namespace LivePT {
             else if (ch == L'}') {
                 curlyCount--;
             }
-            else if (ch == L'<') {
-                angleCount++;
-            }
-            else if (ch == L'>') {
-                angleCount--;
-            }
         }
 
-        // Если баланс нарушен — возвращаем npos, но НЕ зависаем!
+        // Если баланс нарушен или текст оборвался — аварийно возвращаем npos
         return std::wstring::npos;
     }
-
 
 
     inline std::string GetActiveDocumentPath(IDispatch* pActiveDoc) {
@@ -420,6 +460,9 @@ namespace LivePT {
         size_t visualCol = 0;
 
         for (size_t i = 0; i < charIdx && i < lineText.length(); ++i) {
+            if (lineText[i] == L'\r') {
+                continue; // Игнорируем возврат каретки, VS не считает его за колонку
+            }
             if (lineText[i] == L'\t') {
                 visualCol += tabSize - (visualCol % tabSize);
             }
@@ -429,6 +472,7 @@ namespace LivePT {
         }
         return static_cast<long>(visualCol) + 1;
     }
+
 
     inline void ParseAndStoreParamValueDirect(const std::wstring& fileText, int targetId) {
         if (fileText.empty() || targetId < 0 || targetId >= static_cast<int>(paramDesc.size())) {
@@ -455,11 +499,15 @@ namespace LivePT {
         if (nextNL == std::wstring::npos) nextNL = fileText.length();
         std::wstring lineText = fileText.substr(lineStartOffset, nextNL - lineStartOffset);
 
-        // 3. Вычисляем физический символ по p.column
+        // 3. Вычисляем физический символ по p.column с защитой от \r
         long currentVisualCol = 1;
         size_t paramCharIdx = lineText.length();
         for (size_t i = 0; i < lineText.length(); ++i) {
             if (currentVisualCol >= p.column) { paramCharIdx = i; break; }
+
+            if (lineText[i] == L'\r') {
+                continue; // Игнорируем \r, он не имеет визуальной ширины
+            }
             currentVisualCol += (lineText[i] == L'\t') ? (tabSize - ((currentVisualCol - 1) % tabSize)) : 1;
         }
         size_t anchorOffset = lineStartOffset + paramCharIdx;
@@ -470,26 +518,24 @@ namespace LivePT {
         size_t openBracket = fileText.find(L'(', anchorOffset);
 
         if (openBracket != std::wstring::npos && openBracket < fileText.length()) {
-
-            // Используем наш новый безопасный детектор
             size_t closeBracketPos = FindMacroCloseBracket(fileText, openBracket);
 
-            // Если скобка найдена — вырезаем строго внутреннее содержимое макроса
             if (closeBracketPos != std::wstring::npos && closeBracketPos > openBracket) {
                 std::wstring innerValueW = fileText.substr(openBracket + 1, closeBracketPos - openBracket - 1);
+
+                // Удаляем \r из wstring перед конвертацией, чтобы не ломать кодировку
+                innerValueW.erase(std::remove(innerValueW.begin(), innerValueW.end(), L'\r'), innerValueW.end());
+
                 std::string innerValueA = ConvertWStringToUtf8(innerValueW);
 
-                // Очищаем от мусорных переносов строк по краям
-                innerValueA.erase(0, innerValueA.find_first_not_of(" \t\r\n"));
-                innerValueA.erase(innerValueA.find_last_not_of(" \t\r\n") + 1);
+                // Очищаем от мусорных пробелов и переносов строк по краям
+                innerValueA.erase(0, innerValueA.find_first_not_of(" \t\n"));
+                innerValueA.erase(innerValueA.find_last_not_of(" \t\n") + 1);
 
-                // Отправляем чистую строку в базовый рантайм-парсер
                 UpdateParamValue(targetId, innerValueA);
             }
         }
     }
-
-
 
 
     inline std::wstring DownloadCurrentLineText(IDispatch* pActiveDoc) {
@@ -544,7 +590,7 @@ namespace LivePT {
     static long g_cachedEvalCol = -1;
     static std::wstring g_cachedEvalTextHash = L"";
 
-    static std::string g_currentActiveFile = "";
+    std::string g_currentActiveFile = "";
     //static long          g_lastLineCount = -1;
     //static size_t        g_lastLineLength = 0;
 
@@ -559,7 +605,6 @@ namespace LivePT {
         auto& params = LivePT::getParamDesc();
         int targetParamId = -1;
 
-        // 1. Линейно находим последний макрос, начавшийся выше или на строке курсора
         for (int localId = 0; ; ++localId) {
             std::string vsLookupKey = normalizedFile + ":" + std::to_string(localId);
             int paramId = LivePT::getID(vsLookupKey);
@@ -568,87 +613,79 @@ namespace LivePT {
             if (paramId < 0 || paramId >= static_cast<int>(params.size())) continue;
 
             const auto& p = params[paramId];
-
-            // Проверяем строгое попадание по строкам
             if (p.line <= cursorLine) {
                 targetParamId = paramId;
             }
             else {
-                break; // Выходим из поиска, как только зашли за строку курсора
+                break;
             }
         }
 
-        // 2. Проверяем, не вылетел ли курсор за нижнюю границу многострочного макроса (массива)
-        if (targetParamId != -1 && !g_currentFileFullText.empty()) {
-            const auto& p = params[targetParamId];
+        if (targetParamId == -1 || g_currentFileFullText.empty()) {
+            return -1;
+        }
 
-            // Находим абсолютное смещение начала строки макроса в файле
-            size_t macroLineOffset = 0;
-            long currentLineIdx = 1;
-            while (currentLineIdx < p.line && macroLineOffset < g_currentFileFullText.length()) {
-                size_t nextNL = g_currentFileFullText.find(L'\n', macroLineOffset);
-                if (nextNL != std::wstring::npos) {
-                    macroLineOffset = nextNL + 1;
-                    currentLineIdx++;
-                }
-                else break;
+        const auto& p = params[targetParamId];
+        long tabSize = GetVSTabSize();
+
+        size_t macroLineOffset = 0;
+        long currentLineIdx = 1;
+        while (currentLineIdx < p.line && macroLineOffset < g_currentFileFullText.length()) {
+            size_t nextNL = g_currentFileFullText.find(L'\n', macroLineOffset);
+            if (nextNL != std::wstring::npos) {
+                macroLineOffset = nextNL + 1;
+                currentLineIdx++;
             }
+            else break;
+        }
 
-            // Вычисляем позицию открывающей скобки макроса eval(
-            size_t openBracketPos = g_currentFileFullText.find(L'(', macroLineOffset + (p.column > 0 ? p.column - 1 : 0));
-
-            if (openBracketPos != std::wstring::npos && openBracketPos < g_currentFileFullText.length()) {
-
-                // ИСПОЛЬЗУЕМ ОБНОВЛЕННЫЙ БЕЗОПАСНЫЙ ДЕТЕКТОР СКОБОК С ЗАЩИТОЙ ОТ ПЕРЕПОЛНЕНИЯ
-                size_t closeBracketPos = FindMacroCloseBracket(g_currentFileFullText, openBracketPos);
-
-                // КРИТИЧЕСКИЙ АРХИТЕКТУРНЫЙ ФИКС: 
-                // Если из-за драга синтаксис сломался и скобка не найдена — аварийно выходим,
-                // чтобы предотвратить бесконечный цикл и намертво не повесить UI-поток приложения
-                if (closeBracketPos == std::wstring::npos) {
-                    return -1;
-                }
-
-                // Вычисляем, на какой конкретно физической строке закрывается макрос
-                long macroEndLine = p.line;
-                size_t scanNL = macroLineOffset;
-                while ((scanNL = g_currentFileFullText.find(L'\n', scanNL)) != std::wstring::npos && scanNL < closeBracketPos) {
-                    macroEndLine++;
-                    scanNL++;
-                }
-
-                // Курсор легитимен, если его строка находится строго в диапазоне 
-                // от начала макроса (p.line) до строки его закрытия (macroEndLine) ВКЛЮЧИТЕЛЬНО
-                if (cursorLine > macroEndLine) {
-                    return -1; // Курсор ушел ниже всего блока макроса (массива) — отсекаем
-                }
-
-                // Если мы стоим ровно на строке закрытия, проверяем ';' только ЕСЛИ курсор ушел дальше самой скобки
-                if (cursorLine == macroEndLine) {
-                    size_t cursorLineOffset = 0;
-                    currentLineIdx = 1;
-                    while (currentLineIdx < cursorLine && cursorLineOffset < g_currentFileFullText.length()) {
-                        size_t nextNL = g_currentFileFullText.find(L'\n', cursorLineOffset);
-                        if (nextNL != std::wstring::npos) {
-                            cursorLineOffset = nextNL + 1;
-                            currentLineIdx++;
-                        }
-                        else break;
-                    }
-                    size_t cursorAbsoluteOffset = cursorLineOffset + (cursorColumn > 0 ? cursorColumn - 1 : 0);
-
-                    if (cursorAbsoluteOffset > closeBracketPos) {
-                        // Проверяем, нет ли точки с запятой между закрытием макроса и курсором на этой строке
-                        std::wstring trailingText = g_currentFileFullText.substr(closeBracketPos, cursorAbsoluteOffset - closeBracketPos);
-                        if (trailingText.find(L';') != std::wstring::npos) {
-                            return -1; // Точка с запятой означает, что выражение закрыто, и курсор за его пределами
-                        }
-                    }
-                }
-
-                // Во всех остальных случаях внутри многострочного диапазона — это 100% успех сопоставления
-                return targetParamId;
+        size_t cursorLineOffset = 0;
+        currentLineIdx = 1;
+        while (currentLineIdx < cursorLine && cursorLineOffset < g_currentFileFullText.length()) {
+            size_t nextNL = g_currentFileFullText.find(L'\n', cursorLineOffset);
+            if (nextNL != std::wstring::npos) {
+                cursorLineOffset = nextNL + 1;
+                currentLineIdx++;
             }
+            else break;
+        }
+
+        long currentVisualCol = 1;
+        size_t cursorCharIdx = 0;
+        size_t nextNL = g_currentFileFullText.find(L'\n', cursorLineOffset);
+        if (nextNL == std::wstring::npos) nextNL = g_currentFileFullText.length();
+        std::wstring cursorLineText = g_currentFileFullText.substr(cursorLineOffset, nextNL - cursorLineOffset);
+
+        for (size_t i = 0; i < cursorLineText.length(); ++i) {
+            if (currentVisualCol >= cursorColumn) {
+                cursorCharIdx = i;
+                break;
+            }
+            if (cursorLineText[i] == L'\r') continue;
+            currentVisualCol += (cursorLineText[i] == L'\t') ? (tabSize - ((currentVisualCol - 1) % tabSize)) : 1;
+        }
+        if (currentVisualCol < cursorColumn) cursorCharIdx = cursorLineText.length();
+
+        size_t cursorAbsoluteOffset = cursorLineOffset + cursorCharIdx;
+
+        // [ИСПРАВЛЕНО]: Ищем открывающую скобку '(' конкретного макроса/функции
+        // Имя берем прямо из структуры p.macroName
+        std::wstring wMacroName(p.macroName.begin(), p.macroName.end());
+
+        // Поиск символа '(' начинается сразу за концом имени токена (p.column + длина имени)
+        size_t openBracketPos = g_currentFileFullText.find(L'(', macroLineOffset + (p.column > 0 ? p.column - 1 : 0));
+        if (openBracketPos == std::wstring::npos || openBracketPos >= g_currentFileFullText.length()) {
+            return -1;
+        }
+
+        size_t closeBracketPos = FindMacroCloseBracket(g_currentFileFullText, openBracketPos);
+        if (closeBracketPos == std::wstring::npos) {
+            return -1;
+        }
+
+        // Контроль попадания курсора внутрь скобок
+        if (cursorAbsoluteOffset <= openBracketPos || cursorAbsoluteOffset > closeBracketPos) {
+            return -1;
         }
 
         return targetParamId;
@@ -659,15 +696,6 @@ namespace LivePT {
 
     // === ЕДИНЫЙ ПОЛНОСТЬЮ ОЧИЩЕННЫЙ ДИСПЕТЧЕР LivePT ===
     inline void vsEditor() {
-        if (!isMouseDragging()) {
-            static auto lastPollTime = std::chrono::steady_clock::now();
-            auto now = std::chrono::steady_clock::now();
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPollTime).count() < 80) {
-                return;
-            }
-            lastPollTime = now;
-        }
-
         if (!initVsEditor()) return;
 
         VARIANT vtActiveDoc; VariantInit(&vtActiveDoc);
@@ -838,37 +866,27 @@ namespace LivePT {
     }
 
     inline bool IsCursorInsideFunctionCall(const std::source_location& location) {
-        // 1. Быстрая нормализация пути текущего проверяемого вызова
         std::string activeFile = LivePT::NormalizePath(location.file_name());
 
-        // Глобальное состояние "активного окна с курсором", вычисленное ОДИН РАЗ
         static std::string cachedActiveFile = "";
         static long cachedVSLine = -1;
-
-        // Границы функции Draw, внутри которой СЕЙЧАС физически стоит курсор в VS
         static long validStartLine = -1;
         static long validEndLine = -1;
 
-        // 2. РАННИЙ ВОЗВРАТ ДЛЯ ВСЕХ 100500 ОБЪЕКТОВ С ЛЮБЫМИ УСЛОВИЯМИ
         if (cachedActiveFile == g_currentActiveFile && cachedVSLine == g_lastLine) {
-            // Объект подсвечивается ТОЛЬКО если его строка совпадает с началом вызова под курсором
             return (validStartLine != -1 && static_cast<long>(location.line()) == validStartLine);
         }
 
-        // --- СЮДА МЫ ЗАХОДИМ СТРОГО 1 РАЗ НА ВЕСЬ КАДР, КОГДА КУРСОР РЕАЛЬНО СДВИНУЛСЯ ---
         cachedActiveFile = g_currentActiveFile;
         cachedVSLine = g_lastLine;
         validStartLine = -1;
         validEndLine = -1;
 
-        // Если курсор сейчас в другом файле или текст пуст — выходим сразу
         if (activeFile != g_currentActiveFile || g_currentFileFullText.empty()) {
             return false;
         }
 
-        //Log("cache");
-
-        // 3. НАХОДИМ СМЕЩЕНИЕ ТЕКУЩЕЙ СТРОКИ КУРСОРA
+        // Находим смещение текущей строки курсора
         size_t cursorLineOffset = 0;
         long currentLineIdx = 1;
         while (currentLineIdx < g_lastLine && cursorLineOffset < g_currentFileFullText.length()) {
@@ -880,16 +898,13 @@ namespace LivePT {
             else break;
         }
 
-        // Берем конец строки курсора для корректного старта поиска rfind
         size_t nextLineNL = g_currentFileFullText.find(L'\n', cursorLineOffset);
         size_t scanOffset = (nextLineNL != std::wstring::npos) ? nextLineNL : g_currentFileFullText.length();
 
-        // 4. ИЩЕМ НАЧАЛО ВЫЗОВА DRAW НАЗАД ОТ КУРСОРA
-        // Ищем ключевое слово "Draw", чтобы не спотыкаться об внутренние скобки eval(
+        // Ищем начало вызова Draw назад от курсора
         size_t drawOffset = g_currentFileFullText.rfind(L"Draw", scanOffset);
         if (drawOffset != std::wstring::npos) {
 
-            // Вычисляем номер строки начала вызова (foundStartLine)
             long foundStartLine = 1;
             size_t lineCheckOffset = 0;
             while (lineCheckOffset < drawOffset && lineCheckOffset < g_currentFileFullText.length()) {
@@ -901,14 +916,11 @@ namespace LivePT {
                 else break;
             }
 
-            // Проверяем, что найденный Draw действительно находится выше или на строке курсора
             if (foundStartLine <= g_lastLine) {
-
-                // 5. ИЩЕМ ЗАКРЫВАЮЩУЮ ТОЧКУ С ЗАПЯТОЙ ВПЕРЕД ПОСЛЕ НАЧАЛА DRAW!
+                // Ищем закрывающую точку с запятой вперед после начала Draw
                 size_t callEndOffset = g_currentFileFullText.find(L';', drawOffset);
                 if (callEndOffset != std::wstring::npos) {
 
-                    // Вычисляем номер строки конца вызова (foundEndLine), перебирая \n от начала Draw до ;
                     long foundEndLine = foundStartLine;
                     size_t lineEndCheckOffset = drawOffset;
                     while (lineEndCheckOffset < callEndOffset && lineEndCheckOffset < g_currentFileFullText.length()) {
@@ -920,7 +932,6 @@ namespace LivePT {
                         else break;
                     }
 
-                    // 6. ПРОВЕРЯЕМ ПОПАДАНИЕ КУРСОРA В ДИАПАЗОН СТРОК
                     if (g_lastLine >= foundStartLine && g_lastLine <= foundEndLine) {
                         validStartLine = foundStartLine;
                         validEndLine = foundEndLine;
@@ -929,9 +940,9 @@ namespace LivePT {
             }
         }
 
-        // Результат для самого первого зашедшего вызова в текущем кадре изменения
         return (validStartLine != -1 && static_cast<long>(location.line()) == validStartLine);
     }
+
 
     inline std::atomic<bool> g_IsLptPdbWarmupCompleted{ false };
 
@@ -1017,8 +1028,7 @@ namespace LivePT {
                 }
             }
             g_IsLptPdbWarmupCompleted = true;
-            Log("[LivePT Async Warmup] ", false, true, true);
-            Log("Background PDB parsing completed. Library is fully ready.");
+            Log("[LivePT Async Warmup] Background PDB parsing completed. Library is fully ready.");
             });
 
         // Отвязываем поток, чтобы он работал асинхронно
@@ -1035,8 +1045,8 @@ namespace LivePT {
             auto endTime = std::chrono::high_resolution_clock::now();
             auto durationMicro = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
             double durationMilli = durationMicro / 1000.0;
-            Log("[LivePT External Profile] ", false, true, true);
-            LivePT::Log("Warmup execution time: " +
+
+            LivePT::Log("[LivePT External Profile] Warmup execution time: " +
                 std::to_string(durationMilli) + " ms (" + std::to_string(durationMicro) + " us).");
 
             isFirstFrame = false;
@@ -1045,5 +1055,3 @@ namespace LivePT {
 
 
 }
-
-#endif

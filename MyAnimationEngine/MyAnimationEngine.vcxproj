@@ -153,6 +153,7 @@
     <ClInclude Include="source\ThirdParty\ImViewGuizmo\ImViewGuizmo.h" />
     <ClInclude Include="source\ThirdParty\LivePT\consistency.h" />
     <ClInclude Include="source\ThirdParty\LivePT\DbgHelpRef.h" />
+    <ClInclude Include="source\ThirdParty\LivePT\dragOverlay.h" />
     <ClInclude Include="source\ThirdParty\LivePT\drugLogic.h" />
     <ClInclude Include="source\ThirdParty\LivePT\mouse.h" />
     <ClInclude Include="source\ThirdParty\LivePT\uiCallBackBridge.h" />

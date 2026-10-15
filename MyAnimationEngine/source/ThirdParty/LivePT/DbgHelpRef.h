@@ -1,7 +1,4 @@
-﻿
-#ifndef LIVE_PT_DBG_HELP_REF_H
-#define LIVE_PT_DBG_HELP_REF_H
-
+#pragma once
 #include <windows.h>
 #include <dbghelp.h>
 #include <string>
@@ -281,5 +278,3 @@ namespace LivePT {
 
 
 } // namespace LivePT
-
-#endif

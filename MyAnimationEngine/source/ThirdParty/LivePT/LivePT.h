@@ -1,7 +1,4 @@
-﻿#ifndef LIVE_PT_H
-#define LIVE_PT_H
-
-//User space settings
+// User space settings
 
 #define LivePT_Mouse true // true for mouse drag, switch, enums with context menu
 #define LivePT_WindowManagement true //auto split screen on single monitor
@@ -43,111 +40,10 @@
 
 namespace LivePT {
 
-    inline std::wstring GetConfiguredMacroName() {
-        static const std::wstring cachedMacroName = []() {
-            constexpr auto location = std::source_location::current();
-            std::string selfPath = location.file_name();
-
-            std::ifstream file(selfPath);
-            if (!file.is_open()) {
-                return std::wstring(L"eval");
-            }
-
-            std::string line;
-            std::string marker = "//EVAL_NAME_MARKER - DO'NT TOUCH THIS LINE";
-
-            while (std::getline(file, line)) {
-
-                if (line.find(marker) != std::string::npos) {
-
-                    while (std::getline(file, line)) {
-
-                        line.erase(0, line.find_first_not_of(" \t\r\n"));
-                        if (line.empty()) continue; 
-
-                        if (line.rfind("#define", 0) == 0) {
-                            line.erase(0, 7); 
-                            line.erase(0, line.find_first_not_of(" \t\r\n"));
-
-                            size_t endPos = line.find_first_of(" \t(");
-                            if (endPos != std::string::npos) {
-                                std::string name = line.substr(0, endPos);
-                                return std::wstring(name.begin(), name.end());
-                            }
-                        }
-                    }
-                    break;
-                }
-            }
-            return std::wstring(L"eval");
-            }();
-
-        return cachedMacroName;
+    inline void Log(const std::string& text, bool nl = true) {
+        OutputDebugStringA(text.c_str());
+        if (nl) OutputDebugStringA("\n");
     }
-
-
-
-
-    inline void Log(const std::string& text, bool nl = true, bool bold = false, bool italic = false) {
-        std::wstring w(text.size(), 0), out;
-        int n = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text.data(), (int)text.size(), w.data(), (int)w.size());
-        if (!n) n = MultiByteToWideChar(CP_ACP, 0, text.data(), (int)text.size(), w.data(), (int)w.size());
-        w.resize(n);
-
-        if (int style = bold + italic * 2) {
-            for (wchar_t c : w) {
-                if ((c >= L'A' && c <= L'Z') || (c >= L'a' && c <= L'z'))
-                    out += {wchar_t(0xD835), wchar_t(0xDDD4 + (style - 1) * 52 + (c >= L'a' ? c - L'a' + 26 : c - L'A'))};
-                else if (c >= L'0' && c <= L'9' && bold)
-                    out += {wchar_t(0xD835), wchar_t(0xDFEC + c - L'0')};
-                //else if (c > 0x20 && c < 0x7F && bold)
-                //   out += wchar_t(c + 0xFEE0);
-                else
-                    out += c;
-            }
-            w = std::move(out);
-        }
-
-        if (nl) w += L'\n';
-        OutputDebugStringW(w.c_str());
-    }
-
-    inline void LogClickablePath(const std::string& absoluteFilePath, int line) {
-        char workDirBuf[MAX_PATH];
-        GetCurrentDirectoryA(MAX_PATH, workDirBuf);
-
-        auto NormalizePath = [](const char* fullPath) -> std::string {
-            std::string path(fullPath);
-            std::replace(path.begin(), path.end(), '\\', '/');
-            return path;
-        };
-
-
-        std::string workDir = NormalizePath(workDirBuf);
-        std::string absPath = NormalizePath(absoluteFilePath.c_str());
-
-        std::string wdLower = workDir;
-        std::string absLower = absPath;
-        std::transform(wdLower.begin(), wdLower.end(), wdLower.begin(), ::tolower);
-        std::transform(absLower.begin(), absLower.end(), absLower.begin(), ::tolower);
-
-        std::string result;
-
-        if (absLower.find(wdLower) == 0) {
-            std::string relPath = absPath.substr(workDir.length());
-            if (!relPath.empty() && relPath[0] == '/') {
-                relPath.erase(0, 1);
-            }
-
-            result = relPath + "(" + std::to_string(line) + "): ";
-        }
-        else {
-            result = absPath + "(" + std::to_string(line) + "): ";
-        }
-
-        Log(result);
-    }
-
 }
 
     #include "DbgHelpRef.h"
@@ -157,6 +53,7 @@ namespace LivePT {
     #include "consistency.h"
 
     #if LivePT_Mouse
+        #include "dragOverlay.h"
         #include "mouse.h"
         #include "drugLogic.h"
     #endif
@@ -207,8 +104,20 @@ namespace LivePT {
 
         if (!g_IsLptPdbWarmupCompleted) return;
 
+        static DWORD lastUpdate = 0;
+
+        DWORD currentTick = GetTickCount();
+        if (currentTick - lastUpdate < 16) { // ~60 FPS update limit
+            return;
+        }
+        lastUpdate = currentTick;
+
 #if LivePT_Mouse
         // 1. Выгружаем обычные мышиные буферы одиночных чисел
+        InitPassiveOverlay();
+        g_OverlayShow = g_dragState.isCursorHidden ? true : false;
+        UpdateOverlayPosition(g_dragState.lockMousePos.x, g_dragState.lockMousePos.y);
+
         FlushPendingWritesToVS();
 
         WidgetBufferUpdate();
@@ -219,19 +128,16 @@ namespace LivePT {
         vsEditor();
     }
 
-
-
 }
 
-//EVAL_NAME_MARKER - DO'NT TOUCH THIS LINE
 #define eval(...) \
     LivePT::LazyTypeDetector< \
         std::decay_t<decltype(__VA_ARGS__)>, \
+        LivePT::FixedString{"eval"}, \
         LivePT::FixedString<260>{__FILE__}, \
         static_cast<int>(__LINE__), \
         static_cast<int>(__builtin_COLUMN()) \
     >(__VA_ARGS__)
-
 
 
 #else
@@ -239,9 +145,7 @@ namespace LivePT {
 #define eval(...) __VA_ARGS__
 
 namespace LivePT {
-    inline void ProcessEdit() {}
+    void ProcessEdit() {}
 }
-
-#endif
 
 #endif
