@@ -140,7 +140,7 @@
     }
 
 
-    bool baseIsAligned = false;
+    static bool baseIsAligned = false;
 
     inline void AlignDatabaseFastFromDisk() {
         if (baseIsAligned) return;
